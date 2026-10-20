@@ -10,6 +10,7 @@ try:
 except:
     api_key = "YOUR_API_KEY_HERE"
 
+# Khởi tạo client chuẩn của thư viện mới
 client = genai.Client(api_key=api_key)
 
 def get_ai_evaluation(prompt_text: str, content_type: str, retries: int = 1):
@@ -42,9 +43,9 @@ Prompt gốc: {prompt_text}
     
     for attempt in range(retries + 1):
         try:
-            # SỬA LỖI 404: Dùng tên model chuẩn xác của thư viện mới
+            # ĐÃ SỬA THÀNH MODEL CHUẨN TRONG ẢNH GỢI Ý
             response = client.models.generate_content(
-                model='gemini-2.5-flash', 
+                model='gemini-2.0-flash', 
                 contents=system_prompt,
                 config=types.GenerateContentConfig(
                     response_mime_type="application/json",
