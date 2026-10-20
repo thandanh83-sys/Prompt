@@ -23,10 +23,10 @@ class PromptRequest(BaseModel):
     prompt: str
 
 api_key = os.environ.get("GROQ_API_KEY", "")
-if not api_key:
-    print("CẢNH BÁO: CHƯA CÓ GROQ_API_KEY TRÊN RENDER!")
-
 client = Groq(api_key=api_key)
+
+# [TÍNH NĂNG MỚI]: Bộ nhớ đệm lưu kết quả trên RAM
+CACHE = {}
 
 @app.get("/")
 def read_root():
@@ -41,6 +41,11 @@ async def evaluate(req: PromptRequest):
     prompt_text = req.prompt.strip()
     if not prompt_text:
         return {"error": "Prompt trống, vui lòng nhập nội dung cần đánh giá."}
+    
+    # [TÍNH NĂNG MỚI]: Nếu prompt này đã từng chấm, trả ngay kết quả cũ
+    if prompt_text in CACHE:
+        print(f"-> Lấy từ Cache: {prompt_text}")
+        return CACHE[prompt_text]
     
     try:
         content_type = rules_v38.classify_prompt(prompt_text)
@@ -67,7 +72,7 @@ MÃ LỖI BẮT BUỘC (Nếu có lỗi, chỉ dùng các mã này):
 CHỈ TRẢ VỀ CHUỖI JSON HỢP LỆ (Không markdown, không giải thích thêm):
 {{
   "scores": {{ {scores_example} }},
-  "errors": [ {{"code": "[Mã lỗi]", "evidence": "[Trích dẫn nguyên văn từ prompt gốc]"}} ],
+  "errors": [ {{"code": "[Mã lỗi]", "evidence": "[Trích dẫn nguyên văn]"}} ],
   "rewrite": {{ 
     "1. VAI TRÒ": "...", "2. BỐI CẢNH": "...", "3. INPUT": "...", 
     "4. MỤC TIÊU": "...", "5. YÊU CẦU": "...", "6. RÀNG BUỘC": "...", 
@@ -101,7 +106,7 @@ Prompt gốc cần đánh giá: {prompt_text}
                         time.sleep(3)
                         continue
                     else:
-                        return {"error": "Hệ thống Groq đang quá tải. Vui lòng thử lại sau ít phút!"}
+                        return {"error": "Hệ thống Groq đang quá tải. Vui lòng thử lại sau!"}
                 raise e
         
         raw_text = response.choices[0].message.content.strip()
@@ -109,18 +114,23 @@ Prompt gốc cần đánh giá: {prompt_text}
             raw_text = raw_text[7:-3].strip()
         
         ai_data = json.loads(raw_text)
-        
         validate_full_report(ai_data, content_type, prompt_text)
         final_score = calculate_final_score(ai_data["scores"], content_type)
         
-        return {
+        result = {
             "prompt": prompt_text,
             "type": content_type,
             "total": final_score,
             "details": {criteria[k]["name"]: v for k, v in ai_data["scores"].items()},
-            "errors": ai_data["errors"], # <-- TRẢ VỀ MẢNG LỖI CHO FRONTEND
+            "errors": ai_data["errors"], 
             "rewrite": ai_data["rewrite"]
         }
+        
+        # [TÍNH NĂNG MỚI]: Lưu kết quả vào bộ nhớ đệm
+        CACHE[prompt_text] = result
+        print(f"-> Đã lưu vào Cache: {prompt_text}")
+        
+        return result
         
     except Exception as e:
         return {"error": str(e)}
