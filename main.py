@@ -113,13 +113,12 @@ Prompt gốc cần đánh giá: {prompt_text}
         validate_full_report(ai_data, content_type, prompt_text)
         final_score = calculate_final_score(ai_data["scores"], content_type)
         
-        # TRẢ VỀ ĐẦY ĐỦ DỮ LIỆU CHO FRONTEND (Bao gồm cả errors)
         return {
             "prompt": prompt_text,
             "type": content_type,
             "total": final_score,
             "details": {criteria[k]["name"]: v for k, v in ai_data["scores"].items()},
-            "errors": ai_data["errors"], 
+            "errors": ai_data["errors"], # <-- TRẢ VỀ MẢNG LỖI CHO FRONTEND
             "rewrite": ai_data["rewrite"]
         }
         
