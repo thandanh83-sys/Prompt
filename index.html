@@ -4,877 +4,285 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hệ thống Đánh giá Prompt</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><defs><linearGradient id=%22g%22 x1=%220%%22 y1=%220%%22 x2=%22100%%22 y2=%22100%%22><stop offset=%220%%22 stop-color=%22%23ec4899%22/><stop offset=%22100%%22 stop-color=%22%233b82f6%22/></linearGradient></defs><rect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22url(%23g)%22/><text x=%2250%22 y=%2272%22 font-size=%2260%22 font-family=%22Arial,sans-serif%22 font-weight=%22bold%22 fill=%22white%22 text-anchor=%22middle%22>P</text></svg>">
-    <script src="https://cdn.tailwindcss.com"></script><!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hệ thống Đánh giá Prompt</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><defs><linearGradient id=%22g%22 x1=%220%%22 y1=%220%%22 x2=%22100%%22 y2=%22100%%22><stop offset=%220%%22 stop-color=%22%23ec4899%22/><stop offset=%22100%%22 stop-color=%22%233b82f6%22/></linearGradient></defs><rect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22url(%23g)%22/><text x=%2250%22 y=%2272%22 font-size=%2260%22 font-family=%22Arial,sans-serif%22 font-weight=%22bold%22 fill=%22white%22 text-anchor=%22middle%22>P</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
-    <script>tailwind.config = { darkMode: 'class' };</script>
     <style>
         .glass-card { transition: all 0.3s ease; }
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-        .dark ::-webkit-scrollbar-thumb { background: #475569; }
+        .loader { border: 4px solid #f3f3f3; border-top: 4px solid #ec4899; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; display: inline-block; vertical-align: middle; margin-right: 8px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
-<div class="min-h-screen bg-gradient-to-br from-slate-50 to-blue-100 text-slate-800 dark:from-slate-900 dark:to-slate-800 dark:text-slate-100 transition-colors duration-300">
-    <button id="themeToggle" class="fixed top-4 right-4 w-12 h-12 flex items-center justify-center rounded-full bg-white/50 dark:bg-slate-800/60 backdrop-blur-md shadow-lg border border-white/50 dark:border-slate-700/60 text-2xl z-50 hover:scale-105 transition-transform">🌙</button>
 
-    <div class="max-w-4xl mx-auto pt-10 px-4 pb-20">
-        <h1 class="text-3xl font-bold text-center mb-6 text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-blue-400">Hệ thống Đánh giá Prompt</h1>
+<div class="min-h-screen bg-gradient-to-br from-slate-50 to-blue-100 text-slate-800 transition-colors duration-300" id="mainBody">
+  
+  <button id="themeToggle" class="fixed top-4 right-4 w-12 h-12 flex items-center justify-center rounded-full bg-white/50 backdrop-blur-md shadow-lg border border-white/50 text-2xl z-50">🌙</button>
 
-        <div class="flex justify-center mb-8">
-            <div class="flex bg-white/40 dark:bg-slate-800/60 backdrop-blur-md rounded-full p-1 border border-white/50 dark:border-slate-700/60 shadow-sm">
-                <button id="tabUser" class="px-8 py-2 rounded-full font-semibold bg-gradient-to-r from-pink-500 to-blue-400 text-white shadow-md transition-all">User</button>
-                <button id="tabAdmin" class="px-8 py-2 rounded-full font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 transition-all">Admin</button>
-            </div>
-        </div>
-
-        <!-- KHU VỰC USER MODE -->
-        <div id="userModeSection">
-            <div class="glass-card bg-white/40 dark:bg-slate-800/60 backdrop-blur-lg border border-white/60 dark:border-slate-700/60 shadow-xl rounded-3xl p-6">
-                <textarea id="promptInput" class="w-full h-32 p-4 rounded-2xl bg-white/60 dark:bg-slate-900/60 border border-white/80 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-pink-400 resize-none text-slate-800 dark:text-slate-100" placeholder="Nhập prompt cần đánh giá..."></textarea>
-                <p id="errorMsg" class="text-red-500 text-sm mt-2 font-semibold" style="display: none;">Vui lòng nhập prompt!</p>
-                <button id="btnEvaluate" class="w-full mt-4 py-3 rounded-full font-bold bg-gradient-to-r from-pink-500 to-blue-400 text-white shadow-lg hover:opacity-90 disabled:opacity-60 transition">Đánh giá</button>
-            </div>
-
-            <div id="resultArea" class="mt-6 space-y-6" style="display: none;">
-                <!-- Khối Điểm tổng -->
-                <div class="glass-card bg-white/40 dark:bg-slate-800/60 backdrop-blur-lg border border-white/60 dark:border-slate-700/60 shadow-xl rounded-3xl p-6 flex justify-between items-stretch">
-                    <div class="flex flex-col justify-center">
-                        <p class="text-sm font-semibold text-slate-500 uppercase mb-1">Điểm tổng</p>
-                        <div class="flex items-baseline">
-                            <span id="totalScore" class="text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-blue-400">0.0</span>
-                            <span class="text-2xl font-bold text-slate-400 ml-1">/ 10</span>
-                        </div>
-                    </div>
-                    <div class="flex flex-col justify-end items-end h-full">
-                        <p class="text-sm font-semibold text-slate-500 uppercase mb-2">Phân loại</p>
-                        <span id="promptType" class="px-5 py-2 rounded-full font-bold text-white bg-gradient-to-r from-pink-500 to-blue-400 shadow-md">PROMPT</span>
-                    </div>
-                </div>
-
-                <!-- Khối Danh sách lỗi chi tiết -->
-                <div class="glass-card bg-white/40 dark:bg-slate-800/60 backdrop-blur-lg border border-white/60 dark:border-slate-700/60 shadow-xl rounded-3xl p-6">
-                    <h3 class="font-bold text-lg mb-4 text-red-500">Danh sách lỗi chi tiết</h3>
-                    <ul id="userErrorList" class="space-y-3 text-sm text-slate-700 dark:text-slate-300">
-                        <li>Chưa có dữ liệu</li>
-                    </ul>
-                </div>
-
-                <!-- Khối Điểm tiêu chí -->
-                <div class="glass-card bg-white/40 dark:bg-slate-800/60 backdrop-blur-lg border border-white/60 dark:border-slate-700/60 shadow-xl rounded-3xl p-6">
-                    <h3 class="font-bold text-lg mb-4">Điểm từng tiêu chí</h3>
-                    <div id="criteriaList" class="grid grid-cols-2 gap-x-6 gap-y-5"></div>
-                </div>
-
-                <!-- Khối Bản sửa 11 mục -->
-                <div class="glass-card bg-white/40 dark:bg-slate-800/60 backdrop-blur-lg border border-white/60 dark:border-slate-700/60 shadow-xl rounded-3xl p-6 relative">
-                    <button id="btnCopyAll" class="absolute top-4 right-4 flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300 bg-white/60 dark:bg-slate-900/60 rounded-md border border-slate-200 dark:border-slate-700 shadow-sm hover:bg-white dark:hover:bg-slate-800 transition">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                        </svg>
-                        <span id="copyBtnText">Sao chép</span>
-                    </button>
-                    <h3 class="font-bold text-lg mb-4">Bản sửa (11 mục)</h3>
-                    <div id="rewriteList" class="space-y-3 text-sm pt-2"></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- KHU VỰC ADMIN MODE -->
-        <div id="adminModeSection" style="display: none;">
-            <div id="adminLoginBox" class="glass-card bg-white/40 dark:bg-slate-800/60 backdrop-blur-lg border border-white/60 dark:border-slate-700/60 shadow-xl rounded-3xl p-6 max-w-md mx-auto text-center">
-                <h3 class="font-bold text-lg mb-4">Đăng nhập Admin</h3>
-                
-                <!-- [CẬP NHẬT]: Thêm nút hiện mật khẩu -->
-                <div class="relative w-full mb-4">
-                    <input type="password" id="adminPassword" class="w-full p-3 rounded-xl bg-white/60 dark:bg-slate-900/60 border border-white/80 dark:border-slate-700 text-center pr-10 focus:outline-none focus:ring-2 focus:ring-pink-400 text-slate-800 dark:text-slate-100" placeholder="Mật khẩu...">
-                    <button type="button" id="toggleAdminPassword" class="absolute inset-y-0 right-0 pr-4 flex items-center text-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 cursor-pointer" title="Hiện/Ẩn mật khẩu">
-                        👁️
-                    </button>
-                </div>
-
-                <p id="adminError" class="text-red-500 text-sm font-semibold mb-4" style="display: none;">Sai mật khẩu. Vui lòng thử lại.</p>
-                <button id="btnAdminLogin" class="w-full py-3 rounded-full font-bold bg-gradient-to-r from-pink-500 to-blue-400 text-white shadow-lg hover:opacity-90 transition">Đăng nhập</button>
-            </div>
-
-            <div id="adminDashboard" class="glass-card bg-white/40 dark:bg-slate-800/60 backdrop-blur-lg border border-white/60 dark:border-slate-700/60 shadow-xl rounded-3xl p-6 space-y-6" style="display: none;">
-                <h3 class="font-bold text-xl border-b border-slate-200 dark:border-slate-700 pb-4"> CHI TIẾT </h3>
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="bg-white/60 dark:bg-slate-900/60 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
-                        <p class="text-xs text-slate-500 uppercase font-bold mb-1">Prompt gần nhất:</p>
-                        <p id="adminLastPrompt" class="font-medium text-sm break-words">Chưa có dữ liệu</p>
-                        <div class="mt-2 flex gap-2">
-                            <span class="text-xs bg-pink-100 text-pink-600 px-2 py-1 rounded font-bold" id="adminLastType">PROMPT</span>
-                            <span class="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded font-bold">Điểm: <span id="adminLastScore">0.0</span></span>
-                        </div>
-                    </div>
-                    
-                    <div class="bg-white/60 dark:bg-slate-900/60 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
-                        <p class="text-xs text-slate-500 uppercase font-bold mb-2">Chẩn đoán lỗi:</p>
-                        <div class="flex justify-between text-sm mb-1">
-                            <span class="text-slate-600 dark:text-slate-400">Số lỗi gốc:</span>
-                            <span class="font-bold text-red-500" id="adminTotalErrors">0</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="bg-white/60 dark:bg-slate-900/60 p-4 rounded-xl border border-slate-200 dark:border-slate-700 mt-4">
-                    <p class="text-xs text-slate-500 uppercase font-bold mb-2">Chi tiết mã lỗi:</p>
-                    <ul id="adminErrorList" class="text-sm space-y-2 list-disc pl-5 text-slate-700 dark:text-slate-300">
-                        <li>Chưa có dữ liệu</li>
-                    </ul>
-                </div>
-
-                <div class="overflow-x-auto mt-4">
-                    <p class="text-xs text-slate-500 uppercase font-bold mb-2">Lịch sử đánh giá:</p>
-                    <table class="w-full text-sm text-left">
-                        <thead class="text-xs text-slate-500 uppercase bg-white/50 dark:bg-slate-900/50">
-                            <tr>
-                                <th class="px-4 py-2 rounded-l-lg">Thời gian</th>
-                                <th class="px-4 py-2">Prompt</th>
-                                <th class="px-4 py-2">Loại</th>
-                                <th class="px-4 py-2 rounded-r-lg">Điểm</th>
-                            </tr>
-                        </thead>
-                        <tbody id="adminHistoryList"></tbody>
-                    </table>
-                </div>
-
-                <div class="flex gap-4 pt-2">
-                    <button id="btnAdminLogout" class="flex-1 py-3 rounded-full font-bold bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 transition">Đăng xuất</button>
-                    <button id="btnClearHistory" class="flex-1 py-3 rounded-full font-bold bg-red-100 text-red-600 hover:bg-red-200 transition">Xóa lịch sử</button>
-                </div>
-            </div>
-        </div>
+  <div class="max-w-4xl mx-auto pt-10 px-4 pb-20">
+    <h1 class="text-3xl font-bold text-center mb-6 text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-blue-400">Hệ thống Đánh giá Prompt</h1>
+    
+    <div class="flex justify-center mb-8">
+      <div class="flex bg-white/40 backdrop-blur-md rounded-full p-1 border border-white/50 shadow-sm">
+        <button id="tabUser" class="px-8 py-2 rounded-full font-semibold bg-gradient-to-r from-pink-500 to-blue-400 text-white shadow-md transition-all">User</button>
+        <button id="tabAdmin" class="px-8 py-2 rounded-full font-semibold text-slate-600 hover:text-slate-900 transition-all">Admin</button>
+      </div>
     </div>
+
+    <!-- USER MODE -->
+    <div id="userModeSection" class="block">
+      <div class="glass-card bg-white/40 backdrop-blur-lg border border-white/60 shadow-xl rounded-3xl p-6">
+        <textarea id="promptInput" class="w-full h-32 p-4 rounded-2xl bg-white/60 border border-white/80 focus:outline-none focus:ring-2 focus:ring-pink-400 resize-none text-slate-800" placeholder="Nhập prompt cần đánh giá..."></textarea>
+        <p id="errorMsg" class="text-red-500 text-sm mt-2 font-semibold" style="display: none;"></p>
+        <button id="btnEvaluate" class="w-full mt-4 py-3 rounded-full font-bold bg-gradient-to-r from-pink-500 to-blue-400 text-white shadow-lg hover:opacity-90 transition flex justify-center items-center">
+            <span id="btnText">Đánh giá</span>
+            <span id="btnLoader" class="loader" style="display: none;"></span>
+        </button>
+      </div>
+
+      <div id="resultArea" class="mt-6 space-y-6" style="display: none;">
+        <div class="glass-card bg-white/40 backdrop-blur-lg border border-white/60 shadow-xl rounded-3xl p-6 flex justify-between items-center">
+          <div>
+            <p class="text-sm font-semibold text-slate-500 uppercase">Điểm tổng</p>
+            <div class="flex items-baseline">
+              <span id="totalScore" class="text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-blue-400">0.0</span>
+              <span class="text-2xl font-bold text-slate-400 ml-1">/ 10</span>
+            </div>
+          </div>
+          <div class="text-right">
+            <p class="text-sm font-semibold text-slate-500 uppercase mb-2">Phân loại</p>
+            <span id="promptType" class="px-5 py-2 rounded-full font-bold text-white bg-gradient-to-r from-pink-500 to-blue-400 shadow-md">PROMPT</span>
+          </div>
+        </div>
+
+        <div class="glass-card bg-white/40 backdrop-blur-lg border border-white/60 shadow-xl rounded-3xl p-6">
+          <h3 class="font-bold text-lg mb-4 text-slate-700">Danh sách lỗi</h3>
+          <div id="errorList" class="space-y-2"></div>
+        </div>
+
+        <div class="glass-card bg-white/40 backdrop-blur-lg border border-white/60 shadow-xl rounded-3xl p-6">
+          <h3 class="font-bold text-lg mb-4 text-slate-700">Điểm từng tiêu chí</h3>
+          <div id="criteriaList" class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4"></div>
+        </div>
+
+        <div class="glass-card bg-white/40 backdrop-blur-lg border border-white/60 shadow-xl rounded-3xl p-6 relative">
+          <button id="btnCopyAll" class="absolute top-4 right-4 flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-500 bg-white/60 hover:bg-white/90 rounded-md border border-slate-200 transition-colors shadow-sm">
+            <span id="copyBtnText">Sao chép</span>
+          </button>
+          <h3 class="font-bold text-lg mb-4 text-slate-700">Bản sửa</h3>
+          <div id="rewriteList" class="space-y-3 text-sm pt-2"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ADMIN MODE -->
+    <div id="adminModeSection" style="display: none;">
+      <div id="adminLoginBox" class="glass-card bg-white/40 backdrop-blur-lg border border-white/60 shadow-xl rounded-3xl p-6 max-w-md mx-auto text-center" style="display: block;">
+        <h3 class="font-bold text-lg mb-4 text-slate-700">Đăng nhập Admin</h3>
+        <div class="relative w-full mb-4">
+            <input type="password" id="adminPassword" class="w-full p-3 rounded-xl bg-white/60 border border-white/80 text-center pr-10 focus:outline-none focus:ring-2 focus:ring-pink-400 text-slate-800 font-medium" placeholder="Nhập mật khẩu...">
+            <button type="button" id="togglePassword" class="absolute inset-y-0 right-0 pr-4 flex items-center text-xl text-slate-400 hover:text-slate-700 cursor-pointer">👁️</button>
+        </div>
+        <p id="adminError" class="text-red-500 text-sm font-semibold mb-4" style="display: none;">Sai mật khẩu. Vui lòng thử lại.</p>
+        <button id="btnAdminLogin" class="w-full py-3 rounded-full font-bold bg-gradient-to-r from-pink-500 to-blue-400 text-white shadow-lg hover:opacity-90 transition">Đăng nhập</button>
+      </div>
+
+      <div id="adminDashboard" class="glass-card bg-white/40 backdrop-blur-lg border border-white/60 shadow-xl rounded-3xl p-6 space-y-6" style="display: none;">
+        <div class="flex justify-between items-center border-b border-white/50 pb-4">
+          <h3 class="font-bold text-xl text-slate-700">🔧 CHI TIẾT NỘI BỘ</h3>
+        </div>
+        <div class="bg-white/60 p-4 rounded-xl border border-white/80 shadow-sm">
+            <p class="text-sm text-slate-500 font-semibold mb-1">Prompt gần nhất:</p>
+            <p id="adminLastPrompt" class="font-medium text-slate-800 break-words">Chưa có dữ liệu</p>
+            <p class="text-sm text-slate-500 font-semibold mt-2">Điểm số: <span id="adminLastScore" class="text-xl font-bold text-pink-500">0.0</span></p>
+        </div>
+        <div class="flex gap-4 pt-2">
+          <button id="btnAdminLogout" class="flex-1 py-3 rounded-full font-bold bg-slate-200 text-slate-700 hover:bg-slate-300 transition">Đăng xuất</button>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script>
-    const API_URL = "https://prompt-tx2e.onrender.com/evaluate"; 
-    const SECTION_NAMES = ["1. VAI TRÒ", "2. BỐI CẢNH", "3. INPUT", "4. MỤC TIÊU", "5. YÊU CẦU", "6. RÀNG BUỘC", "7. TASK", "8. ĐỊNH DẠNG ĐẦU RA", "9. NEVER DO", "10. THỨ TỰ ƯU TIÊN", "11. XỬ LÝ NỘI BỘ"];
-    const $ = id => document.getElementById(id);
-    let lastResult = null;
-    let historyData = [];
+// [CẤU HÌNH API RENDER - Đã xóa bỏ dấu Markdown]
+const API_URL = "https://ho-tro-tao-prompt.onrender.com/evaluate";
+let globalHistory = null;
 
-    const ERROR_NAMES = {
-        "A01": "Lỗi chính tả", "A02": "Thiếu dấu câu", "A03": "Lặp lại",
-        "B01": "Thiếu thành phần cấu trúc", "B02": "Mục không logic", "B03": "Sai phân cấp", "B04": "Chưa quy định định dạng đầu ra",
-        "C01": "Đối tượng chưa rõ", "C02": "Thiếu bối cảnh", "C03": "Yêu cầu chung chung", "C04": "Thiếu ví dụ",
-        "D01": "Mâu thuẫn nội bộ", "D02": "Yêu cầu bất khả thi", "D03": "Vai trò không phù hợp",
-        "E01": "Trộn lĩnh vực", "E02": "Thuật ngữ không nhất quán", "E03": "Thiếu tính đặc thù lĩnh vực"
-    };
+// [TỪ ĐIỂN DỊCH MÃ LỖI] - Giải quyết vấn đề Backend trả về P01, P02...
+const CRITERIA_NAMES = {
+    "P01": "Độ rõ nhiệm vụ", "P02": "Đối tượng tác động", "P03": "Bối cảnh", "P04": "Định dạng đầu ra",
+    "P05": "Độ chi tiết và ví dụ", "P06": "Không mơ hồ", "P07": "Không chung chung", "P08": "Có cấu trúc",
+    "P09": "Phù hợp nhiệm vụ", "P10": "Chuyên môn có căn cứ", "P11": "Nhất quán lĩnh vực", "P12": "Yêu cầu khả thi",
+    "P13": "Vai trò phù hợp", "P14": "Không mâu thuẫn",
+    "T01": "Đủ mục", "T02": "Mục hợp lý", "T03": "Hướng dẫn điền", "T04": "Ví dụ mẫu", "T05": "Phân cấp",
+    "T06": "Quy tắc cấm", "T07": "Quy tắc ưu tiên", "T08": "Quy trình xử lý", "T09": "Chất lượng placeholder",
+    "M01": "Cấu trúc", "M02": "Chi tiết", "M03": "Định dạng", "M04": "Nhất quán", "M05": "Khả thi",
+    "M06": "Vai trò", "M07": "Mở rộng", "M08": "Ứng dụng", "M09": "Quy trình"
+};
+
+// Hàm dịch mã (P01 -> Độ rõ nhiệm vụ)
+function getCriteriaName(code) {
+    return CRITERIA_NAMES[code] || code; 
+}
+
+// [XỬ LÝ ĐÁNH GIÁ - GỌI API THẬT & BẮT LỖI CHI TIẾT]
+document.getElementById('btnEvaluate').addEventListener('click', async () => {
+    let prompt = document.getElementById('promptInput').value.trim();
+    const errorMsg = document.getElementById('errorMsg');
+    const btnText = document.getElementById('btnText');
+    const btnLoader = document.getElementById('btnLoader');
+    const btnEval = document.getElementById('btnEvaluate');
+
+    if (!prompt) { 
+        errorMsg.textContent = 'Vui lòng nhập prompt!'; errorMsg.style.display = 'block'; return; 
+    }
+    errorMsg.style.display = 'none';
+
+    // Trạng thái Loading
+    btnEval.disabled = true;
+    btnText.textContent = "Đang chấm điểm...";
+    btnLoader.style.display = "inline-block";
 
     try {
-        const saved = localStorage.getItem('prompt_history');
-        if (saved) historyData = JSON.parse(saved);
-    } catch(e) {}
-
-    function applyTheme(dark) {
-        document.documentElement.classList.toggle('dark', dark);
-        $('themeToggle').textContent = dark ? '☀️' : '🌙';
-        try { localStorage.setItem('theme', dark ? 'dark' : 'light'); } catch (e) {}
-    }
-    (function initTheme() {
-        let saved = null; try { saved = localStorage.getItem('theme'); } catch (e) {}
-        applyTheme(saved ? saved === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches);
-    })();
-    $('themeToggle').addEventListener('click', () => applyTheme(!document.documentElement.classList.contains('dark')));
-
-    async function evaluatePrompt(prompt) {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 180000); 
-        try {
-            const response = await fetch(API_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ prompt: prompt }),
-                signal: controller.signal
-            });
-            clearTimeout(timeoutId);
-            const data = await response.json();
-            if (data.error) throw new Error(data.error);
-            if (!response.ok) throw new Error("Lỗi HTTP: " + response.status);
-            return data;
-        } catch (error) {
-            clearTimeout(timeoutId);
-            if (error.name === 'AbortError') {
-                throw new Error("Quá thời gian chờ (3 phút). Server Render đang khởi động rất chậm, bạn vui lòng bấm lại lần nữa!");
-            }
-            throw error;
-        }
-    }
-
-    function render(r) {
-        $('totalScore').textContent = r.total;
-        
-        const typeMap = { "PROMPT": "PROMPT", "TEMPLATE": "TEMPLATE", "PROMPT META": "PROMPT META", "TABLE": "TABLE", "STEM": "TOÁN/LÝ/HÓA" };
-        $('promptType').textContent = typeMap[r.type] || r.type;
-
-        // Render Điểm tiêu chí (Không hiển thị trọng số)
-        const list = $('criteriaList'); list.replaceChildren();
-        Object.entries(r.details).forEach(([name, score]) => {
-            const row = document.createElement('div');
-            row.innerHTML = `
-                <div class="flex justify-between text-sm font-semibold mb-1">
-                    <span class="truncate pr-1" title="${name}">${name}</span>
-                    <span class="${score < 6 ? 'text-pink-500' : 'text-blue-500'}">${score}/10</span>
-                </div>
-                <div class="w-full bg-slate-200/50 dark:bg-slate-700/50 rounded-full h-2">
-                    <div class="h-2 rounded-full bg-gradient-to-r from-pink-500 to-blue-500" style="width: ${score * 10}%"></div>
-                </div>`;
-            list.append(row);
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ prompt: prompt })
         });
 
-        // --- DÀNH CHO USER MODE ---
-        const userErrList = $('userErrorList');
-        userErrList.innerHTML = '';
-        if (r.errors && r.errors.length > 0) {
-            r.errors.forEach(err => {
-                const errName = ERROR_NAMES[err.code] || "Lỗi không xác định";
-                let evidenceText = "";
-                if (err.evidence && err.evidence !== "Toàn bộ" && err.evidence !== "Toàn bộ prompt") {
-                    evidenceText = `"${err.evidence}"`;
-                }
-                
-                let suggestion = "Hãy bổ sung thêm thông tin chi tiết.";
-                if (errName.includes("bối cảnh")) suggestion = "Bạn cần nêu rõ hoàn cảnh, mục đích sử dụng.";
-                else if (errName.includes("đối tượng")) suggestion = "Bạn cần chỉ định rõ người, vật hoặc dữ liệu.";
-                else if (errName.includes("chính tả")) suggestion = "Hãy kiểm tra lại lỗi gõ phím.";
-                else if (errName.includes("mục tiêu")) suggestion = "Hãy nói rõ bạn muốn AI làm gì (viết, phân tích...).";
-                else if (errName.includes("định dạng")) suggestion = "Hãy yêu cầu cụ thể đầu ra là đoạn văn, gạch đầu dòng hay bảng.";
+        // Xử lý lỗi HTTP (500, 404, 422...)
+        if (!response.ok) {
+            const errData = await response.json().catch(() => ({}));
+            throw new Error(errData.detail || `Lỗi từ máy chủ (${response.status})`);
+        }
 
-                userErrList.innerHTML += `
-                    <li class="flex items-start gap-3 mb-3 p-3 bg-red-50/80 dark:bg-red-900/20 rounded-xl border border-red-100 dark:border-red-900/50">
-                        <span class="text-red-500 font-bold mt-0.5 text-lg">•</span>
-                        <div>
-                            <p class="text-slate-800 dark:text-slate-200 font-semibold">${errName}</p>
-                            <p class="text-sm text-slate-600 dark:text-slate-400 mt-1">
-                                ${evidenceText ? `Trích dẫn: <i>${evidenceText}</i><br>` : ''}
-                                <span class="text-red-600 dark:text-red-400 font-medium">👉 Gợi ý: ${suggestion}</span>
-                            </p>
-                        </div>
-                    </li>`;
-            });
+        const data = await response.json();
+        
+        // LƯU Ý: Cấu trúc data dưới đây phụ thuộc vào Backend.
+        // Nếu Backend trả về { "scores": { "P01": 8 } }, bạn sửa 'details' thành 'scores'.
+        globalHistory = data;
+
+        // 1. Render Điểm tổng
+        document.getElementById('totalScore').textContent = data.total || "0.0";
+        document.getElementById('promptType').textContent = data.type || "PROMPT";
+
+        // 2. Render Tiêu chí (Dùng DOM API chống XSS)
+        const criteriaList = document.getElementById('criteriaList');
+        criteriaList.replaceChildren();
+        let errHTMLNodes = [];
+        
+        // Xử lý linh hoạt nếu API trả về details hoặc criteria
+        const detailsObj = data.details || data.criteria || {};
+
+        Object.entries(detailsObj).forEach(([code, score]) => {
+            const realName = getCriteriaName(code); // Dịch P01 -> Tên tiếng Việt
+            
+            const div = document.createElement('div');
+            const flexDiv = document.createElement('div'); flexDiv.className = 'flex justify-between text-sm font-semibold mb-1';
+            
+            const spanName = document.createElement('span'); spanName.textContent = realName; 
+            const spanScore = document.createElement('span'); spanScore.textContent = `${score}/10`;
+            
+            flexDiv.appendChild(spanName); flexDiv.appendChild(spanScore);
+            
+            const barBg = document.createElement('div'); barBg.className = 'w-full bg-slate-200/50 rounded-full h-2';
+            const barFill = document.createElement('div'); 
+            barFill.className = score < 6 ? 'h-2 rounded-full bg-gradient-to-r from-pink-600 to-pink-400' : 'h-2 rounded-full bg-gradient-to-r from-blue-600 to-blue-400';
+            barFill.style.width = `${score * 10}%`;
+            
+            barBg.appendChild(barFill); div.appendChild(flexDiv); div.appendChild(barBg);
+            criteriaList.appendChild(div);
+
+            // Thu thập lỗi
+            if (score < 6) {
+                const errDiv = document.createElement('div');
+                errDiv.className = 'text-sm text-red-600 bg-red-50/50 p-3 rounded-xl border border-red-100 mb-2';
+                const strong = document.createElement('strong');
+                strong.textContent = `Tiêu chí ${realName} còn yếu (${score}/10)`;
+                errDiv.appendChild(strong); errDiv.appendChild(document.createTextNode(', nên bổ sung thêm.'));
+                errHTMLNodes.push(errDiv);
+            }
+        });
+
+        // 3. Render Danh sách lỗi
+        const errorList = document.getElementById('errorList');
+        errorList.replaceChildren();
+        if (errHTMLNodes.length === 0) {
+            const p = document.createElement('p'); p.className = 'text-sm text-green-600 font-semibold'; p.textContent = 'Không có lỗi đáng kể.'; errorList.appendChild(p);
         } else {
-            userErrList.innerHTML = `<li class="text-green-600 dark:text-green-400 font-semibold p-3 bg-green-50 dark:bg-green-900/20 rounded-xl">Tuyệt vời! Không phát hiện lỗi nào.</li>`;
+            errHTMLNodes.forEach(node => errorList.appendChild(node));
         }
 
-        // --- DÀNH CHO ADMIN MODE ---
-        const adminErrorList = $('adminErrorList');
-        adminErrorList.innerHTML = '';
-        if (r.errors && r.errors.length > 0) {
-            r.errors.forEach(err => {
-                const errName = ERROR_NAMES[err.code] || "Lỗi không xác định";
-                let evidenceText = (err.evidence === "Toàn bộ" || err.evidence === "Toàn bộ prompt") ? "" : `"${err.evidence}"`;
-                adminErrorList.innerHTML += `
-                    <li class="flex items-start gap-2 mb-2">
-                        <span class="bg-red-100 text-red-600 px-2 py-0.5 rounded font-bold text-xs mt-0.5 whitespace-nowrap">${err.code}</span>
-                        <span class="text-sm text-slate-700 dark:text-slate-300"><strong>${errName}:</strong> <i class="text-slate-500">${evidenceText}</i></span>
-                    </li>`;
+        // 4. Render Bản sửa
+        const rewriteList = document.getElementById('rewriteList');
+        rewriteList.replaceChildren();
+        if (data.rewrite) {
+            Object.entries(data.rewrite).forEach(([section, content]) => {
+                const card = document.createElement('div'); card.className = 'p-3 bg-white/50 rounded-xl border border-white/60 mb-2';
+                const heading = document.createElement('p'); heading.className = 'font-bold text-pink-500 mb-1'; heading.textContent = section;
+                const text = document.createElement('p'); text.className = 'text-slate-700'; text.textContent = content; // Chống XSS
+                card.appendChild(heading); card.appendChild(text); rewriteList.appendChild(card);
             });
+        }
+
+        document.getElementById('resultArea').style.display = 'block';
+
+    } catch (error) {
+        // Bắt lỗi chi tiết
+        if (error.name === 'TypeError' && error.message.includes('fetch')) {
+            errorMsg.textContent = "Lỗi kết nối mạng hoặc Backend chưa bật CORS!";
         } else {
-            adminErrorList.innerHTML = `<li class="text-green-500 font-semibold text-sm">Không có lỗi.</li>`;
+            errorMsg.textContent = error.message;
         }
-
-        const rw = $('rewriteList'); rw.replaceChildren();
-        SECTION_NAMES.forEach(sec => {
-            const card = document.createElement('div');
-            card.className = 'p-3 bg-white/50 dark:bg-slate-900/50 rounded-xl border border-white/60 dark:border-slate-700/60';
-            card.innerHTML = `<p class="font-bold text-pink-500 mb-1">${sec}</p><p class="text-slate-700 dark:text-slate-200 break-words">${r.rewrite[sec] || ''}</p>`;
-            rw.append(card);
-        });
-        
-        $('resultArea').style.display = 'block';
-
-        $('adminLastPrompt').innerText = r.prompt;
-        $('adminLastScore').innerText = r.total;
-        $('adminLastType').innerText = typeMap[r.type] || r.type;
-        $('adminTotalErrors').innerText = (r.errors && r.errors.length > 0) ? r.errors.length : "0";
+        errorMsg.style.display = 'block';
+    } finally {
+        // Tắt Loading
+        btnEval.disabled = false;
+        btnText.textContent = "Đánh giá";
+        btnLoader.style.display = "none";
     }
+});
 
-    function updateAdminHistory() {
-        const tbody = $('adminHistoryList'); tbody.replaceChildren();
-        if (historyData.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-slate-500">Chưa có dữ liệu lịch sử.</td></tr>`;
-            return;
+// CÁC HÀM UI KHÁC (Copy, Admin, Sáng/Tối)
+document.getElementById('btnCopyAll').addEventListener('click', () => {
+    if (!globalHistory || !globalHistory.rewrite) return alert("Chưa có dữ liệu!");
+    let textToCopy = "=== BẢN SỬA PROMPT ===\n\n";
+    Object.entries(globalHistory.rewrite).forEach(([sec, content]) => { textToCopy += `${sec}:\n${content}\n\n`; });
+    navigator.clipboard.writeText(textToCopy).then(() => { alert("Đã sao chép!"); }).catch(err => alert("Lỗi copy: " + err));
+});
+
+document.getElementById('togglePassword').addEventListener('click', function() {
+    const pwdInput = document.getElementById('adminPassword');
+    if (pwdInput.type === 'password') { pwdInput.type = 'text'; this.innerText = '🙈'; } else { pwdInput.type = 'password'; this.innerText = '👁️'; }
+});
+
+document.getElementById('btnAdminLogin').addEventListener('click', () => {
+    let pwd = document.getElementById('adminPassword').value.trim();
+    if (pwd === "bisdo091121") {
+        document.getElementById('adminLoginBox').style.display = 'none';
+        document.getElementById('adminDashboard').style.display = 'block';
+        if (globalHistory) {
+            document.getElementById('adminLastPrompt').textContent = globalHistory.prompt || "N/A";
+            document.getElementById('adminLastScore').textContent = globalHistory.total || "0.0";
         }
-        historyData.slice().reverse().forEach(item => {
-            const tr = document.createElement('tr');
-            tr.className = "border-b border-slate-200/50 dark:border-slate-700/50 bg-white/30 dark:bg-slate-800/30";
-            tr.innerHTML = `
-                <td class="px-4 py-3 whitespace-nowrap text-xs text-slate-500">${item.time}</td>
-                <td class="px-4 py-3 truncate max-w-[200px]" title="${item.prompt}">${item.prompt}</td>
-                <td class="px-4 py-3 font-semibold text-blue-500">${item.type}</td>
-                <td class="px-4 py-3 font-bold text-pink-500">${item.score}</td>
-            `;
-            tbody.append(tr);
-        });
+    } else {
+        document.getElementById('adminError').style.display = 'block';
     }
+});
 
-    $('btnEvaluate').addEventListener('click', async () => {
-        const prompt = $('promptInput').value.trim();
-        if (!prompt) { $('errorMsg').style.display = 'block'; return; }
-        $('errorMsg').style.display = 'none';
-        
-        const btn = $('btnEvaluate');
-        btn.disabled = true; 
-        
-        let seconds = 0;
-        btn.textContent = 'Đang kết nối Server (0s)...';
-        const timer = setInterval(() => {
-            seconds++;
-            if (seconds < 15) {
-                btn.textContent = `Đang đợi Server tỉnh dậy (${seconds}s)...`;
-            } else {
-                btn.textContent = `AI đang viết 11 mục (${seconds}s)...`;
-            }
-        }, 1000);
-        
-        try {
-            lastResult = await evaluatePrompt(prompt);
-            render(lastResult);
-            
-            const now = new Date();
-            const timeStr = now.toLocaleTimeString('vi-VN') + ' ' + now.toLocaleDateString('vi-VN');
-            historyData.push({
-                time: timeStr,
-                prompt: lastResult.prompt,
-                type: lastResult.type,
-                score: lastResult.total
-            });
-            localStorage.setItem('prompt_history', JSON.stringify(historyData));
-            
-        } catch (e) {
-            $('errorMsg').textContent = e.message; 
-            $('errorMsg').style.display = 'block';
-        } finally {
-            clearInterval(timer);
-            btn.disabled = false; 
-            btn.textContent = 'Đánh giá';
-        }
-    });
+document.getElementById('btnAdminLogout').addEventListener('click', () => {
+    document.getElementById('adminDashboard').style.display = 'none';
+    document.getElementById('adminLoginBox').style.display = 'block';
+    document.getElementById('adminPassword').value = '';
+});
 
-    $('btnCopyAll').addEventListener('click', async () => {
-        if (!lastResult) return;
-        
-        let text = ""; 
-        
-        SECTION_NAMES.forEach(sec => {
-            let content = lastResult.rewrite[sec] || '';
-            
-            if (sec === "10. THỨ TỰ ƯU TIÊN") {
-                content = content.replace(/;\s*/g, '.\n');
-                content = content.replace(/(\d+\.)\s*/g, '\n$1 ').trim();
-                text += `${sec}:\n${content}\n\n`;
-            } 
-            else if (sec === "11. XỬ LÝ NỘI BỘ") {
-                text += `11.XỬ LÝ NỘI BỘ\n${content}\n\n`;
-            } 
-            else {
-                text += `${sec}:\n${content}\n\n`;
-            }
-        });
-
-        try {
-            await navigator.clipboard.writeText(text);
-            
-            const btn = $('btnCopyAll');
-            const btnText = $('copyBtnText');
-            const originalSVG = btn.querySelector('svg').outerHTML;
-            
-            btnText.textContent = 'Đã chép!'; 
-            btnText.classList.add('text-green-500');
-            btn.querySelector('svg').outerHTML = `
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-                </svg>`;
-            
-            setTimeout(() => { 
-                btnText.textContent = 'Sao chép'; 
-                btnText.classList.remove('text-green-500');
-                btn.querySelector('svg').outerHTML = originalSVG;
-            }, 2000);
-            
-        } catch (e) {
-            alert("Không thể sao chép. Vui lòng thử lại!");
-        }
-    });
-
-    // [THÊM MỚI]: Xử lý ẩn/hiện mật khẩu Admin
-    const togglePwdBtn = $('toggleAdminPassword');
-    if (togglePwdBtn) {
-        togglePwdBtn.addEventListener('click', function() {
-            const pwdInput = $('adminPassword');
-            if (pwdInput.type === 'password') {
-                pwdInput.type = 'text';
-                this.innerText = '🙈';
-            } else {
-                pwdInput.type = 'password';
-                this.innerText = '👁️';
-            }
-        });
-    }
-
-    $('btnAdminLogin').addEventListener('click', () => {
-        if ($('adminPassword').value.trim() === "bisdo091121") {
-            $('adminLoginBox').style.display = 'none'; $('adminDashboard').style.display = 'block';
-            updateAdminHistory(); 
-        } else { $('adminError').style.display = 'block'; }
-    });
-    $('btnAdminLogout').addEventListener('click', () => {
-        $('adminLoginBox').style.display = 'block'; $('adminDashboard').style.display = 'none'; $('adminPassword').value = ''; $('adminError').style.display = 'none';
-    });
-    $('btnClearHistory').addEventListener('click', () => {
-        if(confirm("Bạn có chắc chắn muốn xóa toàn bộ lịch sử đánh giá?")) {
-            historyData = [];
-            localStorage.removeItem('prompt_history');
-            updateAdminHistory();
-        }
-    });
-
-    $('tabUser').addEventListener('click', () => {
-        $('userModeSection').style.display = 'block'; $('adminModeSection').style.display = 'none';
-        $('tabUser').className = "px-8 py-2 rounded-full font-semibold bg-gradient-to-r from-pink-500 to-blue-400 text-white shadow-md transition-all";
-        $('tabAdmin').className = "px-8 py-2 rounded-full font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 transition-all";
-    });
-    $('tabAdmin').addEventListener('click', () => {
-        $('userModeSection').style.display = 'none'; $('adminModeSection').style.display = 'block';
-        $('tabAdmin').className = "px-8 py-2 rounded-full font-semibold bg-gradient-to-r from-pink-500 to-blue-400 text-white shadow-md transition-all";
-        $('tabUser').className = "px-8 py-2 rounded-full font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 transition-all";
-    });
-</script>
-</body>
-</html>
-    <script>tailwind.config = { darkMode: 'class' };</script>
-    <style>
-        .glass-card { transition: all 0.3s ease; }
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-        .dark ::-webkit-scrollbar-thumb { background: #475569; }
-    </style>
-</head>
-<body>
-<div class="min-h-screen bg-gradient-to-br from-slate-50 to-blue-100 text-slate-800 dark:from-slate-900 dark:to-slate-800 dark:text-slate-100 transition-colors duration-300">
-    <button id="themeToggle" class="fixed top-4 right-4 w-12 h-12 flex items-center justify-center rounded-full bg-white/50 dark:bg-slate-800/60 backdrop-blur-md shadow-lg border border-white/50 dark:border-slate-700/60 text-2xl z-50 hover:scale-105 transition-transform">🌙</button>
-
-    <div class="max-w-4xl mx-auto pt-10 px-4 pb-20">
-        <h1 class="text-3xl font-bold text-center mb-6 text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-blue-400">Hệ thống Đánh giá Prompt</h1>
-
-        <div class="flex justify-center mb-8">
-            <div class="flex bg-white/40 dark:bg-slate-800/60 backdrop-blur-md rounded-full p-1 border border-white/50 dark:border-slate-700/60 shadow-sm">
-                <button id="tabUser" class="px-8 py-2 rounded-full font-semibold bg-gradient-to-r from-pink-500 to-blue-400 text-white shadow-md transition-all">User</button>
-                <button id="tabAdmin" class="px-8 py-2 rounded-full font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 transition-all">Admin</button>
-            </div>
-        </div>
-
-        <!-- KHU VỰC USER MODE -->
-        <div id="userModeSection">
-            <div class="glass-card bg-white/40 dark:bg-slate-800/60 backdrop-blur-lg border border-white/60 dark:border-slate-700/60 shadow-xl rounded-3xl p-6">
-                <textarea id="promptInput" class="w-full h-32 p-4 rounded-2xl bg-white/60 dark:bg-slate-900/60 border border-white/80 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-pink-400 resize-none text-slate-800 dark:text-slate-100" placeholder="Nhập prompt cần đánh giá..."></textarea>
-                <p id="errorMsg" class="text-red-500 text-sm mt-2 font-semibold" style="display: none;">Vui lòng nhập prompt!</p>
-                <button id="btnEvaluate" class="w-full mt-4 py-3 rounded-full font-bold bg-gradient-to-r from-pink-500 to-blue-400 text-white shadow-lg hover:opacity-90 disabled:opacity-60 transition">Đánh giá</button>
-            </div>
-
-            <div id="resultArea" class="mt-6 space-y-6" style="display: none;">
-                <!-- Khối Điểm tổng -->
-                <div class="glass-card bg-white/40 dark:bg-slate-800/60 backdrop-blur-lg border border-white/60 dark:border-slate-700/60 shadow-xl rounded-3xl p-6 flex justify-between items-stretch">
-                    <div class="flex flex-col justify-center">
-                        <p class="text-sm font-semibold text-slate-500 uppercase mb-1">Điểm tổng</p>
-                        <div class="flex items-baseline">
-                            <span id="totalScore" class="text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-blue-400">0.0</span>
-                            <span class="text-2xl font-bold text-slate-400 ml-1">/ 10</span>
-                        </div>
-                    </div>
-                    <div class="flex flex-col justify-end items-end h-full">
-                        <p class="text-sm font-semibold text-slate-500 uppercase mb-2">Phân loại</p>
-                        <span id="promptType" class="px-5 py-2 rounded-full font-bold text-white bg-gradient-to-r from-pink-500 to-blue-400 shadow-md">PROMPT</span>
-                    </div>
-                </div>
-
-                <!-- Khối Danh sách lỗi chi tiết -->
-                <div class="glass-card bg-white/40 dark:bg-slate-800/60 backdrop-blur-lg border border-white/60 dark:border-slate-700/60 shadow-xl rounded-3xl p-6">
-                    <h3 class="font-bold text-lg mb-4 text-red-500">Danh sách lỗi chi tiết</h3>
-                    <ul id="userErrorList" class="space-y-3 text-sm text-slate-700 dark:text-slate-300">
-                        <li>Chưa có dữ liệu</li>
-                    </ul>
-                </div>
-
-                <!-- Khối Điểm tiêu chí -->
-                <div class="glass-card bg-white/40 dark:bg-slate-800/60 backdrop-blur-lg border border-white/60 dark:border-slate-700/60 shadow-xl rounded-3xl p-6">
-                    <h3 class="font-bold text-lg mb-4">Điểm từng tiêu chí</h3>
-                    <div id="criteriaList" class="grid grid-cols-2 gap-x-6 gap-y-5"></div>
-                </div>
-
-                <!-- Khối Bản sửa 11 mục -->
-                <div class="glass-card bg-white/40 dark:bg-slate-800/60 backdrop-blur-lg border border-white/60 dark:border-slate-700/60 shadow-xl rounded-3xl p-6 relative">
-                    <button id="btnCopyAll" class="absolute top-4 right-4 flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300 bg-white/60 dark:bg-slate-900/60 rounded-md border border-slate-200 dark:border-slate-700 shadow-sm hover:bg-white dark:hover:bg-slate-800 transition">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                        </svg>
-                        <span id="copyBtnText">Sao chép</span>
-                    </button>
-                    <h3 class="font-bold text-lg mb-4">Bản sửa (11 mục)</h3>
-                    <div id="rewriteList" class="space-y-3 text-sm pt-2"></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- KHU VỰC ADMIN MODE -->
-        <div id="adminModeSection" style="display: none;">
-            <div id="adminLoginBox" class="glass-card bg-white/40 dark:bg-slate-800/60 backdrop-blur-lg border border-white/60 dark:border-slate-700/60 shadow-xl rounded-3xl p-6 max-w-md mx-auto text-center">
-                <h3 class="font-bold text-lg mb-4">Đăng nhập Admin</h3>
-                <input type="password" id="adminPassword" class="w-full p-3 rounded-xl bg-white/60 dark:bg-slate-900/60 border border-white/80 dark:border-slate-700 text-center mb-4" placeholder="Mật khẩu...">
-                <p id="adminError" class="text-red-500 text-sm font-semibold mb-4" style="display: none;">Sai mật khẩu. Vui lòng thử lại.</p>
-                <button id="btnAdminLogin" class="w-full py-3 rounded-full font-bold bg-gradient-to-r from-pink-500 to-blue-400 text-white shadow-lg hover:opacity-90 transition">Đăng nhập</button>
-            </div>
-
-            <div id="adminDashboard" class="glass-card bg-white/40 dark:bg-slate-800/60 backdrop-blur-lg border border-white/60 dark:border-slate-700/60 shadow-xl rounded-3xl p-6 space-y-6" style="display: none;">
-                <h3 class="font-bold text-xl border-b border-slate-200 dark:border-slate-700 pb-4"> CHI TIẾT  </h3>
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="bg-white/60 dark:bg-slate-900/60 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
-                        <p class="text-xs text-slate-500 uppercase font-bold mb-1">Prompt gần nhất:</p>
-                        <p id="adminLastPrompt" class="font-medium text-sm break-words">Chưa có dữ liệu</p>
-                        <div class="mt-2 flex gap-2">
-                            <span class="text-xs bg-pink-100 text-pink-600 px-2 py-1 rounded font-bold" id="adminLastType">PROMPT</span>
-                            <span class="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded font-bold">Điểm: <span id="adminLastScore">0.0</span></span>
-                        </div>
-                    </div>
-                    
-                    <div class="bg-white/60 dark:bg-slate-900/60 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
-                        <p class="text-xs text-slate-500 uppercase font-bold mb-2">Chẩn đoán lỗi:</p>
-                        <div class="flex justify-between text-sm mb-1">
-                            <span class="text-slate-600 dark:text-slate-400">Số lỗi gốc:</span>
-                            <span class="font-bold text-red-500" id="adminTotalErrors">0</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="bg-white/60 dark:bg-slate-900/60 p-4 rounded-xl border border-slate-200 dark:border-slate-700 mt-4">
-                    <p class="text-xs text-slate-500 uppercase font-bold mb-2">Chi tiết mã lỗi:</p>
-                    <ul id="adminErrorList" class="text-sm space-y-2 list-disc pl-5 text-slate-700 dark:text-slate-300">
-                        <li>Chưa có dữ liệu</li>
-                    </ul>
-                </div>
-
-                <div class="overflow-x-auto mt-4">
-                    <p class="text-xs text-slate-500 uppercase font-bold mb-2">Lịch sử đánh giá:</p>
-                    <table class="w-full text-sm text-left">
-                        <thead class="text-xs text-slate-500 uppercase bg-white/50 dark:bg-slate-900/50">
-                            <tr>
-                                <th class="px-4 py-2 rounded-l-lg">Thời gian</th>
-                                <th class="px-4 py-2">Prompt</th>
-                                <th class="px-4 py-2">Loại</th>
-                                <th class="px-4 py-2 rounded-r-lg">Điểm</th>
-                            </tr>
-                        </thead>
-                        <tbody id="adminHistoryList"></tbody>
-                    </table>
-                </div>
-
-                <div class="flex gap-4 pt-2">
-                    <button id="btnAdminLogout" class="flex-1 py-3 rounded-full font-bold bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 transition">Đăng xuất</button>
-                    <button id="btnClearHistory" class="flex-1 py-3 rounded-full font-bold bg-red-100 text-red-600 hover:bg-red-200 transition">Xóa lịch sử</button>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<script>
-    const API_URL = "https://prompt-tx2e.onrender.com/evaluate"; 
-    const SECTION_NAMES = ["1. VAI TRÒ", "2. BỐI CẢNH", "3. INPUT", "4. MỤC TIÊU", "5. YÊU CẦU", "6. RÀNG BUỘC", "7. TASK", "8. ĐỊNH DẠNG ĐẦU RA", "9. NEVER DO", "10. THỨ TỰ ƯU TIÊN", "11. XỬ LÝ NỘI BỘ"];
-    const $ = id => document.getElementById(id);
-    let lastResult = null;
-    let historyData = [];
-
-    const ERROR_NAMES = {
-        "A01": "Lỗi chính tả", "A02": "Thiếu dấu câu", "A03": "Lặp lại",
-        "B01": "Thiếu thành phần cấu trúc", "B02": "Mục không logic", "B03": "Sai phân cấp", "B04": "Chưa quy định định dạng đầu ra",
-        "C01": "Đối tượng chưa rõ", "C02": "Thiếu bối cảnh", "C03": "Yêu cầu chung chung", "C04": "Thiếu ví dụ",
-        "D01": "Mâu thuẫn nội bộ", "D02": "Yêu cầu bất khả thi", "D03": "Vai trò không phù hợp",
-        "E01": "Trộn lĩnh vực", "E02": "Thuật ngữ không nhất quán", "E03": "Thiếu tính đặc thù lĩnh vực"
-    };
-
-    try {
-        const saved = localStorage.getItem('prompt_history');
-        if (saved) historyData = JSON.parse(saved);
-    } catch(e) {}
-
-    function applyTheme(dark) {
-        document.documentElement.classList.toggle('dark', dark);
-        $('themeToggle').textContent = dark ? '☀️' : '🌙';
-        try { localStorage.setItem('theme', dark ? 'dark' : 'light'); } catch (e) {}
-    }
-    (function initTheme() {
-        let saved = null; try { saved = localStorage.getItem('theme'); } catch (e) {}
-        applyTheme(saved ? saved === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches);
-    })();
-    $('themeToggle').addEventListener('click', () => applyTheme(!document.documentElement.classList.contains('dark')));
-
-    async function evaluatePrompt(prompt) {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 180000); 
-        try {
-            const response = await fetch(API_URL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ prompt: prompt }),
-                signal: controller.signal
-            });
-            clearTimeout(timeoutId);
-            const data = await response.json();
-            if (data.error) throw new Error(data.error);
-            if (!response.ok) throw new Error("Lỗi HTTP: " + response.status);
-            return data;
-        } catch (error) {
-            clearTimeout(timeoutId);
-            if (error.name === 'AbortError') {
-                throw new Error("Quá thời gian chờ (3 phút). Server Render đang khởi động rất chậm, bạn vui lòng bấm lại lần nữa!");
-            }
-            throw error;
-        }
-    }
-
-    function render(r) {
-        $('totalScore').textContent = r.total;
-        
-        const typeMap = { "PROMPT": "PROMPT", "TEMPLATE": "TEMPLATE", "PROMPT META": "PROMPT META", "TABLE": "TABLE", "STEM": "TOÁN/LÝ/HÓA" };
-        $('promptType').textContent = typeMap[r.type] || r.type;
-
-        // [CẬP NHẬT]: Chỉ hiện Tên và Điểm (Không hiện trọng số x1.2)
-        const list = $('criteriaList'); list.replaceChildren();
-        Object.entries(r.details).forEach(([name, score]) => {
-            const row = document.createElement('div');
-            row.innerHTML = `
-                <div class="flex justify-between text-sm font-semibold mb-1">
-                    <span class="truncate pr-1" title="${name}">${name}</span>
-                    <span class="${score < 6 ? 'text-pink-500' : 'text-blue-500'}">${score}/10</span>
-                </div>
-                <div class="w-full bg-slate-200/50 dark:bg-slate-700/50 rounded-full h-2">
-                    <div class="h-2 rounded-full bg-gradient-to-r from-pink-500 to-blue-500" style="width: ${score * 10}%"></div>
-                </div>`;
-            list.append(row);
-        });
-
-        // --- DÀNH CHO USER MODE (Thân thiện, KHÔNG mã lỗi) ---
-        const userErrList = $('userErrorList');
-        userErrList.innerHTML = '';
-        if (r.errors && r.errors.length > 0) {
-            r.errors.forEach(err => {
-                const errName = ERROR_NAMES[err.code] || "Lỗi không xác định";
-                let evidenceText = "";
-                if (err.evidence && err.evidence !== "Toàn bộ" && err.evidence !== "Toàn bộ prompt") {
-                    evidenceText = `"${err.evidence}"`;
-                }
-                
-                let suggestion = "Hãy bổ sung thêm thông tin chi tiết.";
-                if (errName.includes("bối cảnh")) suggestion = "Bạn cần nêu rõ hoàn cảnh, mục đích sử dụng.";
-                else if (errName.includes("đối tượng")) suggestion = "Bạn cần chỉ định rõ người, vật hoặc dữ liệu.";
-                else if (errName.includes("chính tả")) suggestion = "Hãy kiểm tra lại lỗi gõ phím.";
-                else if (errName.includes("mục tiêu")) suggestion = "Hãy nói rõ bạn muốn AI làm gì (viết, phân tích...).";
-                else if (errName.includes("định dạng")) suggestion = "Hãy yêu cầu cụ thể đầu ra là đoạn văn, gạch đầu dòng hay bảng.";
-
-                userErrList.innerHTML += `
-                    <li class="flex items-start gap-3 mb-3 p-3 bg-red-50/80 dark:bg-red-900/20 rounded-xl border border-red-100 dark:border-red-900/50">
-                        <span class="text-red-500 font-bold mt-0.5 text-lg">•</span>
-                        <div>
-                            <p class="text-slate-800 dark:text-slate-200 font-semibold">${errName}</p>
-                            <p class="text-sm text-slate-600 dark:text-slate-400 mt-1">
-                                ${evidenceText ? `Trích dẫn: <i>${evidenceText}</i><br>` : ''}
-                                <span class="text-red-600 dark:text-red-400 font-medium">👉 Gợi ý: ${suggestion}</span>
-                            </p>
-                        </div>
-                    </li>`;
-            });
-        } else {
-            userErrList.innerHTML = `<li class="text-green-600 dark:text-green-400 font-semibold p-3 bg-green-50 dark:bg-green-900/20 rounded-xl">Tuyệt vời! Không phát hiện lỗi nào.</li>`;
-        }
-
-        // --- DÀNH CHO ADMIN MODE (Kỹ thuật, CÓ mã lỗi) ---
-        const adminErrorList = $('adminErrorList');
-        adminErrorList.innerHTML = '';
-        if (r.errors && r.errors.length > 0) {
-            r.errors.forEach(err => {
-                const errName = ERROR_NAMES[err.code] || "Lỗi không xác định";
-                let evidenceText = (err.evidence === "Toàn bộ" || err.evidence === "Toàn bộ prompt") ? "" : `"${err.evidence}"`;
-                adminErrorList.innerHTML += `
-                    <li class="flex items-start gap-2 mb-2">
-                        <span class="bg-red-100 text-red-600 px-2 py-0.5 rounded font-bold text-xs mt-0.5 whitespace-nowrap">${err.code}</span>
-                        <span class="text-sm text-slate-700 dark:text-slate-300"><strong>${errName}:</strong> <i class="text-slate-500">${evidenceText}</i></span>
-                    </li>`;
-            });
-        } else {
-            adminErrorList.innerHTML = `<li class="text-green-500 font-semibold text-sm">Không có lỗi.</li>`;
-        }
-
-        const rw = $('rewriteList'); rw.replaceChildren();
-        SECTION_NAMES.forEach(sec => {
-            const card = document.createElement('div');
-            card.className = 'p-3 bg-white/50 dark:bg-slate-900/50 rounded-xl border border-white/60 dark:border-slate-700/60';
-            card.innerHTML = `<p class="font-bold text-pink-500 mb-1">${sec}</p><p class="text-slate-700 dark:text-slate-200 break-words">${r.rewrite[sec] || ''}</p>`;
-            rw.append(card);
-        });
-        
-        $('resultArea').style.display = 'block';
-
-        $('adminLastPrompt').innerText = r.prompt;
-        $('adminLastScore').innerText = r.total;
-        $('adminLastType').innerText = typeMap[r.type] || r.type;
-        $('adminTotalErrors').innerText = (r.errors && r.errors.length > 0) ? r.errors.length : "0";
-    }
-
-    function updateAdminHistory() {
-        const tbody = $('adminHistoryList'); tbody.replaceChildren();
-        if (historyData.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-slate-500">Chưa có dữ liệu lịch sử.</td></tr>`;
-            return;
-        }
-        historyData.slice().reverse().forEach(item => {
-            const tr = document.createElement('tr');
-            tr.className = "border-b border-slate-200/50 dark:border-slate-700/50 bg-white/30 dark:bg-slate-800/30";
-            tr.innerHTML = `
-                <td class="px-4 py-3 whitespace-nowrap text-xs text-slate-500">${item.time}</td>
-                <td class="px-4 py-3 truncate max-w-[200px]" title="${item.prompt}">${item.prompt}</td>
-                <td class="px-4 py-3 font-semibold text-blue-500">${item.type}</td>
-                <td class="px-4 py-3 font-bold text-pink-500">${item.score}</td>
-            `;
-            tbody.append(tr);
-        });
-    }
-
-    $('btnEvaluate').addEventListener('click', async () => {
-        const prompt = $('promptInput').value.trim();
-        if (!prompt) { $('errorMsg').style.display = 'block'; return; }
-        $('errorMsg').style.display = 'none';
-        
-        const btn = $('btnEvaluate');
-        btn.disabled = true; 
-        
-        let seconds = 0;
-        btn.textContent = 'Đang kết nối Server (0s)...';
-        const timer = setInterval(() => {
-            seconds++;
-            if (seconds < 15) {
-                btn.textContent = `Đang đợi Server tỉnh dậy (${seconds}s)...`;
-            } else {
-                btn.textContent = `AI đang viết 11 mục (${seconds}s)...`;
-            }
-        }, 1000);
-        
-        try {
-            lastResult = await evaluatePrompt(prompt);
-            render(lastResult);
-            
-            const now = new Date();
-            const timeStr = now.toLocaleTimeString('vi-VN') + ' ' + now.toLocaleDateString('vi-VN');
-            historyData.push({
-                time: timeStr,
-                prompt: lastResult.prompt,
-                type: lastResult.type,
-                score: lastResult.total
-            });
-            localStorage.setItem('prompt_history', JSON.stringify(historyData));
-            
-        } catch (e) {
-            $('errorMsg').textContent = e.message; 
-            $('errorMsg').style.display = 'block';
-        } finally {
-            clearInterval(timer);
-            btn.disabled = false; 
-            btn.textContent = 'Đánh giá';
-        }
-    });
-
-    $('btnCopyAll').addEventListener('click', async () => {
-        if (!lastResult) return;
-        
-        let text = ""; 
-        
-        SECTION_NAMES.forEach(sec => {
-            let content = (lastResult.rewrite[sec] || '').trim();
-            
-            // [XỬ LÝ ĐẶC BIỆT 1]: Thêm dấu gạch đầu dòng cho các mục Yêu cầu, Ràng buộc, Never do
-            if (sec === "5. YÊU CẦU" || sec === "6. RÀNG BUỘC" || sec === "9. NEVER DO") {
-                content = content.replace(/(?<!^)[.;]\s+/g, '\n• ').replace(/^\• /, '');
-                if (!content.startsWith('•') && content !== '') {
-                    content = '• ' + content;
-                }
-            }
-            
-            // [XỬ LÝ ĐẶC BIỆT 2]: Tách thành các dòng số 1. 2. 3. cho mục Thứ tự ưu tiên và Xử lý nội bộ
-            if (sec === "10. THỨ TỰ ƯU TIÊN" || sec === "11. XỬ LÝ NỘI BỘ") {
-                content = content.replace(/;\s*/g, '\n');
-                content = content.replace(/(\d+\.)\s*/g, '\n$1 ').trim();
-            }
-
-            if (sec === "11. XỬ LÝ NỘI BỘ") {
-                text += `11.XỬ LÝ NỘI BỘ\n${content}\n\n`;
-            } else {
-                text += `${sec}:\n${content}\n\n`;
-            }
-        });
-
-        try {
-            await navigator.clipboard.writeText(text);
-            
-            const btn = $('btnCopyAll');
-            const btnText = $('copyBtnText');
-            const originalSVG = btn.querySelector('svg').outerHTML;
-            
-            btnText.textContent = 'Đã chép!'; 
-            btnText.classList.add('text-green-500');
-            btn.querySelector('svg').outerHTML = `
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-                </svg>`;
-            
-            setTimeout(() => { 
-                btnText.textContent = 'Sao chép'; 
-                btnText.classList.remove('text-green-500');
-                btn.querySelector('svg').outerHTML = originalSVG;
-            }, 2000);
-            
-        } catch (e) {
-            alert("Không thể sao chép. Vui lòng thử lại!");
-        }
-    });
-
-    $('btnAdminLogin').addEventListener('click', () => {
-        if ($('adminPassword').value.trim() === "bisdo091121") {
-            $('adminLoginBox').style.display = 'none'; $('adminDashboard').style.display = 'block';
-            updateAdminHistory(); 
-        } else { $('adminError').style.display = 'block'; }
-    });
-    $('btnAdminLogout').addEventListener('click', () => {
-        $('adminLoginBox').style.display = 'block'; $('adminDashboard').style.display = 'none'; $('adminPassword').value = ''; $('adminError').style.display = 'none';
-    });
-    $('btnClearHistory').addEventListener('click', () => {
-        if(confirm("Bạn có chắc chắn muốn xóa toàn bộ lịch sử đánh giá?")) {
-            historyData = [];
-            localStorage.removeItem('prompt_history');
-            updateAdminHistory();
-        }
-    });
-
-    $('tabUser').addEventListener('click', () => {
-        $('userModeSection').style.display = 'block'; $('adminModeSection').style.display = 'none';
-        $('tabUser').className = "px-8 py-2 rounded-full font-semibold bg-gradient-to-r from-pink-500 to-blue-400 text-white shadow-md transition-all";
-        $('tabAdmin').className = "px-8 py-2 rounded-full font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 transition-all";
-    });
-    $('tabAdmin').addEventListener('click', () => {
-        $('userModeSection').style.display = 'none'; $('adminModeSection').style.display = 'block';
-        $('tabAdmin').className = "px-8 py-2 rounded-full font-semibold bg-gradient-to-r from-pink-500 to-blue-400 text-white shadow-md transition-all";
-        $('tabUser').className = "px-8 py-2 rounded-full font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 transition-all";
-    });
+document.getElementById('tabUser').addEventListener('click', () => {
+    document.getElementById('userModeSection').style.display = 'block';
+    document.getElementById('adminModeSection').style.display = 'none';
+});
+document.getElementById('tabAdmin').addEventListener('click', () => {
+    document.getElementById('userModeSection').style.display = 'none';
+    document.getElementById('adminModeSection').style.display = 'block';
+});
 </script>
 </body>
 </html>
