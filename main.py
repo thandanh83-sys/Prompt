@@ -81,17 +81,17 @@ TRẢ VỀ ĐÚNG CHUỖI JSON (Không markdown, không giải thích):
 Prompt gốc: {prompt_text}
 """
         
-        # 3. Gọi AI (Đã sửa sang model 2.5-flash)
-        response = client.models.generate_content(
-            model='gemini-2.5-flash',
-            contents=system_prompt,
-            config=types.GenerateContentConfig(
-                response_mime_type="application/json", 
-                temperature=0.0
-            )
+        # 3. Gọi AI bằng Interactions API mới với model gemini-3.8-flash
+        interaction = client.interactions.create(
+            model="gemini-3.8-flash",
+            input=system_prompt,
+            response_format={
+                "type": "text",
+                "mime_type": "application/json"
+            }
         )
         
-        raw_text = response.text.strip()
+        raw_text = interaction.output_text.strip()
         if raw_text.startswith("```json"): 
             raw_text = raw_text[7:-3].strip()
         
