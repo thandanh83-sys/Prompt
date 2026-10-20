@@ -27,6 +27,7 @@
       </div>
     </div>
 
+    <!-- KHU VỰC USER MODE -->
     <div id="userModeSection">
       <div class="glass-card bg-white/40 dark:bg-slate-800/60 backdrop-blur-lg border border-white/60 dark:border-slate-700/60 shadow-xl rounded-3xl p-6">
         <textarea id="promptInput" class="w-full h-32 p-4 rounded-2xl bg-white/60 dark:bg-slate-900/60 border border-white/80 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-pink-400 resize-none text-slate-800 dark:text-slate-100" placeholder="Nhập prompt cần đánh giá..."></textarea>
@@ -64,6 +65,7 @@
       </div>
     </div>
 
+    <!-- KHU VỰC ADMIN MODE -->
     <div id="adminModeSection" style="display: none;">
       <div id="adminLoginBox" class="glass-card bg-white/40 dark:bg-slate-800/60 backdrop-blur-lg border border-white/60 dark:border-slate-700/60 shadow-xl rounded-3xl p-6 max-w-md mx-auto text-center">
         <h3 class="font-bold text-lg mb-4">Đăng nhập Admin</h3>
@@ -105,10 +107,10 @@ function applyTheme(dark) {
 })();
 $('themeToggle').addEventListener('click', () => applyTheme(!document.documentElement.classList.contains('dark')));
 
-// Hàm gọi API có Timeout (Không bao giờ bị treo)
+// Hàm gọi API có Timeout 120s (Không bao giờ bị treo vô tận)
 async function evaluatePrompt(prompt) {
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 giây
+  const timeoutId = setTimeout(() => controller.abort(), 120000); // 120 giây
 
   try {
     const response = await fetch(API_URL, {
@@ -126,7 +128,7 @@ async function evaluatePrompt(prompt) {
   } catch (error) {
     clearTimeout(timeoutId);
     if (error.name === 'AbortError') {
-        throw new Error("Quá thời gian chờ (60s). Server Render có thể đang khởi động, vui lòng bấm lại!");
+        throw new Error("Quá thời gian chờ (2 phút). Server Render đang khởi động rất chậm, bạn vui lòng bấm lại lần nữa!");
     }
     throw error;
   }
@@ -171,7 +173,8 @@ $('btnEvaluate').addEventListener('click', async () => {
   $('errorMsg').style.display = 'none';
   
   const btn = $('btnEvaluate');
-  btn.disabled = true; btn.textContent = 'AI Đang chấm điểm (vui lòng đợi)...';
+  btn.disabled = true; 
+  btn.textContent = 'AI Đang chấm điểm (vui lòng đợi 1-2 phút)...';
   
   try {
     lastResult = await evaluatePrompt(prompt);
@@ -180,7 +183,8 @@ $('btnEvaluate').addEventListener('click', async () => {
     $('errorMsg').textContent = e.message; 
     $('errorMsg').style.display = 'block';
   } finally {
-    btn.disabled = false; btn.textContent = 'Đánh giá';
+    btn.disabled = false; 
+    btn.textContent = 'Đánh giá';
   }
 });
 
