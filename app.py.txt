@@ -1,0 +1,108 @@
+import streamlit as st
+import sqlite3
+import json
+from datetime import datetime
+import rules_v38
+import ai_engine
+from validator import calculate_final_score
+
+if "ADMIN_PASSWORD" not in st.secrets:
+    st.error("🚨 LỖI BẢO MẬT: Chưa cấu hình ADMIN_PASSWORD trong Secrets.")
+    st.stop()
+ADMIN_PASS = st.secrets["ADMIN_PASSWORD"]
+
+st.set_page_config(page_title="Đánh giá Prompt v38", page_icon="✨", layout="centered")
+
+st.markdown("""
+<style>
+    .stApp { background: linear-gradient(135deg, #f8fafc 0%, #e0f2fe 100%); color: #0f172a; }
+    .glass-card { background: rgba(255, 255, 255, 0.4); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.6); border-radius: 24px; padding: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); margin-bottom: 20px; }
+    .stButton>button { width: 100%; background: linear-gradient(90deg, #ec4899 0%, #3b82f6 100%); color: white !important; border-radius: 999px; font-weight: bold; padding: 10px; }
+    .score-text { font-size: 64px; font-weight: 900; background: -webkit-linear-gradient(45deg, #ec4899, #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .stProgress > div > div > div > div { background-image: linear-gradient(90deg, #ec4899 0%, #3b82f6 100%); }
+</style>
+""", unsafe_allow_html=True)
+
+def init_db():
+    conn = sqlite3.connect('history.db')
+    c = conn.cursor()
+    c.execute('''CREATE TABLE IF NOT EXISTS history (id INTEGER PRIMARY KEY, timestamp TEXT, prompt TEXT, type TEXT, score REAL, details TEXT)''')
+    conn.commit()
+    return conn
+
+st.title("✨ Hệ thống Đánh giá Prompt")
+tab1, tab2 = st.tabs(["User", "Admin"])
+
+with tab1:
+    st.markdown('<div class="glass-card">', unsafe_allow_html=True)
+    prompt_input = st.text_area("Nhập prompt cần đánh giá:", height=150)
+    btn_eval = st.button("Đánh giá ngay")
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    if btn_eval:
+        if not prompt_input.strip():
+            st.warning("Vui lòng nhập prompt!")
+        else:
+            content_type = rules_v38.classify_prompt(prompt_input)
+            if content_type == rules_v38.TYPE_EMPTY:
+                st.warning("Prompt trống.")
+            elif content_type == rules_v38.TYPE_IMAGE:
+                st.info("Chưa hỗ trợ chấm điểm ảnh (IMAGE).")
+            else:
+                with st.spinner(f"AI đang phân tích dạng {content_type}..."):
+                    try:
+                        ai_data = ai_engine.get_ai_evaluation(prompt_input, content_type)
+                        final_score = calculate_final_score(ai_data["scores"], content_type)
+                        
+                        st.markdown(f"""
+                        <div class="glass-card" style="display: flex; justify-content: space-between; align-items: center;">
+                            <div><p style="margin:0; font-size:14px; color:#64748b; font-weight:bold;">ĐIỂM TỔNG</p>
+                                <div style="display: flex; align-items: baseline;"><span class="score-text">{final_score}</span><span style="font-size:24px; color:#94a3b8; font-weight:bold; margin-left:8px;">/ 10</span></div>
+                            </div>
+                            <div style="text-align: right;"><p style="margin:0; font-size:14px; color:#64748b; font-weight:bold;">PHÂN LOẠI</p>
+                                <span style="background: linear-gradient(90deg, #ec4899, #3b82f6); color:white; padding:8px 16px; border-radius:999px; font-weight:bold;">{content_type}</span>
+                            </div>
+                        </div>
+                        """, unsafe_allow_html=True)
+                        
+                        st.markdown('<div class="glass-card">', unsafe_allow_html=True)
+                        st.markdown("### Điểm từng tiêu chí")
+                        criteria = rules_v38.get_criteria_by_type(content_type)
+                        col1, col2 = st.columns(2)
+                        items = list(criteria.items())
+                        for i, (crit_id, info) in enumerate(items):
+                            score = ai_data["scores"][crit_id]
+                            target_col = col1 if i % 2 == 0 else col2
+                            with target_col:
+                                st.write(f"**{info['name']}**: {score}/10")
+                                st.progress(score / 10)
+                        st.markdown('</div>', unsafe_allow_html=True)
+                        
+                        st.markdown('<div class="glass-card">', unsafe_allow_html=True)
+                        st.markdown("### Bản sửa (11 mục)")
+                        for sec in rules_v38.REQUIRED_REWRITE_SECTIONS:
+                            st.write(f"**{sec}:** {ai_data['rewrite'][sec]}")
+                        st.markdown('</div>', unsafe_allow_html=True)
+                        
+                        conn = init_db()
+                        conn.execute("INSERT INTO history (timestamp, prompt, type, score, details) VALUES (?, ?, ?, ?, ?)",
+                                     (datetime.now().isoformat(), prompt_input, content_type, final_score, json.dumps(ai_data['scores'])))
+                        conn.commit()
+                        conn.close()
+                    except Exception as e:
+                        st.error(f"Lỗi: {str(e)}")
+
+with tab2:
+    pwd = st.text_input("Mật khẩu Admin:", type="password")
+    if pwd == ADMIN_PASS:
+        st.success("Đăng nhập thành công!")
+        conn = init_db()
+        rows = conn.execute("SELECT * FROM history ORDER BY id DESC LIMIT 10").fetchall()
+        conn.close()
+        if rows:
+            for row in rows:
+                st.info(f"**{row[1]}** | Loại: {row[3]} | Điểm: {row[4]} | Prompt: {row[2]}")
+        else:
+            st.write("Chưa có lịch sử.")
+    elif pwd:
+        st.error("Sai mật khẩu.")
