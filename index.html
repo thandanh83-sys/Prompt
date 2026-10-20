@@ -105,21 +105,31 @@ function applyTheme(dark) {
 })();
 $('themeToggle').addEventListener('click', () => applyTheme(!document.documentElement.classList.contains('dark')));
 
+// Hàm gọi API có Timeout (Không bao giờ bị treo)
 async function evaluatePrompt(prompt) {
-  const response = await fetch(API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt: prompt })
-  });
-  
-  // Đọc dữ liệu trả về, dù là lỗi hay thành công
-  const data = await response.json();
-  
-  // Nếu Backend trả về lỗi (do sai API key, AI bị lỗi...), ném ra để bắt
-  if (data.error) throw new Error(data.error); 
-  if (!response.ok) throw new Error("Lỗi HTTP: " + response.status);
-  
-  return data;
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 giây
+
+  try {
+    const response = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: prompt }),
+        signal: controller.signal
+    });
+    clearTimeout(timeoutId);
+    
+    const data = await response.json();
+    if (data.error) throw new Error(data.error);
+    if (!response.ok) throw new Error("Lỗi HTTP: " + response.status);
+    return data;
+  } catch (error) {
+    clearTimeout(timeoutId);
+    if (error.name === 'AbortError') {
+        throw new Error("Quá thời gian chờ (60s). Server Render có thể đang khởi động, vui lòng bấm lại!");
+    }
+    throw error;
+  }
 }
 
 function render(r) {
@@ -161,14 +171,13 @@ $('btnEvaluate').addEventListener('click', async () => {
   $('errorMsg').style.display = 'none';
   
   const btn = $('btnEvaluate');
-  btn.disabled = true; btn.textContent = 'AI Đang chấm điểm...';
+  btn.disabled = true; btn.textContent = 'AI Đang chấm điểm (vui lòng đợi)...';
   
   try {
     lastResult = await evaluatePrompt(prompt);
     render(lastResult);
   } catch (e) {
-    // HIỂN THỊ LỖI THẬT TỪ SERVER
-    $('errorMsg').textContent = 'Lỗi: ' + e.message; 
+    $('errorMsg').textContent = e.message; 
     $('errorMsg').style.display = 'block';
   } finally {
     btn.disabled = false; btn.textContent = 'Đánh giá';
