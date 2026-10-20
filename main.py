@@ -4,6 +4,7 @@ from pydantic import BaseModel
 import uvicorn
 import os
 import json
+import time
 from google import genai
 from google.genai import types
 
@@ -23,8 +24,6 @@ class PromptRequest(BaseModel):
     prompt: str
 
 api_key = os.environ.get("GEMINI_API_KEY", "")
-
-# [SỬA LỖI 400]: Bỏ thông số timeout bị lỗi đi, để thư viện tự dùng mức mặc định
 client = genai.Client(api_key=api_key)
 
 @app.post("/evaluate")
@@ -61,16 +60,28 @@ TRẢ VỀ ĐÚNG CHUỖI JSON (Không markdown):
 
 Prompt gốc: {prompt_text}
 """
+
+        # [CẬP NHẬT]: Thêm cơ chế tự động thử lại (Retry) nếu gặp lỗi 503
+        max_retries = 3
+        response = None
         
-        # Dùng model mới nhất theo yêu cầu của Google
-        response = client.models.generate_content(
-            model='gemini-3.8-flash', 
-            contents=system_prompt,
-            config=types.GenerateContentConfig(
-                response_mime_type="application/json", 
-                temperature=0.0
-            )
-        )
+        for attempt in range(max_retries):
+            try:
+                response = client.models.generate_content(
+                    model='gemini-3.8-flash', 
+                    contents=system_prompt,
+                    config=types.GenerateContentConfig(
+                        response_mime_type="application/json", 
+                        temperature=0.0
+                    )
+                )
+                break # Thành công thì thoát vòng lặp
+            except Exception as e:
+                if "503" in str(e) or "UNAVAILABLE" in str(e):
+                    if attempt < max_retries - 1:
+                        time.sleep(2) # Đợi 2 giây rồi thử lại
+                        continue
+                raise e # Nếu là lỗi khác hoặc hết lượt thử thì báo lỗi
         
         raw_text = response.text.strip()
         if raw_text.startswith("```json"): 
