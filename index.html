@@ -215,13 +215,13 @@
             list.append(row);
         });
 
-        // --- DÀNH CHO USER MODE ---
+        // --- DÀNH CHO USER MODE (Thân thiện, KHÔNG mã lỗi) ---
         const userErrList = $('userErrorList');
         userErrList.innerHTML = '';
         if (r.errors && r.errors.length > 0) {
             r.errors.forEach(err => {
                 const errName = ERROR_NAMES[err.code] || "Lỗi không xác định";
-                // [CẬP NHẬT]: Không hiển thị chữ "Toàn bộ" cho đỡ rối mắt
+                // Không hiển thị chữ "Toàn bộ" cho đỡ rối mắt
                 let evidenceText = "";
                 if (err.evidence && err.evidence !== "Toàn bộ" && err.evidence !== "Toàn bộ prompt") {
                     evidenceText = `"${err.evidence}"`;
@@ -250,7 +250,7 @@
             userErrList.innerHTML = `<li class="text-green-600 dark:text-green-400 font-semibold p-3 bg-green-50 dark:bg-green-900/20 rounded-xl">Tuyệt vời! Không phát hiện lỗi nào.</li>`;
         }
 
-        // --- DÀNH CHO ADMIN MODE ---
+        // --- DÀNH CHO ADMIN MODE (Kỹ thuật, CÓ mã lỗi) ---
         const adminErrorList = $('adminErrorList');
         adminErrorList.innerHTML = '';
         if (r.errors && r.errors.length > 0) {
@@ -348,7 +348,8 @@
     $('btnCopyAll').addEventListener('click', async () => {
         if (!lastResult) return;
         
-        let text = "=== BẢN SỬA PROMPT ===\n\n";
+        // [ĐÃ SỬA]: Bỏ dòng tiêu đề === BẢN SỬA PROMPT ===
+        let text = ""; 
         
         SECTION_NAMES.forEach(sec => {
             let content = lastResult.rewrite[sec] || '';
