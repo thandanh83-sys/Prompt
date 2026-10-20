@@ -12,7 +12,6 @@ from validator import validate_full_report, calculate_final_score
 
 app = FastAPI()
 
-# Cho phép GitHub Pages gọi API
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -23,8 +22,11 @@ app.add_middleware(
 class PromptRequest(BaseModel):
     prompt: str
 
-# Lấy API Key từ biến môi trường (sẽ cài trên Render)
-api_key = os.environ.get("GEMINI_API_KEY", "YOUR_API_KEY")
+# Cố gắng lấy API Key
+api_key = os.environ.get("GEMINI_API_KEY", "")
+if not api_key:
+    print("CẢNH BÁO: CHƯA CÓ GEMINI_API_KEY TRÊN RENDER!")
+
 client = genai.Client(api_key=api_key)
 
 @app.post("/evaluate")
@@ -33,15 +35,16 @@ async def evaluate(req: PromptRequest):
     if not prompt_text:
         return {"error": "Prompt trống"}
     
-    content_type = rules_v38.classify_prompt(prompt_text)
-    criteria = rules_v38.get_criteria_by_type(content_type)
-    
-    criteria_desc = "\n".join([f"- {k}: {v['name']}" for k, v in criteria.items()])
-    error_codes_desc = "\n".join([f"- {k}: {v}" for k, v in rules_v38.VALID_ERROR_CODES.items()])
-    
-    system_prompt = f"""
+    try:
+        content_type = rules_v38.classify_prompt(prompt_text)
+        criteria = rules_v38.get_criteria_by_type(content_type)
+        
+        criteria_desc = "\n".join([f"- {k}: {v['name']}" for k, v in criteria.items()])
+        error_codes_desc = "\n".join([f"- {k}: {v}" for k, v in rules_v38.VALID_ERROR_CODES.items()])
+        
+        system_prompt = f"""
 Bạn là chuyên gia đánh giá prompt. Chấm điểm prompt sau. Điểm mỗi tiêu chí từ 0-10.
-BƯỚC 1: Chấm điểm dựa trên bản gốc (nếu sai chính tả, trừ điểm).
+BƯỚC 1: Chấm điểm dựa trên bản gốc.
 BƯỚC 2: Viết 11 mục bản sửa, tự động sửa lỗi chính tả.
 
 TIÊU CHÍ:
@@ -52,15 +55,14 @@ MÃ LỖI:
 
 TRẢ VỀ ĐÚNG CHUỖI JSON (Không markdown):
 {{
-  "scores": {{ "P01": [int], "P02": [int], ... }},
+  "scores": {{ "P01": 8, "P02": 7, ... }},
   "errors": [ {{"code": "[Mã]", "evidence": "[Trích dẫn]"}} ],
   "rewrite": {{ "1. VAI TRÒ": "...", "2. BỐI CẢNH": "...", "3. INPUT": "...", "4. MỤC TIÊU": "...", "5. YÊU CẦU": "...", "6. RÀNG BUỘC": "...", "7. TASK": "...", "8. ĐỊNH DẠNG ĐẦU RA": "...", "9. NEVER DO": "...", "10. THỨ TỰ ƯU TIÊN": "...", "11. XỬ LÝ NỘI BỘ": "..." }}
 }}
 
 Prompt gốc: {prompt_text}
 """
-    
-    try:
+        
         response = client.models.generate_content(
             model='gemini-1.5-flash',
             contents=system_prompt,
@@ -82,7 +84,5 @@ Prompt gốc: {prompt_text}
         }
         
     except Exception as e:
+        # Nếu có lỗi, gửi thẳng câu lỗi về cho màn hình đỏ
         return {"error": str(e)}
-
-if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)
