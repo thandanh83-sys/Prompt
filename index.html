@@ -27,6 +27,7 @@
       </div>
     </div>
 
+    <!-- KHU VỰC USER MODE -->
     <div id="userModeSection">
       <div class="glass-card bg-white/40 dark:bg-slate-800/60 backdrop-blur-lg border border-white/60 dark:border-slate-700/60 shadow-xl rounded-3xl p-6">
         <textarea id="promptInput" class="w-full h-32 p-4 rounded-2xl bg-white/60 dark:bg-slate-900/60 border border-white/80 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-pink-400 resize-none text-slate-800 dark:text-slate-100" placeholder="Nhập prompt cần đánh giá..."></textarea>
@@ -51,7 +52,7 @@
 
         <div class="glass-card bg-white/40 dark:bg-slate-800/60 backdrop-blur-lg border border-white/60 dark:border-slate-700/60 shadow-xl rounded-3xl p-6">
           <h3 class="font-bold text-lg mb-4">Điểm từng tiêu chí</h3>
-          <div id="criteriaList" class="grid grid-cols-2 gap-4"></div>
+          <div id="criteriaList" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
         </div>
 
         <div class="glass-card bg-white/40 dark:bg-slate-800/60 backdrop-blur-lg border border-white/60 dark:border-slate-700/60 shadow-xl rounded-3xl p-6 relative">
@@ -64,6 +65,7 @@
       </div>
     </div>
 
+    <!-- KHU VỰC ADMIN MODE -->
     <div id="adminModeSection" style="display: none;">
       <div id="adminLoginBox" class="glass-card bg-white/40 dark:bg-slate-800/60 backdrop-blur-lg border border-white/60 dark:border-slate-700/60 shadow-xl rounded-3xl p-6 max-w-md mx-auto text-center">
         <h3 class="font-bold text-lg mb-4">Đăng nhập Admin</h3>
@@ -89,12 +91,13 @@
 </div>
 
 <script>
-// [BẠN SẼ SỬA DÒNG NÀY SAU KHI CÓ LINK RENDER]
-const API_URL = "https://your-backend-url.onrender.com/evaluate"; 
+// ĐÃ CẬP NHẬT LINK RENDER CỦA BẠN VÀO ĐÂY
+const API_URL = "https://ho-tro-tao-prompt.onrender.com/evaluate"; 
 const SECTION_NAMES = ["1. VAI TRÒ", "2. BỐI CẢNH", "3. INPUT", "4. MỤC TIÊU", "5. YÊU CẦU", "6. RÀNG BUỘC", "7. TASK", "8. ĐỊNH DẠNG ĐẦU RA", "9. NEVER DO", "10. THỨ TỰ ƯU TIÊN", "11. XỬ LÝ NỘI BỘ"];
 const $ = id => document.getElementById(id);
 let lastResult = null;
 
+// Theme Toggle
 function applyTheme(dark) {
   document.documentElement.classList.toggle('dark', dark);
   $('themeToggle').textContent = dark ? '☀️' : '🌙';
@@ -106,11 +109,8 @@ function applyTheme(dark) {
 })();
 $('themeToggle').addEventListener('click', () => applyTheme(!document.documentElement.classList.contains('dark')));
 
+// Hàm gọi API
 async function evaluatePrompt(prompt) {
-  if(API_URL.includes("your-backend-url")) {
-      alert("Vui lòng cập nhật API_URL trỏ tới Backend Render của bạn trước khi test!");
-      throw new Error("Chưa có API");
-  }
   const response = await fetch(API_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -120,6 +120,7 @@ async function evaluatePrompt(prompt) {
   return await response.json();
 }
 
+// Render UI
 function render(r) {
   $('totalScore').textContent = r.total;
   $('promptType').textContent = r.type;
@@ -153,25 +154,27 @@ function render(r) {
   $('adminLastType').innerText = r.type;
 }
 
+// Sự kiện bấm Đánh giá
 $('btnEvaluate').addEventListener('click', async () => {
   const prompt = $('promptInput').value.trim();
   if (!prompt) { $('errorMsg').style.display = 'block'; return; }
   $('errorMsg').style.display = 'none';
   
   const btn = $('btnEvaluate');
-  btn.disabled = true; btn.textContent = 'AI Đang chấm điểm (có thể mất 30s do Render khởi động)...';
+  btn.disabled = true; btn.textContent = 'AI Đang chấm điểm (chờ Render khởi động 30s)...';
   
   try {
     lastResult = await evaluatePrompt(prompt);
     render(lastResult);
   } catch (e) {
-    $('errorMsg').textContent = 'Lỗi kết nối Backend (Hãy kiểm tra lại API_URL)'; 
+    $('errorMsg').textContent = 'Lỗi kết nối Backend (Server Render có thể đang ngủ, vui lòng thử lại sau 30s)'; 
     $('errorMsg').style.display = 'block';
   } finally {
     btn.disabled = false; btn.textContent = 'Đánh giá';
   }
 });
 
+// Copy 11 mục
 $('btnCopyAll').addEventListener('click', async () => {
   if (!lastResult) return;
   let text = "=== BẢN SỬA PROMPT ===\n\n";
@@ -183,6 +186,7 @@ $('btnCopyAll').addEventListener('click', async () => {
   setTimeout(() => { $('copyBtnText').textContent = 'Sao chép'; $('copyBtnText').classList.remove('text-green-500'); }, 2000);
 });
 
+// Đăng nhập Admin
 $('btnAdminLogin').addEventListener('click', () => {
   if ($('adminPassword').value.trim() === "bisdo091121") {
     $('adminLoginBox').style.display = 'none'; $('adminDashboard').style.display = 'block';
@@ -195,6 +199,7 @@ $('btnClearHistory').addEventListener('click', () => {
   $('adminLastPrompt').innerText = "Chưa có dữ liệu"; $('adminLastScore').innerText = "0.0";
 });
 
+// Chuyển Tab
 $('tabUser').addEventListener('click', () => {
   $('userModeSection').style.display = 'block'; $('adminModeSection').style.display = 'none';
   $('tabUser').className = "px-8 py-2 rounded-full font-semibold bg-gradient-to-r from-pink-500 to-blue-400 text-white shadow-md";
