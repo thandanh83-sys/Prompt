@@ -40,7 +40,6 @@ async def evaluate(req: PromptRequest):
         try:
             response_db = supabase.table("history").select("*").eq("prompt", prompt_text).execute()
             if response_db.data:
-                print("Lấy từ Supabase Cache")
                 cached_data = response_db.data[0]
                 return {
                     "prompt": cached_data["prompt"], "type": cached_data["type"],
@@ -59,6 +58,7 @@ async def evaluate(req: PromptRequest):
         error_codes_desc = "\n".join([f"- {k}: {v}" for k, v in rules_v38.VALID_ERROR_CODES.items()])
         scores_example = ", ".join([f'"{k}": 8' for k in criteria.keys()])
         
+        # [CẬP NHẬT PROMPT AI]: Cấm AI tự ý sửa chữ khi trích dẫn
         system_prompt = f"""
 Bạn là chuyên gia đánh giá prompt. Chấm điểm prompt sau. Điểm mỗi tiêu chí từ 0-10.
 BƯỚC 1: Chấm điểm dựa trên bản gốc.
@@ -70,10 +70,14 @@ TIÊU CHÍ BẮT BUỘC:
 MÃ LỖI BẮT BUỘC:
 {error_codes_desc}
 
+LƯU Ý VỀ BẰNG CHỨNG (evidence) - CỰC KỲ QUAN TRỌNG:
+- Bạn phải trích xuất bằng chứng (evidence) CHÍNH XÁC TỪNG CHỮ từ Prompt gốc, không được tự ý sửa chữ, đảo chữ hay thêm bớt.
+- Nếu lỗi thuộc về toàn bộ câu (như thiếu bối cảnh, thiếu mục tiêu), hãy ghi ngắn gọn CHÍNH XÁC là "Toàn bộ prompt".
+
 CHỈ TRẢ VỀ CHUỖI JSON HỢP LỆ:
 {{
   "scores": {{ {scores_example} }},
-  "errors": [ {{"code": "[Mã lỗi]", "evidence": "[Trích dẫn hoặc 'Toàn bộ prompt']"}} ],
+  "errors": [ {{"code": "[Mã lỗi]", "evidence": "[Trích dẫn chính xác hoặc 'Toàn bộ prompt']"}} ],
   "rewrite": {{ 
     "1. VAI TRÒ": "...", "2. BỐI CẢNH": "...", "3. INPUT": "...", 
     "4. MỤC TIÊU": "...", "5. YÊU CẦU": "...", "6. RÀNG BUỘC": "...", 
@@ -103,6 +107,16 @@ Prompt gốc: {prompt_text}
         if raw_text.startswith("```json"): raw_text = raw_text[7:-3].strip()
         
         ai_data = json.loads(raw_text)
+
+        # [THÊM MỚI]: TỰ ĐỘNG LÀM SẠCH DỮ LIỆU (AUTO-SANITIZE)
+        # Nếu AI trả về bằng chứng sai (không nằm trong prompt gốc), tự động sửa thành "Toàn bộ prompt"
+        if "errors" in ai_data and isinstance(ai_data["errors"], list):
+            for err in ai_data["errors"]:
+                evidence = str(err.get("evidence", "")).strip()
+                if evidence and evidence.lower() != "toàn bộ prompt" and evidence not in prompt_text:
+                    print(f"Đã tự động sửa lỗi AI trích dẫn sai: '{evidence}' -> 'Toàn bộ prompt'")
+                    err["evidence"] = "Toàn bộ prompt"
+
         validate_full_report(ai_data, content_type, prompt_text)
         final_score = calculate_final_score(ai_data["scores"], content_type)
         
