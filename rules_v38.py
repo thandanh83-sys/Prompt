@@ -1,12 +1,11 @@
 import hashlib
 import json
 
-# PHÂN LOẠI
 TYPE_PROMPT = "PROMPT"
 TYPE_TEMPLATE = "TEMPLATE"
 TYPE_PROMPT_META = "PROMPT META"
 TYPE_TABLE = "TABLE"
-TYPE_STEM = "STEM" # [MỚI]: Dành cho Toán, Lý, Hóa
+TYPE_STEM = "STEM"  # Dành cho Toán, Lý, Hóa
 TYPE_EMPTY = "EMPTY"
 TYPE_IMAGE = "IMAGE"
 
@@ -28,7 +27,6 @@ CRITERIA_PROMPT = {
     "P13": {"name": "Vai trò phù hợp", "weight": 0.8}, "P14": {"name": "Không mâu thuẫn", "weight": 0.2}
 }
 
-# [MỚI]: Bộ tiêu chí cho môn Tự nhiên (Toán/Lý/Hóa)
 CRITERIA_STEM = {
     "S01": {"name": "Xác định rõ dạng bài/dữ kiện", "weight": 1.5},
     "S02": {"name": "Yêu cầu tìm gì/đạt được gì", "weight": 1.5},
@@ -38,9 +36,31 @@ CRITERIA_STEM = {
     "S06": {"name": "Tránh gây nhiễu thông tin", "weight": 1.0},
     "S07": {"name": "Yêu cầu định dạng kết quả", "weight": 1.0},
     "S08": {"name": "Tính khả thi của dữ kiện", "weight": 1.0}
-} # Tổng trọng số = 10.0
+}
 
-# ... (CRITERIA_TEMPLATE, PROMPT_META, TABLE giữ nguyên như cũ) ...
+CRITERIA_TEMPLATE = {
+    "T01": {"name": "Đủ mục", "weight": 1.5}, "T02": {"name": "Mục hợp lý", "weight": 1.0},
+    "T03": {"name": "Hướng dẫn điền", "weight": 1.5}, "T04": {"name": "Ví dụ mẫu", "weight": 1.0},
+    "T05": {"name": "Phân cấp", "weight": 1.0}, "T06": {"name": "Quy tắc cấm", "weight": 1.0},
+    "T07": {"name": "Quy tắc ưu tiên", "weight": 1.0}, "T08": {"name": "Quy trình xử lý", "weight": 1.0},
+    "T09": {"name": "Chất lượng placeholder", "weight": 1.0}
+}
+
+CRITERIA_PROMPT_META = {
+    "M01": {"name": "Cấu trúc", "weight": 1.5}, "M02": {"name": "Chi tiết", "weight": 2.0},
+    "M03": {"name": "Định dạng", "weight": 1.0}, "M04": {"name": "Nhất quán", "weight": 1.0},
+    "M05": {"name": "Khả thi", "weight": 1.0}, "M06": {"name": "Vai trò", "weight": 0.5},
+    "M07": {"name": "Mở rộng", "weight": 1.0}, "M08": {"name": "Ứng dụng", "weight": 1.0},
+    "M09": {"name": "Quy trình", "weight": 1.0}
+}
+
+CRITERIA_TABLE = {
+    "TB01": {"name": "Đủ cột và hàng", "weight": 1.5}, "TB02": {"name": "Header rõ ràng", "weight": 1.0},
+    "TB03": {"name": "Dữ liệu nhất quán định dạng", "weight": 1.5}, "TB04": {"name": "Không có ô trống bất thường", "weight": 1.0},
+    "TB05": {"name": "Có ghi chú đơn vị nếu cần", "weight": 1.0}, "TB06": {"name": "Khả năng đọc hiểu", "weight": 1.0},
+    "TB07": {"name": "Tính ứng dụng thực tế", "weight": 1.0}, "TB08": {"name": "Khả năng mở rộng phù hợp", "weight": 1.0},
+    "TB09": {"name": "Mức độ chi tiết dữ liệu", "weight": 1.0}
+}
 
 REQUIRED_REWRITE_SECTIONS = [
     "1. VAI TRÒ", "2. BỐI CẢNH", "3. INPUT", "4. MỤC TIÊU", "5. YÊU CẦU", 
@@ -50,11 +70,9 @@ REQUIRED_REWRITE_SECTIONS = [
 
 def get_criteria_by_type(content_type):
     mapping = {
-        TYPE_PROMPT: CRITERIA_PROMPT, 
-        TYPE_TEMPLATE: CRITERIA_TEMPLATE,
-        TYPE_PROMPT_META: CRITERIA_PROMPT_META, 
-        TYPE_TABLE: CRITERIA_TABLE,
-        TYPE_STEM: CRITERIA_STEM # [MỚI]
+        TYPE_PROMPT: CRITERIA_PROMPT, TYPE_TEMPLATE: CRITERIA_TEMPLATE,
+        TYPE_PROMPT_META: CRITERIA_PROMPT_META, TYPE_TABLE: CRITERIA_TABLE,
+        TYPE_STEM: CRITERIA_STEM
     }
     return mapping.get(content_type, None)
 
@@ -63,15 +81,11 @@ def classify_prompt(prompt_text: str) -> str:
     if not text: return TYPE_EMPTY
     lower_text = text.lower()
     
-    # [MỚI]: Ưu tiên nhận diện Toán, Lý, Hóa
     stem_keywords = ["giải toán", "phương trình", "đạo hàm", "tích phân", "vật lý", "hóa học", "phản ứng", "tính vận tốc", "gia tốc", "nguyên tử"]
-    if any(kw in lower_text for kw in stem_keywords):
-        return TYPE_STEM
+    if any(kw in lower_text for kw in stem_keywords): return TYPE_STEM
         
     if any(kw in lower_text for kw in ["http", "jpg", "png", "vẽ ảnh", "tạo ảnh", "hình ảnh"]): return TYPE_IMAGE
     if any(kw in lower_text for kw in ["[điền", "[thay", "[chọn", "___", "{}"]): return TYPE_TEMPLATE
     if any(kw in lower_text for kw in ["tạo bảng", "lập bảng", "dạng bảng", "cột", "hàng"]): return TYPE_TABLE
     if any(kw in lower_text for kw in ["đánh giá prompt", "viết prompt", "sửa prompt", "chấm điểm prompt", "tạo prompt"]): return TYPE_PROMPT_META
     return TYPE_PROMPT
-
-# ... (Các hàm hash và verify_rules_integrity giữ nguyên) ...
