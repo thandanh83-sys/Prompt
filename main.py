@@ -31,8 +31,8 @@ if not api_key:
 client = Groq(api_key=api_key)
 
 # ==========================================
-# [SỬA LỖI 1 & 2]: THÊM ROUTE GỐC VÀ HEALTH CHECK
-# Giúp Render không báo lỗi 404 và UptimeRobot có thể ping để giữ server không bị ngủ.
+# ROUTE GỐC VÀ HEALTH CHECK
+# Giúp Render không báo lỗi 404 và UptimeRobot có thể ping.
 # ==========================================
 @app.get("/")
 def read_root():
@@ -93,11 +93,11 @@ Prompt gốc cần đánh giá: {prompt_text}
         max_retries = 3
         response = None
         
-        # [SỬA LỖI 3]: Đổi sang model Llama 3 hợp lệ của Groq
+        # SỬ DỤNG MODEL CHUẨN CỦA GROQ
         for attempt in range(max_retries):
             try:
                 response = client.chat.completions.create(
-                    model="llama-3.3-70b-versatile", 
+                    model="openai/gpt-oss-120b", 
                     messages=[
                         {"role": "system", "content": system_prompt},
                         {"role": "user", "content": prompt_text}
