@@ -33,8 +33,8 @@ def validate_full_report(ai_json: dict, content_type: str, original_prompt: str)
             raise ValueError(f"Mã lỗi '{err['code']}' không hợp lệ.")
             
         evidence = str(err["evidence"]).strip()
-        # Chấp nhận "Toàn bộ prompt" như một ngoại lệ hợp lệ
-        if evidence and evidence.lower() != "toàn bộ prompt" and evidence not in original_prompt:
+        # [ĐÃ SỬA]: Chấp nhận cả "Toàn bộ" và "Toàn bộ prompt"
+        if evidence and evidence.lower() not in ["toàn bộ", "toàn bộ prompt"] and evidence not in original_prompt:
             raise ValueError(f"Bằng chứng '{evidence}' không có trong prompt gốc.")
 
     rewrite = ai_json["rewrite"]
