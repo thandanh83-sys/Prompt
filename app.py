@@ -11,23 +11,17 @@ if "ADMIN_PASSWORD" not in st.secrets:
     st.stop()
 ADMIN_PASS = st.secrets["ADMIN_PASSWORD"]
 
-st.set_page_config(page_title="Đánh giá Prompt v38", page_icon="✨", layout="centered")
+st.set_page_config(page_title="Đánh giá Prompt", page_icon="✨", layout="centered")
 
-# --- CSS GIAO DIỆN SÁNG, KÍNH MỜ, KHÔNG BỊ LỖI MÀU ---
+# Ép nền sáng, chữ đen, khung kính mờ
 st.markdown("""
 <style>
-    /* Ép nền sáng toàn trang */
     .stApp {
         background: linear-gradient(135deg, #f8fafc 0%, #e0f2fe 100%) !important;
+    }
+    h1, h2, h3, p, span, div, label {
         color: #0f172a !important;
     }
-    
-    /* Ép chữ thành màu đen */
-    h1, h2, h3, p, span, div {
-        color: #0f172a !important;
-    }
-    
-    /* Khung kính mờ cho các thẻ st.container */
     div[data-testid="stVerticalBlock"] > div {
         background: rgba(255, 255, 255, 0.6) !important;
         backdrop-filter: blur(12px) !important;
@@ -37,8 +31,6 @@ st.markdown("""
         box-shadow: 0 4px 15px rgba(0,0,0,0.05) !important;
         margin-bottom: 15px !important;
     }
-
-    /* Chỉnh lại ô nhập liệu (Textarea) */
     div[data-baseweb="textarea"] {
         background-color: white !important;
         border-radius: 12px !important;
@@ -48,8 +40,6 @@ st.markdown("""
         color: #0f172a !important;
         background-color: white !important;
     }
-
-    /* Nút bấm Gradient */
     .stButton>button {
         width: 100% !important;
         background: linear-gradient(90deg, #ec4899 0%, #3b82f6 100%) !important;
@@ -59,13 +49,9 @@ st.markdown("""
         padding: 10px !important;
         border: none !important;
     }
-    
-    /* Thanh tiến trình */
     .stProgress > div > div > div > div {
         background-image: linear-gradient(90deg, #ec4899 0%, #3b82f6 100%) !important;
     }
-    
-    /* Điểm tổng Gradient */
     .score-text {
         font-size: 60px !important;
         font-weight: 900 !important;
@@ -106,7 +92,6 @@ with tab1:
                         ai_data = ai_engine.get_ai_evaluation(prompt_input, content_type)
                         final_score = calculate_final_score(ai_data["scores"], content_type)
                         
-                        # Hiển thị điểm tổng
                         with st.container():
                             col1, col2 = st.columns([1, 1])
                             with col1:
@@ -114,7 +99,6 @@ with tab1:
                             with col2:
                                 st.markdown(f'<div style="text-align:right;"><p style="font-size:14px; font-weight:bold; color:#64748b !important; margin-bottom:8px;">PHÂN LOẠI</p><span style="background: linear-gradient(90deg, #ec4899, #3b82f6); color:white !important; padding:8px 16px; border-radius:999px; font-weight:bold;">{content_type}</span></div>', unsafe_allow_html=True)
                         
-                        # Hiển thị điểm tiêu chí 2 cột
                         st.markdown("### Điểm từng tiêu chí")
                         with st.container():
                             criteria = rules_v38.get_criteria_by_type(content_type)
@@ -127,13 +111,11 @@ with tab1:
                                     st.write(f"**{info['name']}**: {score}/10")
                                     st.progress(score / 10)
                         
-                        # Bản sửa 11 mục
                         st.markdown("### Bản sửa (11 mục)")
                         with st.container():
                             for sec in rules_v38.REQUIRED_REWRITE_SECTIONS:
                                 st.markdown(f"**{sec}:** {ai_data['rewrite'][sec]}")
                         
-                        # Lưu Database
                         conn = init_db()
                         conn.execute("INSERT INTO history (timestamp, prompt, type, score, details) VALUES (?, ?, ?, ?, ?)",
                                      (datetime.now().isoformat(), prompt_input, content_type, final_score, json.dumps(ai_data['scores'])))
