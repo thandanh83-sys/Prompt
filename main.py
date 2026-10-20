@@ -24,6 +24,9 @@ class PromptRequest(BaseModel):
     prompt: str
 
 api_key = os.environ.get("GEMINI_API_KEY", "")
+if not api_key:
+    print("CẢNH BÁO: CHƯA CÓ GEMINI_API_KEY!")
+
 client = genai.Client(api_key=api_key)
 
 @app.post("/evaluate")
@@ -33,11 +36,14 @@ async def evaluate(req: PromptRequest):
         return {"error": "Prompt trống"}
     
     try:
+        # 1. Phân loại prompt (v38)
         content_type = rules_v38.classify_prompt(prompt_text)
         criteria = rules_v38.get_criteria_by_type(content_type)
         
+        # 2. Chuẩn bị Prompt cho AI
         criteria_desc = "\n".join([f"- {k}: {v['name']}" for k, v in criteria.items()])
         error_codes_desc = "\n".join([f"- {k}: {v}" for k, v in rules_v38.VALID_ERROR_CODES.items()])
+        
         scores_example = ", ".join([f'"{k}": 8' for k in criteria.keys()])
         
         system_prompt = f"""
@@ -61,14 +67,15 @@ TRẢ VỀ ĐÚNG CHUỖI JSON (Không markdown):
 Prompt gốc: {prompt_text}
 """
 
-        # [CẬP NHẬT]: Thêm cơ chế tự động thử lại (Retry) nếu gặp lỗi 503
+        # 3. Gọi AI với cơ chế Retry (thử lại nếu Google quá tải)
         max_retries = 3
         response = None
         
         for attempt in range(max_retries):
             try:
+                # ĐÃ ĐỔI SANG GEMINI-2.0-FLASH
                 response = client.models.generate_content(
-                    model='gemini-3.8-flash', 
+                    model='gemini-2.0-flash', 
                     contents=system_prompt,
                     config=types.GenerateContentConfig(
                         response_mime_type="application/json", 
@@ -77,20 +84,24 @@ Prompt gốc: {prompt_text}
                 )
                 break # Thành công thì thoát vòng lặp
             except Exception as e:
-                if "503" in str(e) or "UNAVAILABLE" in str(e):
+                if "503" in str(e) or "UNAVAILABLE" in str(e) or "429" in str(e):
                     if attempt < max_retries - 1:
-                        time.sleep(2) # Đợi 2 giây rồi thử lại
+                        time.sleep(3) # Đợi 3 giây rồi thử lại
                         continue
                 raise e # Nếu là lỗi khác hoặc hết lượt thử thì báo lỗi
         
+        # 4. Xử lý dữ liệu AI trả về
         raw_text = response.text.strip()
         if raw_text.startswith("```json"): 
             raw_text = raw_text[7:-3].strip()
         
         ai_data = json.loads(raw_text)
+        
+        # 5. Validate (v38) và Tính điểm bằng Python
         validate_full_report(ai_data, content_type, prompt_text)
         final_score = calculate_final_score(ai_data["scores"], content_type)
         
+        # 6. Trả kết quả về Frontend
         return {
             "prompt": prompt_text,
             "type": content_type,
