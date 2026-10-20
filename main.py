@@ -116,3 +116,16 @@ Prompt gốc: {prompt_text}
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
+    
+    # --- ĐOẠN CODE KIỂM TRA GROQ ---
+if __name__ == "__main__":
+    # ... (giữ nguyên phần uvicorn.run) ...
+    
+    # Chạy thử đoạn này để in danh sách model ra màn hình Terminal / Logs
+    print("--- DANH SÁCH MODEL GROQ ---")
+    try:
+        models = client.models.list()
+        for model in models.data:
+            print(f"✅ Hỗ trợ: {model.id}")
+    except Exception as e:
+        print(f"❌ Lỗi lấy danh sách: {e}")
