@@ -4,9 +4,9 @@ from decimal import Decimal, ROUND_HALF_UP
 def validate_scores_only(ai_scores: dict, content_type: str) -> bool:
     criteria = rules_v38.get_criteria_by_type(content_type)
     if criteria is None:
-        raise ValueError(f"Loại nội dung '{content_type}' không hợp lệ.")
+        raise ValueError(f"Loại '{content_type}' không hợp lệ.")
     if not isinstance(ai_scores, dict):
-        raise ValueError("Trường 'scores' phải là một dict.")
+        raise ValueError("Trường 'scores' phải là dict.")
         
     expected_ids = set(criteria.keys())
     received_ids = set(ai_scores.keys())
@@ -20,41 +20,35 @@ def validate_scores_only(ai_scores: dict, content_type: str) -> bool:
 
 def validate_full_report(ai_json: dict, content_type: str, original_prompt: str) -> bool:
     if not isinstance(ai_json, dict):
-        raise ValueError("Dữ liệu AI trả về không phải JSON.")
-    
+        raise ValueError("Dữ liệu AI không phải JSON.")
     for k in ["scores", "errors", "rewrite"]:
         if k not in ai_json:
-            raise ValueError(f"Thiếu trường '{k}' trong báo cáo.")
+            raise ValueError(f"Thiếu trường '{k}'.")
 
     validate_scores_only(ai_json["scores"], content_type)
 
     errors = ai_json["errors"]
     if not isinstance(errors, list):
-        raise ValueError("Trường 'errors' phải là một list.")
+        raise ValueError("Trường 'errors' phải là list.")
         
     for err in errors:
-        if not isinstance(err, dict):
-            raise ValueError("Mỗi lỗi phải là một đối tượng JSON (dict).")
-        if "code" not in err or "evidence" not in err:
-            raise ValueError("Lỗi thiếu 'code' hoặc 'evidence'.")
-        if not isinstance(err["code"], str) or err["code"] not in rules_v38.VALID_ERROR_CODES:
+        if not isinstance(err, dict) or "code" not in err or "evidence" not in err:
+            raise ValueError("Mỗi lỗi phải là dict có 'code' và 'evidence'.")
+        if err["code"] not in rules_v38.VALID_ERROR_CODES:
             raise ValueError(f"Mã lỗi '{err['code']}' không hợp lệ.")
-        if not isinstance(err["evidence"], str):
-            raise ValueError("Trường 'evidence' phải là chuỗi.")
             
-        evidence = err["evidence"].strip()
-        if evidence and evidence not in original_prompt:
+        evidence = str(err["evidence"]).strip()
+        # [SỬA LỖI TẠI ĐÂY]: Chấp nhận "Toàn bộ prompt" như một ngoại lệ hợp lệ
+        if evidence and evidence.lower() != "toàn bộ prompt" and evidence not in original_prompt:
             raise ValueError(f"Bằng chứng '{evidence}' không có trong prompt gốc.")
 
     rewrite = ai_json["rewrite"]
     if not isinstance(rewrite, dict):
-        raise ValueError("Trường 'rewrite' phải là một dict.")
-        
+        raise ValueError("Trường 'rewrite' phải là dict.")
     expected_sections = set(rules_v38.REQUIRED_REWRITE_SECTIONS)
     received_sections = set(rewrite.keys())
     if received_sections != expected_sections:
-        raise ValueError(f"Bản sửa bị thiếu các mục: {expected_sections - received_sections}")
-
+        raise ValueError(f"Bản sửa thiếu mục: {expected_sections - received_sections}")
     return True
 
 def calculate_final_score(ai_scores: dict, content_type: str) -> float:
@@ -62,8 +56,5 @@ def calculate_final_score(ai_scores: dict, content_type: str) -> float:
     criteria = rules_v38.get_criteria_by_type(content_type)
     total_score = Decimal('0.0')
     for crit_id, info in criteria.items():
-        score = Decimal(str(ai_scores[crit_id]))
-        weight = Decimal(str(info["weight"]))
-        total_score += score * weight
-    final_score = total_score / Decimal('10.0')
-    return float(final_score.quantize(Decimal('0.1'), rounding=ROUND_HALF_UP))
+        total_score += Decimal(str(ai_scores[crit_id])) * Decimal(str(info["weight"]))
+    return float((total_score / Decimal('10.0')).quantize(Decimal('0.1'), rounding=ROUND_HALF_UP))
