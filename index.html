@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Hệ thống Đánh giá Prompt (v38)</title>
-<!-- [LOGO TAB TRÌNH DUYỆT]: Dùng SVG làm favicon -->
+<!-- [LOGO TAB TRÌNH DUYỆT] -->
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><defs><linearGradient id=%22g%22 x1=%220%%22 y1=%220%%22 x2=%22100%%22 y2=%22100%%22><stop offset=%220%%22 stop-color=%22%23ec4899%22/><stop offset=%22100%%22 stop-color=%22%233b82f6%22/></linearGradient></defs><rect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22url(%23g)%22/><text x=%2250%22 y=%2272%22 font-size=%2260%22 font-family=%22Arial,sans-serif%22 font-weight=%22bold%22 fill=%22white%22 text-anchor=%22middle%22>P</text></svg>">
 <script src="https://cdn.tailwindcss.com"></script>
 <script>tailwind.config = { darkMode: 'class' };</script>
@@ -21,7 +21,6 @@
 
   <div class="max-w-4xl mx-auto pt-10 px-4 pb-20">
     
-    <!-- Tiêu đề chữ (Không dùng logo to) -->
     <h1 class="text-3xl font-bold text-center mb-6 text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-blue-400">Hệ thống Đánh giá Prompt</h1>
 
     <div class="flex justify-center mb-8">
@@ -95,7 +94,8 @@
 </div>
 
 <script>
-const API_URL = "https://ho-tro-tao-prompt.onrender.com/evaluate"; 
+// ĐÃ CẬP NHẬT LINK RENDER MỚI CỦA BẠN
+const API_URL = "https://prompt-tx2e.onrender.com/evaluate"; 
 const SECTION_NAMES = ["1. VAI TRÒ", "2. BỐI CẢNH", "3. INPUT", "4. MỤC TIÊU", "5. YÊU CẦU", "6. RÀNG BUỘC", "7. TASK", "8. ĐỊNH DẠNG ĐẦU RA", "9. NEVER DO", "10. THỨ TỰ ƯU TIÊN", "11. XỬ LÝ NỘI BỘ"];
 const $ = id => document.getElementById(id);
 let lastResult = null;
