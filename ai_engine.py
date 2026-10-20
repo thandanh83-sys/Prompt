@@ -3,18 +3,22 @@ import rules_v38
 from validator import validate_full_report
 import streamlit as st
 from google import genai
+from google.genai import types
 
-try:
+try: 
     api_key = st.secrets["GEMINI_API_KEY"]
-except:
+except: 
     api_key = "YOUR_API_KEY_HERE"
 
-client = genai.Client(api_key=api_key)
+# [FIX TREO]: Thêm timeout 30 giây, nếu API không phản hồi sẽ tự báo lỗi
+client = genai.Client(
+    api_key=api_key, 
+    http_options={'timeout': 30.0} 
+)
 
-def get_ai_evaluation(prompt_text: str, content_type: str, retries: int = 1):
+def get_ai_evaluation(prompt_text: str, content_type: str, retries: int = 0):
     criteria = rules_v38.get_criteria_by_type(content_type)
-    if not criteria:
-        raise ValueError("Không tìm thấy tiêu chí.")
+    if not criteria: raise ValueError("Không tìm thấy tiêu chí.")
     
     criteria_desc = "\n".join([f"- {k}: {v['name']}" for k, v in criteria.items()])
     error_codes_desc = "\n".join([f"- {k}: {v}" for k, v in rules_v38.VALID_ERROR_CODES.items()])
@@ -40,24 +44,24 @@ CHỈ TRẢ VỀ CHUỖI JSON HỢP LỆ (Không markdown, không giải thích)
 Prompt gốc: {prompt_text}
 """
     
-    for attempt in range(retries + 1):
-        try:
-            response = client.interactions.create(
-                model='gemini-3.8-flash',
-                input=system_prompt,
-                response_format={"type": "object"}
+    try:
+        # [FIX TREO]: Dùng model 1.5-flash ổn định, ép temperature = 0 để AI không bịa
+        response = client.models.generate_content(
+            model='gemini-1.5-flash',
+            contents=system_prompt,
+            config=types.GenerateContentConfig(
+                response_mime_type="application/json",
+                temperature=0.0
             )
-            
-            raw_text = response.output_text.strip()
-            
-            if raw_text.startswith("```json"):
-                raw_text = raw_text[7:-3].strip()
-                
-            ai_data = json.loads(raw_text)
-            validate_full_report(ai_data, content_type, prompt_text)
-            return ai_data
-            
-        except Exception as e:
-            if attempt == retries:
-                raise RuntimeError(f"Lỗi AI: {str(e)}")
-            continue
+        )
+        
+        raw_text = response.text.strip()
+        if raw_text.startswith("```json"): raw_text = raw_text[7:-3].strip()
+        
+        ai_data = json.loads(raw_text)
+        validate_full_report(ai_data, content_type, prompt_text)
+        return ai_data
+        
+    except Exception as e:
+        # In thẳng lỗi ra màn hình để biết nguyên nhân (Sai key, mạng lag...)
+        raise RuntimeError(f"Chi tiết lỗi: {str(e)}")
