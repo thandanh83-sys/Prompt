@@ -2,8 +2,6 @@ import json
 import rules_v38
 from validator import validate_full_report
 import streamlit as st
-
-# SỬ DỤNG THƯ VIỆN MỚI (google-genai)
 from google import genai
 from google.genai import types
 
@@ -12,7 +10,6 @@ try:
 except:
     api_key = "YOUR_API_KEY_HERE"
 
-# Khởi tạo client mới
 client = genai.Client(api_key=api_key)
 
 def get_ai_evaluation(prompt_text: str, content_type: str, retries: int = 1):
@@ -35,7 +32,7 @@ DANH SÁCH MÃ LỖI (Chỉ dùng mã trong danh sách):
 
 CHỈ TRẢ VỀ CHUỖI JSON HỢP LỆ (Không markdown):
 {{
-  "scores": {{ "P01": [int], ... }},
+  "scores": {{ "P01": [int], "P02": [int], "P03": [int], "P04": [int], "P05": [int], "P06": [int], "P07": [int], "P08": [int], "P09": [int], "P10": [int], "P11": [int], "P12": [int], "P13": [int], "P14": [int] }},
   "errors": [ {{"code": "[Mã]", "evidence": "[Trích dẫn]"}} ],
   "rewrite": {{ "1. VAI TRÒ": "[Nội dung]", "2. BỐI CẢNH": "[Nội dung]", "3. INPUT": "[Nội dung]", "4. MỤC TIÊU": "[Nội dung]", "5. YÊU CẦU": "[Nội dung]", "6. RÀNG BUỘC": "[Nội dung]", "7. TASK": "[Nội dung]", "8. ĐỊNH DẠNG ĐẦU RA": "[Nội dung]", "9. NEVER DO": "[Nội dung]", "10. THỨ TỰ ƯU TIÊN": "[Nội dung]", "11. XỬ LÝ NỘI BỘ": "[Nội dung]" }}
 }}
@@ -45,9 +42,9 @@ Prompt gốc: {prompt_text}
     
     for attempt in range(retries + 1):
         try:
-            # Gọi API bằng thư viện mới
+            # SỬA LỖI 404: Dùng tên model chuẩn xác của thư viện mới
             response = client.models.generate_content(
-                model='gemini-1.5-flash',
+                model='gemini-1.5-flash-latest', 
                 contents=system_prompt,
                 config=types.GenerateContentConfig(
                     response_mime_type="application/json",
