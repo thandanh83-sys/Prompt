@@ -28,6 +28,7 @@
             </div>
         </div>
 
+        <!-- KHU VỰC USER MODE -->
         <div id="userModeSection">
             <div class="glass-card bg-white/40 dark:bg-slate-800/60 backdrop-blur-lg border border-white/60 dark:border-slate-700/60 shadow-xl rounded-3xl p-6">
                 <textarea id="promptInput" class="w-full h-32 p-4 rounded-2xl bg-white/60 dark:bg-slate-900/60 border border-white/80 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-pink-400 resize-none text-slate-800 dark:text-slate-100" placeholder="Nhập prompt cần đánh giá..."></textarea>
@@ -36,7 +37,7 @@
             </div>
 
             <div id="resultArea" class="mt-6 space-y-6" style="display: none;">
-                <!-- Khối Điểm tổng (Đã sửa bố cục) -->
+                <!-- Khối Điểm tổng -->
                 <div class="glass-card bg-white/40 dark:bg-slate-800/60 backdrop-blur-lg border border-white/60 dark:border-slate-700/60 shadow-xl rounded-3xl p-6 flex justify-between items-stretch">
                     <div class="flex flex-col justify-center">
                         <p class="text-sm font-semibold text-slate-500 uppercase mb-1">Điểm tổng</p>
@@ -51,6 +52,7 @@
                     </div>
                 </div>
 
+                <!-- Khối Danh sách lỗi chi tiết -->
                 <div class="glass-card bg-white/40 dark:bg-slate-800/60 backdrop-blur-lg border border-white/60 dark:border-slate-700/60 shadow-xl rounded-3xl p-6">
                     <h3 class="font-bold text-lg mb-4 text-red-500">Danh sách lỗi chi tiết</h3>
                     <ul id="userErrorList" class="space-y-3 text-sm text-slate-700 dark:text-slate-300">
@@ -58,11 +60,13 @@
                     </ul>
                 </div>
 
+                <!-- Khối Điểm tiêu chí -->
                 <div class="glass-card bg-white/40 dark:bg-slate-800/60 backdrop-blur-lg border border-white/60 dark:border-slate-700/60 shadow-xl rounded-3xl p-6">
                     <h3 class="font-bold text-lg mb-4">Điểm từng tiêu chí</h3>
                     <div id="criteriaList" class="grid grid-cols-2 gap-x-6 gap-y-5"></div>
                 </div>
 
+                <!-- Khối Bản sửa 11 mục -->
                 <div class="glass-card bg-white/40 dark:bg-slate-800/60 backdrop-blur-lg border border-white/60 dark:border-slate-700/60 shadow-xl rounded-3xl p-6 relative">
                     <button id="btnCopyAll" class="absolute top-4 right-4 flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-white/60 dark:bg-slate-900/60 rounded-md border border-slate-200 shadow-sm hover:bg-white transition">
                         <span id="copyBtnText">Sao chép</span>
@@ -73,6 +77,7 @@
             </div>
         </div>
 
+        <!-- KHU VỰC ADMIN MODE -->
         <div id="adminModeSection" style="display: none;">
             <div id="adminLoginBox" class="glass-card bg-white/40 dark:bg-slate-800/60 backdrop-blur-lg border border-white/60 dark:border-slate-700/60 shadow-xl rounded-3xl p-6 max-w-md mx-auto text-center">
                 <h3 class="font-bold text-lg mb-4">Đăng nhập Admin</h3>
@@ -101,6 +106,14 @@
                             <span class="font-bold text-red-500" id="adminTotalErrors">0</span>
                         </div>
                     </div>
+                </div>
+
+                <!-- [ĐÃ THÊM VÀO]: Khối hiển thị lỗi cho Admin -->
+                <div class="bg-white/60 dark:bg-slate-900/60 p-4 rounded-xl border border-slate-200 dark:border-slate-700 mt-4">
+                    <p class="text-xs text-slate-500 uppercase font-bold mb-2">Chi tiết mã lỗi:</p>
+                    <ul id="adminErrorList" class="text-sm space-y-2 list-disc pl-5 text-slate-700 dark:text-slate-300">
+                        <li>Chưa có dữ liệu</li>
+                    </ul>
                 </div>
 
                 <div class="overflow-x-auto mt-4">
@@ -176,7 +189,7 @@
         } catch (error) {
             clearTimeout(timeoutId);
             if (error.name === 'AbortError') {
-                throw new Error("Quá thời gian chờ (3 phút). Server đang khởi động, vui lòng bấm lại!");
+                throw new Error("Quá thời gian chờ (3 phút). Server Render đang khởi động rất chậm, bạn vui lòng bấm lại lần nữa!");
             }
             throw error;
         }
@@ -202,7 +215,7 @@
             list.append(row);
         });
 
-        // --- DÀNH CHO USER MODE (Thân thiện, KHÔNG mã lỗi) ---
+        // --- DÀNH CHO USER MODE ---
         const userErrList = $('userErrorList');
         userErrList.innerHTML = '';
         if (r.errors && r.errors.length > 0) {
@@ -233,7 +246,7 @@
             userErrList.innerHTML = `<li class="text-green-600 dark:text-green-400 font-semibold p-3 bg-green-50 dark:bg-green-900/20 rounded-xl">Tuyệt vời! Không phát hiện lỗi nào.</li>`;
         }
 
-        // --- DÀNH CHO ADMIN MODE (Kỹ thuật, CÓ mã lỗi) ---
+        // --- DÀNH CHO ADMIN MODE ---
         const adminErrorList = $('adminErrorList');
         adminErrorList.innerHTML = '';
         if (r.errors && r.errors.length > 0) {
