@@ -27,7 +27,6 @@
       </div>
     </div>
 
-    <!-- KHU VỰC USER MODE -->
     <div id="userModeSection">
       <div class="glass-card bg-white/40 dark:bg-slate-800/60 backdrop-blur-lg border border-white/60 dark:border-slate-700/60 shadow-xl rounded-3xl p-6">
         <textarea id="promptInput" class="w-full h-32 p-4 rounded-2xl bg-white/60 dark:bg-slate-900/60 border border-white/80 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-pink-400 resize-none text-slate-800 dark:text-slate-100" placeholder="Nhập prompt cần đánh giá..."></textarea>
@@ -65,7 +64,6 @@
       </div>
     </div>
 
-    <!-- KHU VỰC ADMIN MODE -->
     <div id="adminModeSection" style="display: none;">
       <div id="adminLoginBox" class="glass-card bg-white/40 dark:bg-slate-800/60 backdrop-blur-lg border border-white/60 dark:border-slate-700/60 shadow-xl rounded-3xl p-6 max-w-md mx-auto text-center">
         <h3 class="font-bold text-lg mb-4">Đăng nhập Admin</h3>
@@ -91,7 +89,6 @@
 </div>
 
 <script>
-// ĐÃ CẬP NHẬT LINK RENDER CỦA BẠN, KHÔNG CÒN CẢNH BÁO
 const API_URL = "https://ho-tro-tao-prompt.onrender.com/evaluate"; 
 const SECTION_NAMES = ["1. VAI TRÒ", "2. BỐI CẢNH", "3. INPUT", "4. MỤC TIÊU", "5. YÊU CẦU", "6. RÀNG BUỘC", "7. TASK", "8. ĐỊNH DẠNG ĐẦU RA", "9. NEVER DO", "10. THỨ TỰ ƯU TIÊN", "11. XỬ LÝ NỘI BỘ"];
 const $ = id => document.getElementById(id);
@@ -114,8 +111,15 @@ async function evaluatePrompt(prompt) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ prompt: prompt })
   });
-  if (!response.ok) throw new Error("Lỗi từ server");
-  return await response.json();
+  
+  // Đọc dữ liệu trả về, dù là lỗi hay thành công
+  const data = await response.json();
+  
+  // Nếu Backend trả về lỗi (do sai API key, AI bị lỗi...), ném ra để bắt
+  if (data.error) throw new Error(data.error); 
+  if (!response.ok) throw new Error("Lỗi HTTP: " + response.status);
+  
+  return data;
 }
 
 function render(r) {
@@ -157,13 +161,14 @@ $('btnEvaluate').addEventListener('click', async () => {
   $('errorMsg').style.display = 'none';
   
   const btn = $('btnEvaluate');
-  btn.disabled = true; btn.textContent = 'AI Đang chấm điểm (chờ Render khởi động 30s)...';
+  btn.disabled = true; btn.textContent = 'AI Đang chấm điểm...';
   
   try {
     lastResult = await evaluatePrompt(prompt);
     render(lastResult);
   } catch (e) {
-    $('errorMsg').textContent = 'Lỗi kết nối Backend! (Server Render có thể đang ngủ, hãy đợi 30s và bấm lại)'; 
+    // HIỂN THỊ LỖI THẬT TỪ SERVER
+    $('errorMsg').textContent = 'Lỗi: ' + e.message; 
     $('errorMsg').style.display = 'block';
   } finally {
     btn.disabled = false; btn.textContent = 'Đánh giá';
