@@ -24,8 +24,8 @@ class PromptRequest(BaseModel):
 
 api_key = os.environ.get("GEMINI_API_KEY", "")
 
-# [TĂNG TIMEOUT LÊN 120 GIÂY ĐỂ CHỜ RENDER KHỞI ĐỘNG VÀ AI SUY NGHĨ]
-client = genai.Client(api_key=api_key, http_options={'timeout': 120.0})
+# [SỬA LỖI 400]: Bỏ thông số timeout bị lỗi đi, để thư viện tự dùng mức mặc định
+client = genai.Client(api_key=api_key)
 
 @app.post("/evaluate")
 async def evaluate(req: PromptRequest):
@@ -62,7 +62,7 @@ TRẢ VỀ ĐÚNG CHUỖI JSON (Không markdown):
 Prompt gốc: {prompt_text}
 """
         
-        # [SỬ DỤNG MODEL MỚI NHẤT THEO YÊU CẦU CỦA GOOGLE]
+        # Dùng model mới nhất theo yêu cầu của Google
         response = client.models.generate_content(
             model='gemini-3.8-flash', 
             contents=system_prompt,
