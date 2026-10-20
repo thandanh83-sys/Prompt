@@ -22,11 +22,7 @@ app.add_middleware(
 class PromptRequest(BaseModel):
     prompt: str
 
-# Cố gắng lấy API Key
 api_key = os.environ.get("GEMINI_API_KEY", "")
-if not api_key:
-    print("CẢNH BÁO: CHƯA CÓ GEMINI_API_KEY TRÊN RENDER!")
-
 client = genai.Client(api_key=api_key)
 
 @app.post("/evaluate")
@@ -39,8 +35,12 @@ async def evaluate(req: PromptRequest):
         content_type = rules_v38.classify_prompt(prompt_text)
         criteria = rules_v38.get_criteria_by_type(content_type)
         
+        # Tạo danh sách tiêu chí và mã lỗi
         criteria_desc = "\n".join([f"- {k}: {v['name']}" for k, v in criteria.items()])
         error_codes_desc = "\n".join([f"- {k}: {v}" for k, v in rules_v38.VALID_ERROR_CODES.items()])
+        
+        # Tạo mẫu JSON động để AI không bị nhầm
+        scores_example = ", ".join([f'"{k}": 8' for k in criteria.keys()])
         
         system_prompt = f"""
 Bạn là chuyên gia đánh giá prompt. Chấm điểm prompt sau. Điểm mỗi tiêu chí từ 0-10.
@@ -55,8 +55,8 @@ MÃ LỖI:
 
 TRẢ VỀ ĐÚNG CHUỖI JSON (Không markdown):
 {{
-  "scores": {{ "P01": 8, "P02": 7, ... }},
-  "errors": [ {{"code": "[Mã]", "evidence": "[Trích dẫn]"}} ],
+  "scores": {{ {scores_example} }},
+  "errors": [ {{"code": "[Mã lỗi]", "evidence": "[Trích dẫn]"}} ],
   "rewrite": {{ "1. VAI TRÒ": "...", "2. BỐI CẢNH": "...", "3. INPUT": "...", "4. MỤC TIÊU": "...", "5. YÊU CẦU": "...", "6. RÀNG BUỘC": "...", "7. TASK": "...", "8. ĐỊNH DẠNG ĐẦU RA": "...", "9. NEVER DO": "...", "10. THỨ TỰ ƯU TIÊN": "...", "11. XỬ LÝ NỘI BỘ": "..." }}
 }}
 
@@ -84,5 +84,5 @@ Prompt gốc: {prompt_text}
         }
         
     except Exception as e:
-        # Nếu có lỗi, gửi thẳng câu lỗi về cho màn hình đỏ
+        # Trả về chi tiết lỗi để Frontend hiển thị
         return {"error": str(e)}
