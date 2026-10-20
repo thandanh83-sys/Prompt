@@ -86,14 +86,14 @@ Prompt gốc cần đánh giá: {prompt_text}
         for attempt in range(max_retries):
             try:
                 response = client.chat.completions.create(
-                    model="llama3-70b-8192", # Đổi sang Llama 3 70B cho ổn định
+                    model="openai/gpt-oss-120b", # Đã cập nhật model mới
                     messages=[
                         {"role": "system", "content": system_prompt},
                         {"role": "user", "content": prompt_text}
                     ],
                     response_format={"type": "json_object"},
                     temperature=0.0,
-                    top_p=0.1 # Ép AI chọn kết quả có xác suất cao nhất, tránh sáng tạo
+                    top_p=0.1 
                 )
                 break
             except Exception as e:
