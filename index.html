@@ -91,13 +91,12 @@
 </div>
 
 <script>
-// ĐÃ CẬP NHẬT LINK RENDER CỦA BẠN VÀO ĐÂY
+// ĐÃ CẬP NHẬT LINK RENDER CỦA BẠN, KHÔNG CÒN CẢNH BÁO
 const API_URL = "https://ho-tro-tao-prompt.onrender.com/evaluate"; 
 const SECTION_NAMES = ["1. VAI TRÒ", "2. BỐI CẢNH", "3. INPUT", "4. MỤC TIÊU", "5. YÊU CẦU", "6. RÀNG BUỘC", "7. TASK", "8. ĐỊNH DẠNG ĐẦU RA", "9. NEVER DO", "10. THỨ TỰ ƯU TIÊN", "11. XỬ LÝ NỘI BỘ"];
 const $ = id => document.getElementById(id);
 let lastResult = null;
 
-// Theme Toggle
 function applyTheme(dark) {
   document.documentElement.classList.toggle('dark', dark);
   $('themeToggle').textContent = dark ? '☀️' : '🌙';
@@ -109,7 +108,6 @@ function applyTheme(dark) {
 })();
 $('themeToggle').addEventListener('click', () => applyTheme(!document.documentElement.classList.contains('dark')));
 
-// Hàm gọi API
 async function evaluatePrompt(prompt) {
   const response = await fetch(API_URL, {
       method: 'POST',
@@ -120,7 +118,6 @@ async function evaluatePrompt(prompt) {
   return await response.json();
 }
 
-// Render UI
 function render(r) {
   $('totalScore').textContent = r.total;
   $('promptType').textContent = r.type;
@@ -154,7 +151,6 @@ function render(r) {
   $('adminLastType').innerText = r.type;
 }
 
-// Sự kiện bấm Đánh giá
 $('btnEvaluate').addEventListener('click', async () => {
   const prompt = $('promptInput').value.trim();
   if (!prompt) { $('errorMsg').style.display = 'block'; return; }
@@ -167,14 +163,13 @@ $('btnEvaluate').addEventListener('click', async () => {
     lastResult = await evaluatePrompt(prompt);
     render(lastResult);
   } catch (e) {
-    $('errorMsg').textContent = 'Lỗi kết nối Backend (Server Render có thể đang ngủ, vui lòng thử lại sau 30s)'; 
+    $('errorMsg').textContent = 'Lỗi kết nối Backend! (Server Render có thể đang ngủ, hãy đợi 30s và bấm lại)'; 
     $('errorMsg').style.display = 'block';
   } finally {
     btn.disabled = false; btn.textContent = 'Đánh giá';
   }
 });
 
-// Copy 11 mục
 $('btnCopyAll').addEventListener('click', async () => {
   if (!lastResult) return;
   let text = "=== BẢN SỬA PROMPT ===\n\n";
@@ -186,7 +181,6 @@ $('btnCopyAll').addEventListener('click', async () => {
   setTimeout(() => { $('copyBtnText').textContent = 'Sao chép'; $('copyBtnText').classList.remove('text-green-500'); }, 2000);
 });
 
-// Đăng nhập Admin
 $('btnAdminLogin').addEventListener('click', () => {
   if ($('adminPassword').value.trim() === "bisdo091121") {
     $('adminLoginBox').style.display = 'none'; $('adminDashboard').style.display = 'block';
@@ -199,7 +193,6 @@ $('btnClearHistory').addEventListener('click', () => {
   $('adminLastPrompt').innerText = "Chưa có dữ liệu"; $('adminLastScore').innerText = "0.0";
 });
 
-// Chuyển Tab
 $('tabUser').addEventListener('click', () => {
   $('userModeSection').style.display = 'block'; $('adminModeSection').style.display = 'none';
   $('tabUser').className = "px-8 py-2 rounded-full font-semibold bg-gradient-to-r from-pink-500 to-blue-400 text-white shadow-md";
