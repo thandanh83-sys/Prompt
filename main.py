@@ -52,26 +52,26 @@ async def evaluate(req: PromptRequest):
         criteria = rules_v38.get_criteria_by_type(content_type)
         if not criteria: return {"error": "Không xác định được loại tiêu chí."}
         
-        criteria_desc = "\n".join([f"- {k}: {v['name']}" for k, v in criteria.items()])
+        # [CẬP NHẬT]: Đưa Rubric chi tiết vào Prompt cho AI
+        criteria_desc = ""
+        for k, v in criteria.items():
+            criteria_desc += f"- ID {k} ({v['name']}): {v['rubric']}\n"
+            
         error_codes_desc = "\n".join([f"- {k}: {v}" for k, v in rules_v38.VALID_ERROR_CODES.items()])
         scores_example = ", ".join([f'"{k}": 8' for k in criteria.keys()])
         
-        # [ĐÃ SIẾT CHẶT PROMPT AI]
         system_prompt = f"""
-Bạn là chuyên gia đánh giá prompt. Chấm điểm prompt sau. Điểm mỗi tiêu chí từ 0-10.
-BƯỚC 1: Chấm điểm dựa trên bản gốc.
-BƯỚC 2: Viết 11 mục bản sửa.
+Bạn là chuyên gia đánh giá prompt. BẠN PHẢI CHẤM ĐIỂM THEO ĐÚNG THANG ĐIỂM (RUBRIC) DƯỚI ĐÂY, KHÔNG ĐƯỢC CHẤM THEO CẢM TÍNH.
 
-TIÊU CHÍ BẮT BUỘC:
+THANG ĐIỂM (RUBRIC) BẮT BUỘC:
 {criteria_desc}
 
 MÃ LỖI BẮT BUỘC:
 {error_codes_desc}
 
-QUY TẮC CHỌN LỖI (CỰC KỲ QUAN TRỌNG):
-1. CHỈ CHỌN TỐI ĐA 3 LỖI NGHIÊM TRỌNG NHẤT. KHÔNG liệt kê tràn lan tất cả các lỗi.
-2. Nếu câu quá ngắn, hãy ưu tiên chọn lỗi về "Chính tả" (nếu có) và "Thiếu đối tượng/bối cảnh". Bỏ qua các lỗi về cấu trúc hay định dạng nếu không thực sự cần thiết.
-3. Với bằng chứng (evidence): Trích dẫn CHÍNH XÁC từ gốc. Nếu lỗi áp dụng cho cả câu, chỉ ghi là "Toàn bộ". KHÔNG viết dài dòng.
+QUY TẮC CHỌN LỖI:
+1. CHỈ CHỌN TỐI ĐA 3 LỖI NGHIÊM TRỌNG NHẤT.
+2. Bằng chứng (evidence) phải trích dẫn chính xác từ Prompt gốc, nếu lỗi toàn bài ghi "Toàn bộ".
 
 CHỈ TRẢ VỀ CHUỖI JSON HỢP LỆ:
 {{
@@ -107,7 +107,6 @@ Prompt gốc: {prompt_text}
         
         ai_data = json.loads(raw_text)
 
-        # Làm sạch dữ liệu rác từ AI
         if "errors" in ai_data and isinstance(ai_data["errors"], list):
             for err in ai_data["errors"]:
                 evidence = str(err.get("evidence", "")).strip()
