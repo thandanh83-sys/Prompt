@@ -74,9 +74,9 @@ Prompt gốc: {prompt_text}
         
         for attempt in range(max_retries):
             try:
-                # Gọi Groq API (Model Llama 3.3 siêu mạnh và nhanh)
+                # SỬ DỤNG MODEL MỚI CỦA GROQ
                 response = client.chat.completions.create(
-                    model="llama-3.3-70b-versatile",
+                    model="openai/gpt-oss-120b",
                     messages=[
                         {"role": "system", "content": system_prompt},
                         {"role": "user", "content": prompt_text}
