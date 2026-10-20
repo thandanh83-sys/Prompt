@@ -203,7 +203,7 @@
         const typeMap = { "PROMPT": "PROMPT", "TEMPLATE": "TEMPLATE", "PROMPT META": "PROMPT META", "TABLE": "TABLE", "STEM": "TOÁN/LÝ/HÓA" };
         $('promptType').textContent = typeMap[r.type] || r.type;
 
-        // [CẬP NHẬT]: Ẩn trọng số, chỉ hiện tên và điểm
+        // [CẬP NHẬT]: Chỉ hiện Tên và Điểm (Không hiện trọng số x1.2)
         const list = $('criteriaList'); list.replaceChildren();
         Object.entries(r.details).forEach(([name, score]) => {
             const row = document.createElement('div');
@@ -218,7 +218,7 @@
             list.append(row);
         });
 
-        // --- DÀNH CHO USER MODE ---
+        // --- DÀNH CHO USER MODE (Thân thiện, KHÔNG mã lỗi) ---
         const userErrList = $('userErrorList');
         userErrList.innerHTML = '';
         if (r.errors && r.errors.length > 0) {
@@ -252,7 +252,7 @@
             userErrList.innerHTML = `<li class="text-green-600 dark:text-green-400 font-semibold p-3 bg-green-50 dark:bg-green-900/20 rounded-xl">Tuyệt vời! Không phát hiện lỗi nào.</li>`;
         }
 
-        // --- DÀNH CHO ADMIN MODE ---
+        // --- DÀNH CHO ADMIN MODE (Kỹ thuật, CÓ mã lỗi) ---
         const adminErrorList = $('adminErrorList');
         adminErrorList.innerHTML = '';
         if (r.errors && r.errors.length > 0) {
@@ -353,17 +353,25 @@
         let text = ""; 
         
         SECTION_NAMES.forEach(sec => {
-            let content = lastResult.rewrite[sec] || '';
+            let content = (lastResult.rewrite[sec] || '').trim();
             
-            if (sec === "10. THỨ TỰ ƯU TIÊN") {
-                content = content.replace(/;\s*/g, '.\n');
+            // [XỬ LÝ ĐẶC BIỆT 1]: Thêm dấu gạch đầu dòng cho các mục Yêu cầu, Ràng buộc, Never do
+            if (sec === "5. YÊU CẦU" || sec === "6. RÀNG BUỘC" || sec === "9. NEVER DO") {
+                content = content.replace(/(?<!^)[.;]\s+/g, '\n• ').replace(/^\• /, '');
+                if (!content.startsWith('•') && content !== '') {
+                    content = '• ' + content;
+                }
+            }
+            
+            // [XỬ LÝ ĐẶC BIỆT 2]: Tách thành các dòng số 1. 2. 3. cho mục Thứ tự ưu tiên và Xử lý nội bộ
+            if (sec === "10. THỨ TỰ ƯU TIÊN" || sec === "11. XỬ LÝ NỘI BỘ") {
+                content = content.replace(/;\s*/g, '\n');
                 content = content.replace(/(\d+\.)\s*/g, '\n$1 ').trim();
-                text += `${sec}:\n${content}\n\n`;
-            } 
-            else if (sec === "11. XỬ LÝ NỘI BỘ") {
+            }
+
+            if (sec === "11. XỬ LÝ NỘI BỘ") {
                 text += `11.XỬ LÝ NỘI BỘ\n${content}\n\n`;
-            } 
-            else {
+            } else {
                 text += `${sec}:\n${content}\n\n`;
             }
         });
