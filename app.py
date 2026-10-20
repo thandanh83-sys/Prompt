@@ -13,13 +13,66 @@ ADMIN_PASS = st.secrets["ADMIN_PASSWORD"]
 
 st.set_page_config(page_title="Đánh giá Prompt v38", page_icon="✨", layout="centered")
 
+# --- CSS GIAO DIỆN SÁNG, KÍNH MỜ, KHÔNG BỊ LỖI MÀU ---
 st.markdown("""
 <style>
-    .stApp { background: linear-gradient(135deg, #f8fafc 0%, #e0f2fe 100%); color: #0f172a; }
-    .glass-card { background: rgba(255, 255, 255, 0.4); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.6); border-radius: 24px; padding: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); margin-bottom: 20px; }
-    .stButton>button { width: 100%; background: linear-gradient(90deg, #ec4899 0%, #3b82f6 100%); color: white !important; border-radius: 999px; font-weight: bold; padding: 10px; }
-    .score-text { font-size: 64px; font-weight: 900; background: -webkit-linear-gradient(45deg, #ec4899, #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-    .stProgress > div > div > div > div { background-image: linear-gradient(90deg, #ec4899 0%, #3b82f6 100%); }
+    /* Ép nền sáng toàn trang */
+    .stApp {
+        background: linear-gradient(135deg, #f8fafc 0%, #e0f2fe 100%) !important;
+        color: #0f172a !important;
+    }
+    
+    /* Ép chữ thành màu đen */
+    h1, h2, h3, p, span, div {
+        color: #0f172a !important;
+    }
+    
+    /* Khung kính mờ cho các thẻ st.container */
+    div[data-testid="stVerticalBlock"] > div {
+        background: rgba(255, 255, 255, 0.6) !important;
+        backdrop-filter: blur(12px) !important;
+        border: 1px solid rgba(255, 255, 255, 0.8) !important;
+        border-radius: 20px !important;
+        padding: 20px !important;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05) !important;
+        margin-bottom: 15px !important;
+    }
+
+    /* Chỉnh lại ô nhập liệu (Textarea) */
+    div[data-baseweb="textarea"] {
+        background-color: white !important;
+        border-radius: 12px !important;
+        border: 1px solid #cbd5e1 !important;
+    }
+    div[data-baseweb="textarea"] textarea {
+        color: #0f172a !important;
+        background-color: white !important;
+    }
+
+    /* Nút bấm Gradient */
+    .stButton>button {
+        width: 100% !important;
+        background: linear-gradient(90deg, #ec4899 0%, #3b82f6 100%) !important;
+        color: white !important;
+        border-radius: 999px !important;
+        font-weight: bold !important;
+        padding: 10px !important;
+        border: none !important;
+    }
+    
+    /* Thanh tiến trình */
+    .stProgress > div > div > div > div {
+        background-image: linear-gradient(90deg, #ec4899 0%, #3b82f6 100%) !important;
+    }
+    
+    /* Điểm tổng Gradient */
+    .score-text {
+        font-size: 60px !important;
+        font-weight: 900 !important;
+        background: -webkit-linear-gradient(45deg, #ec4899, #3b82f6) !important;
+        -webkit-background-clip: text !important;
+        -webkit-text-fill-color: transparent !important;
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -34,10 +87,9 @@ st.title("✨ Hệ thống Đánh giá Prompt")
 tab1, tab2 = st.tabs(["User", "Admin"])
 
 with tab1:
-    st.markdown('<div class="glass-card">', unsafe_allow_html=True)
-    prompt_input = st.text_area("Nhập prompt cần đánh giá:", height=150)
-    btn_eval = st.button("Đánh giá ngay")
-    st.markdown('</div>', unsafe_allow_html=True)
+    with st.container():
+        prompt_input = st.text_area("Nhập prompt cần đánh giá:", height=150, placeholder="Ví dụ: viết bài văn so sánh 2 bài thơ...")
+        btn_eval = st.button("Đánh giá ngay")
 
     if btn_eval:
         if not prompt_input.strip():
@@ -54,36 +106,34 @@ with tab1:
                         ai_data = ai_engine.get_ai_evaluation(prompt_input, content_type)
                         final_score = calculate_final_score(ai_data["scores"], content_type)
                         
-                        st.markdown(f"""
-                        <div class="glass-card" style="display: flex; justify-content: space-between; align-items: center;">
-                            <div><p style="margin:0; font-size:14px; color:#64748b; font-weight:bold;">ĐIỂM TỔNG</p>
-                                <div style="display: flex; align-items: baseline;"><span class="score-text">{final_score}</span><span style="font-size:24px; color:#94a3b8; font-weight:bold; margin-left:8px;">/ 10</span></div>
-                            </div>
-                            <div style="text-align: right;"><p style="margin:0; font-size:14px; color:#64748b; font-weight:bold;">PHÂN LOẠI</p>
-                                <span style="background: linear-gradient(90deg, #ec4899, #3b82f6); color:white; padding:8px 16px; border-radius:999px; font-weight:bold;">{content_type}</span>
-                            </div>
-                        </div>
-                        """, unsafe_allow_html=True)
+                        # Hiển thị điểm tổng
+                        with st.container():
+                            col1, col2 = st.columns([1, 1])
+                            with col1:
+                                st.markdown(f'<p style="font-size:14px; font-weight:bold; color:#64748b !important; margin-bottom:0;">ĐIỂM TỔNG</p><span class="score-text">{final_score}</span><span style="font-size:20px; color:#94a3b8 !important; font-weight:bold;"> / 10</span>', unsafe_allow_html=True)
+                            with col2:
+                                st.markdown(f'<div style="text-align:right;"><p style="font-size:14px; font-weight:bold; color:#64748b !important; margin-bottom:8px;">PHÂN LOẠI</p><span style="background: linear-gradient(90deg, #ec4899, #3b82f6); color:white !important; padding:8px 16px; border-radius:999px; font-weight:bold;">{content_type}</span></div>', unsafe_allow_html=True)
                         
-                        st.markdown('<div class="glass-card">', unsafe_allow_html=True)
+                        # Hiển thị điểm tiêu chí 2 cột
                         st.markdown("### Điểm từng tiêu chí")
-                        criteria = rules_v38.get_criteria_by_type(content_type)
-                        col1, col2 = st.columns(2)
-                        items = list(criteria.items())
-                        for i, (crit_id, info) in enumerate(items):
-                            score = ai_data["scores"][crit_id]
-                            target_col = col1 if i % 2 == 0 else col2
-                            with target_col:
-                                st.write(f"**{info['name']}**: {score}/10")
-                                st.progress(score / 10)
-                        st.markdown('</div>', unsafe_allow_html=True)
+                        with st.container():
+                            criteria = rules_v38.get_criteria_by_type(content_type)
+                            colA, colB = st.columns(2)
+                            items = list(criteria.items())
+                            for i, (crit_id, info) in enumerate(items):
+                                score = ai_data["scores"][crit_id]
+                                target_col = colA if i % 2 == 0 else colB
+                                with target_col:
+                                    st.write(f"**{info['name']}**: {score}/10")
+                                    st.progress(score / 10)
                         
-                        st.markdown('<div class="glass-card">', unsafe_allow_html=True)
+                        # Bản sửa 11 mục
                         st.markdown("### Bản sửa (11 mục)")
-                        for sec in rules_v38.REQUIRED_REWRITE_SECTIONS:
-                            st.write(f"**{sec}:** {ai_data['rewrite'][sec]}")
-                        st.markdown('</div>', unsafe_allow_html=True)
+                        with st.container():
+                            for sec in rules_v38.REQUIRED_REWRITE_SECTIONS:
+                                st.markdown(f"**{sec}:** {ai_data['rewrite'][sec]}")
                         
+                        # Lưu Database
                         conn = init_db()
                         conn.execute("INSERT INTO history (timestamp, prompt, type, score, details) VALUES (?, ?, ?, ?, ?)",
                                      (datetime.now().isoformat(), prompt_input, content_type, final_score, json.dumps(ai_data['scores'])))
@@ -93,16 +143,17 @@ with tab1:
                         st.error(f"Lỗi: {str(e)}")
 
 with tab2:
-    pwd = st.text_input("Mật khẩu Admin:", type="password")
-    if pwd == ADMIN_PASS:
-        st.success("Đăng nhập thành công!")
-        conn = init_db()
-        rows = conn.execute("SELECT * FROM history ORDER BY id DESC LIMIT 10").fetchall()
-        conn.close()
-        if rows:
-            for row in rows:
-                st.info(f"**{row[1]}** | Loại: {row[3]} | Điểm: {row[4]} | Prompt: {row[2]}")
-        else:
-            st.write("Chưa có lịch sử.")
-    elif pwd:
-        st.error("Sai mật khẩu.")
+    with st.container():
+        pwd = st.text_input("Mật khẩu Admin:", type="password")
+        if pwd == ADMIN_PASS:
+            st.success("Đăng nhập thành công!")
+            conn = init_db()
+            rows = conn.execute("SELECT * FROM history ORDER BY id DESC LIMIT 10").fetchall()
+            conn.close()
+            if rows:
+                for row in rows:
+                    st.info(f"**{row[1]}** | Loại: {row[3]} | Điểm: {row[4]} | Prompt: {row[2]}")
+            else:
+                st.write("Chưa có lịch sử.")
+        elif pwd:
+            st.error("Sai mật khẩu.")
