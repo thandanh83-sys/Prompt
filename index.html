@@ -28,7 +28,6 @@
             </div>
         </div>
 
-        <!-- KHU VỰC USER MODE -->
         <div id="userModeSection">
             <div class="glass-card bg-white/40 dark:bg-slate-800/60 backdrop-blur-lg border border-white/60 dark:border-slate-700/60 shadow-xl rounded-3xl p-6">
                 <textarea id="promptInput" class="w-full h-32 p-4 rounded-2xl bg-white/60 dark:bg-slate-900/60 border border-white/80 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-pink-400 resize-none text-slate-800 dark:text-slate-100" placeholder="Nhập prompt cần đánh giá..."></textarea>
@@ -37,7 +36,7 @@
             </div>
 
             <div id="resultArea" class="mt-6 space-y-6" style="display: none;">
-                <!-- Khối Điểm tổng (Đã sửa bố cục thẳng hàng) -->
+                <!-- Khối Điểm tổng (Đã sửa bố cục) -->
                 <div class="glass-card bg-white/40 dark:bg-slate-800/60 backdrop-blur-lg border border-white/60 dark:border-slate-700/60 shadow-xl rounded-3xl p-6 flex justify-between items-stretch">
                     <div class="flex flex-col justify-center">
                         <p class="text-sm font-semibold text-slate-500 uppercase mb-1">Điểm tổng</p>
@@ -52,7 +51,6 @@
                     </div>
                 </div>
 
-                <!-- Khối Danh sách lỗi chi tiết -->
                 <div class="glass-card bg-white/40 dark:bg-slate-800/60 backdrop-blur-lg border border-white/60 dark:border-slate-700/60 shadow-xl rounded-3xl p-6">
                     <h3 class="font-bold text-lg mb-4 text-red-500">Danh sách lỗi chi tiết</h3>
                     <ul id="userErrorList" class="space-y-3 text-sm text-slate-700 dark:text-slate-300">
@@ -60,13 +58,11 @@
                     </ul>
                 </div>
 
-                <!-- Khối Điểm tiêu chí -->
                 <div class="glass-card bg-white/40 dark:bg-slate-800/60 backdrop-blur-lg border border-white/60 dark:border-slate-700/60 shadow-xl rounded-3xl p-6">
                     <h3 class="font-bold text-lg mb-4">Điểm từng tiêu chí</h3>
                     <div id="criteriaList" class="grid grid-cols-2 gap-x-6 gap-y-5"></div>
                 </div>
 
-                <!-- Khối Bản sửa 11 mục -->
                 <div class="glass-card bg-white/40 dark:bg-slate-800/60 backdrop-blur-lg border border-white/60 dark:border-slate-700/60 shadow-xl rounded-3xl p-6 relative">
                     <button id="btnCopyAll" class="absolute top-4 right-4 flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-white/60 dark:bg-slate-900/60 rounded-md border border-slate-200 shadow-sm hover:bg-white transition">
                         <span id="copyBtnText">Sao chép</span>
@@ -77,7 +73,6 @@
             </div>
         </div>
 
-        <!-- KHU VỰC ADMIN MODE -->
         <div id="adminModeSection" style="display: none;">
             <div id="adminLoginBox" class="glass-card bg-white/40 dark:bg-slate-800/60 backdrop-blur-lg border border-white/60 dark:border-slate-700/60 shadow-xl rounded-3xl p-6 max-w-md mx-auto text-center">
                 <h3 class="font-bold text-lg mb-4">Đăng nhập Admin</h3>
@@ -104,10 +99,6 @@
                         <div class="flex justify-between text-sm mb-1">
                             <span class="text-slate-600 dark:text-slate-400">Số lỗi gốc:</span>
                             <span class="font-bold text-red-500" id="adminTotalErrors">0</span>
-                        </div>
-                        <div class="flex justify-between text-sm">
-                            <span class="text-slate-600 dark:text-slate-400">Lỗi phái sinh:</span>
-                            <span class="font-bold text-slate-500">0</span>
                         </div>
                     </div>
                 </div>
@@ -185,7 +176,7 @@
         } catch (error) {
             clearTimeout(timeoutId);
             if (error.name === 'AbortError') {
-                throw new Error("Quá thời gian chờ (3 phút). Server Render đang khởi động rất chậm, bạn vui lòng bấm lại lần nữa!");
+                throw new Error("Quá thời gian chờ (3 phút). Server đang khởi động, vui lòng bấm lại!");
             }
             throw error;
         }
@@ -193,9 +184,10 @@
 
     function render(r) {
         $('totalScore').textContent = r.total;
-        $('promptType').textContent = r.type;
+        
+        const typeMap = { "PROMPT": "PROMPT", "TEMPLATE": "TEMPLATE", "PROMPT META": "PROMPT META", "TABLE": "TABLE", "STEM": "TOÁN/LÝ/HÓA" };
+        $('promptType').textContent = typeMap[r.type] || r.type;
 
-        // Render Điểm tiêu chí
         const list = $('criteriaList'); list.replaceChildren();
         Object.entries(r.details).forEach(([name, score]) => {
             const row = document.createElement('div');
@@ -210,24 +202,54 @@
             list.append(row);
         });
 
-        // Render Danh sách lỗi
+        // --- DÀNH CHO USER MODE (Thân thiện, KHÔNG mã lỗi) ---
         const userErrList = $('userErrorList');
         userErrList.innerHTML = '';
         if (r.errors && r.errors.length > 0) {
             r.errors.forEach(err => {
                 const errName = ERROR_NAMES[err.code] || "Lỗi không xác định";
-                const evidenceText = (err.evidence === "Toàn bộ prompt") ? "Toàn bộ prompt" : `"${err.evidence}"`;
+                const evidenceText = (err.evidence === "Toàn bộ prompt") ? "" : `"${err.evidence}"`;
+                
+                let suggestion = "Hãy bổ sung thêm thông tin chi tiết.";
+                if (errName.includes("bối cảnh")) suggestion = "Bạn cần nêu rõ hoàn cảnh, mục đích sử dụng.";
+                else if (errName.includes("đối tượng")) suggestion = "Bạn cần chỉ định rõ người, vật hoặc dữ liệu.";
+                else if (errName.includes("chính tả")) suggestion = "Hãy kiểm tra lại lỗi gõ phím.";
+                else if (errName.includes("mục tiêu")) suggestion = "Hãy nói rõ bạn muốn AI làm gì (viết, phân tích...).";
+                else if (errName.includes("định dạng")) suggestion = "Hãy yêu cầu cụ thể đầu ra là đoạn văn, gạch đầu dòng hay bảng.";
+
                 userErrList.innerHTML += `
-                    <li class="flex items-start gap-2 mb-2">
-                        <span class="bg-red-100 text-red-600 px-2 py-0.5 rounded font-bold text-xs mt-0.5 whitespace-nowrap">${err.code}</span>
-                        <span><strong>${errName}:</strong> <i class="text-slate-500">${evidenceText}</i></span>
+                    <li class="flex items-start gap-3 mb-3 p-3 bg-red-50/80 dark:bg-red-900/20 rounded-xl border border-red-100 dark:border-red-900/50">
+                        <span class="text-red-500 font-bold mt-0.5 text-lg">•</span>
+                        <div>
+                            <p class="text-slate-800 dark:text-slate-200 font-semibold">${errName}</p>
+                            <p class="text-sm text-slate-600 dark:text-slate-400 mt-1">
+                                ${evidenceText ? `Trích dẫn: <i>${evidenceText}</i><br>` : ''}
+                                <span class="text-red-600 dark:text-red-400 font-medium">👉 Gợi ý: ${suggestion}</span>
+                            </p>
+                        </div>
                     </li>`;
             });
         } else {
-            userErrList.innerHTML = `<li class="text-green-500 font-semibold">Không phát hiện lỗi.</li>`;
+            userErrList.innerHTML = `<li class="text-green-600 dark:text-green-400 font-semibold p-3 bg-green-50 dark:bg-green-900/20 rounded-xl">Tuyệt vời! Không phát hiện lỗi nào.</li>`;
         }
 
-        // Render Bản sửa 11 mục
+        // --- DÀNH CHO ADMIN MODE (Kỹ thuật, CÓ mã lỗi) ---
+        const adminErrorList = $('adminErrorList');
+        adminErrorList.innerHTML = '';
+        if (r.errors && r.errors.length > 0) {
+            r.errors.forEach(err => {
+                const errName = ERROR_NAMES[err.code] || "Lỗi không xác định";
+                const evidenceText = (err.evidence === "Toàn bộ prompt") ? "Toàn bộ prompt" : `"${err.evidence}"`;
+                adminErrorList.innerHTML += `
+                    <li class="flex items-start gap-2 mb-2">
+                        <span class="bg-red-100 text-red-600 px-2 py-0.5 rounded font-bold text-xs mt-0.5 whitespace-nowrap">${err.code}</span>
+                        <span class="text-sm text-slate-700 dark:text-slate-300"><strong>${errName}:</strong> <i class="text-slate-500">${evidenceText}</i></span>
+                    </li>`;
+            });
+        } else {
+            adminErrorList.innerHTML = `<li class="text-green-500 font-semibold text-sm">Không có lỗi.</li>`;
+        }
+
         const rw = $('rewriteList'); rw.replaceChildren();
         SECTION_NAMES.forEach(sec => {
             const card = document.createElement('div');
@@ -238,10 +260,9 @@
         
         $('resultArea').style.display = 'block';
 
-        // Cập nhật Admin
         $('adminLastPrompt').innerText = r.prompt;
         $('adminLastScore').innerText = r.total;
-        $('adminLastType').innerText = r.type;
+        $('adminLastType').innerText = typeMap[r.type] || r.type;
         $('adminTotalErrors').innerText = (r.errors && r.errors.length > 0) ? r.errors.length : "0";
     }
 
