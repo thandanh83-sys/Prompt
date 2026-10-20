@@ -44,7 +44,7 @@ Prompt gốc: {prompt_text}
         try:
             # SỬA LỖI 404: Dùng tên model chuẩn xác của thư viện mới
             response = client.models.generate_content(
-                model='gemini-1.5-flash-latest', 
+                model='gemini-2.5-flash', 
                 contents=system_prompt,
                 config=types.GenerateContentConfig(
                     response_mime_type="application/json",
