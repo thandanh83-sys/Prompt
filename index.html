@@ -37,6 +37,7 @@
             </div>
 
             <div id="resultArea" class="mt-6 space-y-6" style="display: none;">
+                <!-- Khối Điểm tổng -->
                 <div class="glass-card bg-white/40 dark:bg-slate-800/60 backdrop-blur-lg border border-white/60 dark:border-slate-700/60 shadow-xl rounded-3xl p-6 flex justify-between items-center">
                     <div>
                         <p class="text-sm font-semibold text-slate-500 uppercase">Điểm tổng</p>
@@ -51,11 +52,21 @@
                     </div>
                 </div>
 
+                <!-- Khối Danh sách lỗi chi tiết -->
+                <div class="glass-card bg-white/40 dark:bg-slate-800/60 backdrop-blur-lg border border-white/60 dark:border-slate-700/60 shadow-xl rounded-3xl p-6">
+                    <h3 class="font-bold text-lg mb-4 text-red-500">Danh sách lỗi chi tiết</h3>
+                    <ul id="userErrorList" class="space-y-2 text-sm text-slate-700 dark:text-slate-300 list-disc pl-5">
+                        <li>Chưa có dữ liệu</li>
+                    </ul>
+                </div>
+
+                <!-- Khối Điểm tiêu chí -->
                 <div class="glass-card bg-white/40 dark:bg-slate-800/60 backdrop-blur-lg border border-white/60 dark:border-slate-700/60 shadow-xl rounded-3xl p-6">
                     <h3 class="font-bold text-lg mb-4">Điểm từng tiêu chí</h3>
                     <div id="criteriaList" class="grid grid-cols-2 gap-x-4 gap-y-4"></div>
                 </div>
 
+                <!-- Khối Bản sửa 11 mục -->
                 <div class="glass-card bg-white/40 dark:bg-slate-800/60 backdrop-blur-lg border border-white/60 dark:border-slate-700/60 shadow-xl rounded-3xl p-6 relative">
                     <button id="btnCopyAll" class="absolute top-4 right-4 flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-white/60 dark:bg-slate-900/60 rounded-md border border-slate-200 shadow-sm hover:bg-white transition">
                         <span id="copyBtnText">Sao chép</span>
@@ -75,11 +86,9 @@
                 <button id="btnAdminLogin" class="w-full py-3 rounded-full font-bold bg-gradient-to-r from-pink-500 to-blue-400 text-white shadow-lg hover:opacity-90 transition">Đăng nhập</button>
             </div>
 
-            <!-- ADMIN DASHBOARD CHI TIẾT v38 -->
             <div id="adminDashboard" class="glass-card bg-white/40 dark:bg-slate-800/60 backdrop-blur-lg border border-white/60 dark:border-slate-700/60 shadow-xl rounded-3xl p-6 space-y-6" style="display: none;">
                 <h3 class="font-bold text-xl border-b border-slate-200 dark:border-slate-700 pb-4">🔧 CHI TIẾT NỘI BỘ (v38)</h3>
                 
-                <!-- Khối 1 & 2: Thông tin chung và Số liệu lỗi -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="bg-white/60 dark:bg-slate-900/60 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
                         <p class="text-xs text-slate-500 uppercase font-bold mb-1">Prompt gần nhất:</p>
@@ -107,7 +116,6 @@
                     </div>
                 </div>
 
-                <!-- Khối 4: Danh sách mã lỗi -->
                 <div class="bg-white/60 dark:bg-slate-900/60 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
                     <p class="text-xs text-slate-500 uppercase font-bold mb-2">Danh sách mã lỗi chi tiết:</p>
                     <ul id="adminErrorList" class="text-sm space-y-2 list-disc pl-5 text-slate-700 dark:text-slate-300">
@@ -115,7 +123,6 @@
                     </ul>
                 </div>
 
-                <!-- Khối 5: Lịch sử (Bảng) -->
                 <div class="overflow-x-auto mt-4">
                     <p class="text-xs text-slate-500 uppercase font-bold mb-2">Lịch sử đánh giá:</p>
                     <table class="w-full text-sm text-left">
@@ -131,7 +138,6 @@
                     </table>
                 </div>
 
-                <!-- Khối 6: Nút điều hướng -->
                 <div class="flex gap-4 pt-2">
                     <button id="btnAdminLogout" class="flex-1 py-3 rounded-full font-bold bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 transition">Đăng xuất</button>
                     <button id="btnClearHistory" class="flex-1 py-3 rounded-full font-bold bg-red-100 text-red-600 hover:bg-red-200 transition">Xóa lịch sử</button>
@@ -192,6 +198,7 @@
         $('totalScore').textContent = r.total;
         $('promptType').textContent = r.type;
 
+        // 1. Render Điểm tiêu chí (Thanh Gradient)
         const list = $('criteriaList'); list.replaceChildren();
         Object.entries(r.details).forEach(([name, score]) => {
             const weak = score < 6;
@@ -199,7 +206,7 @@
             row.innerHTML = `
                 <div class="flex justify-between text-sm font-semibold mb-1">
                     <span class="truncate pr-1" title="${name}">${name}</span>
-                    <span class="${weak ? 'text-pink-500' : ''}">${score}/10</span>
+                    <span class="${weak ? 'text-pink-500' : 'text-blue-500'}">${score}/10</span>
                 </div>
                 <div class="w-full bg-slate-200/50 dark:bg-slate-700/50 rounded-full h-2">
                     <div class="h-2 rounded-full bg-gradient-to-r ${weak ? 'from-pink-600 to-pink-400' : 'from-blue-600 to-blue-400'}" style="width: ${score * 10}%"></div>
@@ -207,6 +214,18 @@
             list.append(row);
         });
 
+        // 2. Render Danh sách lỗi ở User Mode
+        const userErrList = $('userErrorList');
+        userErrList.innerHTML = '';
+        if (r.errors && r.errors.length > 0) {
+            r.errors.forEach(err => {
+                userErrList.innerHTML += `<li><strong class="text-red-500">${err.code}</strong>: <i>"${err.evidence || 'Không có trích dẫn'}"</i></li>`;
+            });
+        } else {
+            userErrList.innerHTML = `<li class="text-green-500 font-semibold">Không phát hiện lỗi.</li>`;
+        }
+
+        // 3. Render Bản sửa 11 mục
         const rw = $('rewriteList'); rw.replaceChildren();
         SECTION_NAMES.forEach(sec => {
             const card = document.createElement('div');
@@ -217,25 +236,23 @@
         
         $('resultArea').style.display = 'block';
 
-        // CẬP NHẬT ADMIN DASHBOARD
+        // 4. Cập nhật Admin Dashboard
         $('adminLastPrompt').innerText = r.prompt;
         $('adminLastScore').innerText = r.total;
         $('adminLastType').innerText = r.type;
         
-        const errorList = $('adminErrorList');
-        errorList.innerHTML = '';
-        
-        // Nếu Backend trả về mảng errors
+        const adminErrorList = $('adminErrorList');
+        adminErrorList.innerHTML = '';
         if (r.errors && r.errors.length > 0) {
             $('adminTotalErrors').innerText = r.errors.length;
             $('adminOccurrences').innerText = r.errors.length;
             r.errors.forEach(err => {
-                errorList.innerHTML += `<li><strong class="text-red-500">${err.code}</strong>: <i class="text-slate-500">"${err.evidence || 'Không có bằng chứng'}"</i></li>`;
+                adminErrorList.innerHTML += `<li><strong class="text-red-500">${err.code}</strong>: <i>"${err.evidence || 'Không có bằng chứng'}"</i></li>`;
             });
         } else {
             $('adminTotalErrors').innerText = "0";
             $('adminOccurrences').innerText = "0";
-            errorList.innerHTML = `<li class="text-green-500 font-semibold">Không phát hiện lỗi.</li>`;
+            adminErrorList.innerHTML = `<li class="text-green-500 font-semibold">Không phát hiện lỗi.</li>`;
         }
     }
 
