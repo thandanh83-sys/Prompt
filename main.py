@@ -25,12 +25,9 @@ class PromptRequest(BaseModel):
 api_key = os.environ.get("GROQ_API_KEY", "")
 client = Groq(api_key=api_key)
 
-# [TÍNH NĂNG MỚI]: Bộ nhớ đệm lưu kết quả trên RAM
-CACHE = {}
-
 @app.get("/")
 def read_root():
-    return {"status": "Backend Hệ thống Đánh giá Prompt đang chạy ổn định!"}
+    return {"status": "Backend đang chạy ổn định!"}
 
 @app.get("/health")
 def health_check():
@@ -41,11 +38,6 @@ async def evaluate(req: PromptRequest):
     prompt_text = req.prompt.strip()
     if not prompt_text:
         return {"error": "Prompt trống, vui lòng nhập nội dung cần đánh giá."}
-    
-    # [TÍNH NĂNG MỚI]: Nếu prompt này đã từng chấm, trả ngay kết quả cũ
-    if prompt_text in CACHE:
-        print(f"-> Lấy từ Cache: {prompt_text}")
-        return CACHE[prompt_text]
     
     try:
         content_type = rules_v38.classify_prompt(prompt_text)
@@ -69,10 +61,14 @@ TIÊU CHÍ BẮT BUỘC (Chỉ dùng các ID này):
 MÃ LỖI BẮT BUỘC (Nếu có lỗi, chỉ dùng các mã này):
 {error_codes_desc}
 
+LƯU Ý QUAN TRỌNG VỀ BẰNG CHỨNG (evidence):
+- Nếu lỗi nằm ở một từ/cụm từ cụ thể (VD: sai chính tả), hãy trích dẫn CHÍNH XÁC từ/cụm từ đó.
+- Nếu lỗi mang tính bao quát toàn bài (VD: thiếu bối cảnh, thiếu mục tiêu, thiếu cấu trúc), hãy ghi ngắn gọn là "Toàn bộ prompt". KHÔNG copy lại toàn bộ prompt.
+
 CHỈ TRẢ VỀ CHUỖI JSON HỢP LỆ (Không markdown, không giải thích thêm):
 {{
   "scores": {{ {scores_example} }},
-  "errors": [ {{"code": "[Mã lỗi]", "evidence": "[Trích dẫn nguyên văn]"}} ],
+  "errors": [ {{"code": "[Mã lỗi]", "evidence": "[Trích dẫn hoặc 'Toàn bộ prompt']"}} ],
   "rewrite": {{ 
     "1. VAI TRÒ": "...", "2. BỐI CẢNH": "...", "3. INPUT": "...", 
     "4. MỤC TIÊU": "...", "5. YÊU CẦU": "...", "6. RÀNG BUỘC": "...", 
@@ -106,7 +102,7 @@ Prompt gốc cần đánh giá: {prompt_text}
                         time.sleep(3)
                         continue
                     else:
-                        return {"error": "Hệ thống Groq đang quá tải. Vui lòng thử lại sau!"}
+                        return {"error": "Hệ thống AI đang quá tải. Vui lòng thử lại sau ít phút!"}
                 raise e
         
         raw_text = response.choices[0].message.content.strip()
@@ -114,23 +110,18 @@ Prompt gốc cần đánh giá: {prompt_text}
             raw_text = raw_text[7:-3].strip()
         
         ai_data = json.loads(raw_text)
+        
         validate_full_report(ai_data, content_type, prompt_text)
         final_score = calculate_final_score(ai_data["scores"], content_type)
         
-        result = {
+        return {
             "prompt": prompt_text,
             "type": content_type,
             "total": final_score,
             "details": {criteria[k]["name"]: v for k, v in ai_data["scores"].items()},
-            "errors": ai_data["errors"], 
+            "errors": ai_data["errors"],
             "rewrite": ai_data["rewrite"]
         }
-        
-        # [TÍNH NĂNG MỚI]: Lưu kết quả vào bộ nhớ đệm
-        CACHE[prompt_text] = result
-        print(f"-> Đã lưu vào Cache: {prompt_text}")
-        
-        return result
         
     except Exception as e:
         return {"error": str(e)}
