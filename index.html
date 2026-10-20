@@ -108,7 +108,7 @@
                     </div>
                 </div>
 
-                <!-- [ĐÃ THÊM VÀO]: Khối hiển thị lỗi cho Admin -->
+                <!-- Khối hiển thị lỗi cho Admin -->
                 <div class="bg-white/60 dark:bg-slate-900/60 p-4 rounded-xl border border-slate-200 dark:border-slate-700 mt-4">
                     <p class="text-xs text-slate-500 uppercase font-bold mb-2">Chi tiết mã lỗi:</p>
                     <ul id="adminErrorList" class="text-sm space-y-2 list-disc pl-5 text-slate-700 dark:text-slate-300">
@@ -215,7 +215,7 @@
             list.append(row);
         });
 
-        // --- DÀNH CHO USER MODE ---
+        // --- DÀNH CHO USER MODE (Thân thiện, KHÔNG mã lỗi) ---
         const userErrList = $('userErrorList');
         userErrList.innerHTML = '';
         if (r.errors && r.errors.length > 0) {
@@ -246,7 +246,7 @@
             userErrList.innerHTML = `<li class="text-green-600 dark:text-green-400 font-semibold p-3 bg-green-50 dark:bg-green-900/20 rounded-xl">Tuyệt vời! Không phát hiện lỗi nào.</li>`;
         }
 
-        // --- DÀNH CHO ADMIN MODE ---
+        // --- DÀNH CHO ADMIN MODE (Kỹ thuật, CÓ mã lỗi) ---
         const adminErrorList = $('adminErrorList');
         adminErrorList.innerHTML = '';
         if (r.errors && r.errors.length > 0) {
@@ -343,13 +343,39 @@
 
     $('btnCopyAll').addEventListener('click', async () => {
         if (!lastResult) return;
+        
         let text = "=== BẢN SỬA PROMPT ===\n\n";
-        SECTION_NAMES.forEach(s => { text += `${s}:\n${lastResult.rewrite[s]}\n\n`; });
+        
+        SECTION_NAMES.forEach(sec => {
+            let content = lastResult.rewrite[sec] || '';
+            
+            // [XỬ LÝ ĐẶC BIỆT CHO MỤC 10]: Tách các ý ra thành từng dòng
+            if (sec === "10. THỨ TỰ ƯU TIÊN") {
+                content = content.replace(/;\s*/g, '.\n');
+                content = content.replace(/(\d+\.)\s*/g, '\n$1 ').trim();
+                text += `${sec}:\n${content}\n\n`;
+            } 
+            // [XỬ LÝ ĐẶC BIỆT CHO MỤC 11]: Bỏ dấu hai chấm ở tiêu đề
+            else if (sec === "11. XỬ LÝ NỘI BỘ") {
+                text += `11.XỬ LÝ NỘI BỘ\n${content}\n\n`;
+            } 
+            // Các mục còn lại giữ nguyên
+            else {
+                text += `${sec}:\n${content}\n\n`;
+            }
+        });
+
         try {
             await navigator.clipboard.writeText(text);
-            $('copyBtnText').textContent = 'Đã chép!'; $('copyBtnText').classList.add('text-green-500');
-        } catch (e) {}
-        setTimeout(() => { $('copyBtnText').textContent = 'Sao chép'; $('copyBtnText').classList.remove('text-green-500'); }, 2000);
+            $('copyBtnText').textContent = 'Đã chép!'; 
+            $('copyBtnText').classList.add('text-green-500');
+        } catch (e) {
+            alert("Không thể sao chép. Vui lòng thử lại!");
+        }
+        setTimeout(() => { 
+            $('copyBtnText').textContent = 'Sao chép'; 
+            $('copyBtnText').classList.remove('text-green-500'); 
+        }, 2000);
     });
 
     $('btnAdminLogin').addEventListener('click', () => {
