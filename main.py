@@ -12,7 +12,6 @@ from validator import validate_full_report, calculate_final_score
 
 app = FastAPI()
 
-# Cấu hình CORS để Frontend (GitHub Pages) có thể gọi được API này
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -23,17 +22,12 @@ app.add_middleware(
 class PromptRequest(BaseModel):
     prompt: str
 
-# Lấy API Key Groq từ biến môi trường Render
 api_key = os.environ.get("GROQ_API_KEY", "")
 if not api_key:
     print("CẢNH BÁO: CHƯA CÓ GROQ_API_KEY TRÊN RENDER!")
 
 client = Groq(api_key=api_key)
 
-# ==========================================
-# ROUTE GỐC VÀ HEALTH CHECK
-# Giúp Render không báo lỗi 404 và UptimeRobot có thể ping.
-# ==========================================
 @app.get("/")
 def read_root():
     return {"status": "Backend Hệ thống Đánh giá Prompt đang chạy ổn định!"}
@@ -42,9 +36,6 @@ def read_root():
 def health_check():
     return {"status": "ok"}
 
-# ==========================================
-# API CHÍNH: ĐÁNH GIÁ PROMPT
-# ==========================================
 @app.post("/evaluate")
 async def evaluate(req: PromptRequest):
     prompt_text = req.prompt.strip()
@@ -52,14 +43,12 @@ async def evaluate(req: PromptRequest):
         return {"error": "Prompt trống, vui lòng nhập nội dung cần đánh giá."}
     
     try:
-        # Phân loại prompt tự động
         content_type = rules_v38.classify_prompt(prompt_text)
         criteria = rules_v38.get_criteria_by_type(content_type)
         
         if not criteria:
             return {"error": "Không xác định được loại tiêu chí phù hợp."}
         
-        # Tạo danh sách tiêu chí và mã lỗi để đưa vào Prompt của AI
         criteria_desc = "\n".join([f"- {k}: {v['name']}" for k, v in criteria.items()])
         error_codes_desc = "\n".join([f"- {k}: {v}" for k, v in rules_v38.VALID_ERROR_CODES.items()])
         scores_example = ", ".join([f'"{k}": 8' for k in criteria.keys()])
@@ -93,7 +82,6 @@ Prompt gốc cần đánh giá: {prompt_text}
         max_retries = 3
         response = None
         
-        # SỬ DỤNG MODEL CHUẨN CỦA GROQ
         for attempt in range(max_retries):
             try:
                 response = client.chat.completions.create(
@@ -116,25 +104,22 @@ Prompt gốc cần đánh giá: {prompt_text}
                         return {"error": "Hệ thống Groq đang quá tải. Vui lòng thử lại sau ít phút!"}
                 raise e
         
-        # Xử lý kết quả trả về từ AI
         raw_text = response.choices[0].message.content.strip()
         if raw_text.startswith("```json"): 
             raw_text = raw_text[7:-3].strip()
         
         ai_data = json.loads(raw_text)
         
-        # Kiểm tra chéo dữ liệu bằng Python (Validator)
         validate_full_report(ai_data, content_type, prompt_text)
-        
-        # Tính điểm tổng bằng Python (không tin AI)
         final_score = calculate_final_score(ai_data["scores"], content_type)
         
-        # Trả kết quả về cho Frontend
+        # TRẢ VỀ ĐẦY ĐỦ DỮ LIỆU CHO FRONTEND (Bao gồm cả errors)
         return {
             "prompt": prompt_text,
             "type": content_type,
             "total": final_score,
             "details": {criteria[k]["name"]: v for k, v in ai_data["scores"].items()},
+            "errors": ai_data["errors"], 
             "rewrite": ai_data["rewrite"]
         }
         
