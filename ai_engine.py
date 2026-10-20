@@ -9,7 +9,6 @@ try:
 except:
     api_key = "YOUR_API_KEY_HERE"
 
-# Khởi tạo client (dùng cho cả Interactions API)
 client = genai.Client(api_key=api_key)
 
 def get_ai_evaluation(prompt_text: str, content_type: str, retries: int = 1):
@@ -31,7 +30,7 @@ DANH SÁCH TIÊU CHÍ (Trả đủ các ID này):
 DANH SÁCH MÃ LỖI (Chỉ dùng mã trong danh sách):
 {error_codes_desc}
 
-CHỈ TRẢ VỀ CHUỖI JSON HỢP LỆ (Không markdown):
+CHỈ TRẢ VỀ CHUỖI JSON HỢP LỆ (Không markdown, không giải thích):
 {{
   "scores": {{ "P01": [int], "P02": [int], "P03": [int], "P04": [int], "P05": [int], "P06": [int], "P07": [int], "P08": [int], "P09": [int], "P10": [int], "P11": [int], "P12": [int], "P13": [int], "P14": [int] }},
   "errors": [ {{"code": "[Mã]", "evidence": "[Trích dẫn]"}} ],
@@ -43,17 +42,14 @@ Prompt gốc: {prompt_text}
     
     for attempt in range(retries + 1):
         try:
-            # SỬ DỤNG INTERACTIONS API MỚI NHẤT THEO ĐÚNG KHUYẾN NGHỊ CỦA GOOGLE
-            interaction = client.interactions.create(
-                model="gemini-3.8-flash",
+            response = client.interactions.create(
+                model='gemini-3.8-flash',
                 input=system_prompt,
-                response_format={"type": "json_object"}  # Yêu cầu trả về JSON
+                response_format={"type": "object"}
             )
             
-            # Lấy kết quả text từ output_text
-            raw_text = interaction.output_text.strip()
+            raw_text = response.output_text.strip()
             
-            # Loại bỏ markdown nếu AI lỡ thêm vào
             if raw_text.startswith("```json"):
                 raw_text = raw_text[7:-3].strip()
                 
