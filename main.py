@@ -6,6 +6,7 @@ import os
 import json
 import time
 from google import genai
+from google.genai import types
 
 import rules_v38
 from validator import validate_full_report, calculate_final_score
@@ -65,13 +66,14 @@ Prompt gốc: {prompt_text}
         
         for attempt in range(max_retries):
             try:
-                response = client.interactions.create(
-                    model="gemini-3.8-flash", 
-                    input=system_prompt,
-                    response_format={
-                        "type": "text",
-                        "mime_type": "application/json"
-                    }
+                # SỬ DỤNG MODEL CÓ TRONG DANH SÁCH CỦA BẠN VÀ CÚ PHÁP CHUẨN
+                response = client.models.generate_content(
+                    model='gemini-3.8-flash', 
+                    contents=system_prompt,
+                    config=types.GenerateContentConfig(
+                        response_mime_type="application/json", 
+                        temperature=0.0
+                    )
                 )
                 break
             except Exception as e:
@@ -81,7 +83,7 @@ Prompt gốc: {prompt_text}
                         continue
                 raise e
         
-        raw_text = response.output_text.strip()
+        raw_text = response.text.strip()
         if raw_text.startswith("```json"): 
             raw_text = raw_text[7:-3].strip()
         
