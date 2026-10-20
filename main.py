@@ -5,20 +5,14 @@ import uvicorn
 import os
 import json
 import time
-import sqlite3
 from groq import Groq
+from supabase import create_client, Client
 
 import rules_v38
 from validator import validate_full_report, calculate_final_score
 
 app = FastAPI()
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
 class PromptRequest(BaseModel):
     prompt: str
@@ -26,57 +20,40 @@ class PromptRequest(BaseModel):
 api_key = os.environ.get("GROQ_API_KEY", "")
 client = Groq(api_key=api_key)
 
-# ==========================================
-# KHỞI TẠO BỘ NHỚ ĐỆM (SQLITE)
-# ==========================================
-def init_db():
-    # Tạo file database tên là cache.db
-    conn = sqlite3.connect('cache.db')
-    c = conn.cursor()
-    # Bảng lưu prompt và kết quả (dạng JSON)
-    c.execute('''CREATE TABLE IF NOT EXISTS cache (prompt TEXT PRIMARY KEY, response TEXT)''')
-    conn.commit()
-    return conn
-
-@app.on_event("startup")
-def startup_event():
-    init_db()
+supabase_url = os.environ.get("SUPABASE_URL", "")
+supabase_key = os.environ.get("SUPABASE_KEY", "")
+supabase: Client = create_client(supabase_url, supabase_key) if supabase_url and supabase_key else None
 
 @app.get("/")
-def read_root():
-    return {"status": "Backend đang chạy ổn định!"}
+def read_root(): return {"status": "Backend đang chạy ổn định!"}
 
 @app.get("/health")
-def health_check():
-    return {"status": "ok"}
+def health_check(): return {"status": "ok"}
 
 @app.post("/evaluate")
 async def evaluate(req: PromptRequest):
     prompt_text = req.prompt.strip()
-    if not prompt_text:
-        return {"error": "Prompt trống, vui lòng nhập nội dung cần đánh giá."}
+    if not prompt_text: return {"error": "Prompt trống."}
     
-    # 1. KIỂM TRA TRONG BỘ NHỚ ĐỆM TRƯỚC
-    try:
-        conn = sqlite3.connect('cache.db')
-        c = conn.cursor()
-        c.execute("SELECT response FROM cache WHERE prompt = ?", (prompt_text,))
-        row = c.fetchone()
-        conn.close()
-        
-        if row:
-            print(f"Lấy từ Cache: {prompt_text}")
-            return json.loads(row[0]) # Trả về kết quả cũ ngay lập tức
-    except Exception as e:
-        print(f"Lỗi đọc cache: {e}")
+    # 1. KIỂM TRA CACHE TRÊN SUPABASE
+    if supabase:
+        try:
+            response_db = supabase.table("history").select("*").eq("prompt", prompt_text).execute()
+            if response_db.data:
+                print("Lấy từ Supabase Cache")
+                cached_data = response_db.data[0]
+                return {
+                    "prompt": cached_data["prompt"], "type": cached_data["type"],
+                    "total": cached_data["total_score"], "details": cached_data["details"],
+                    "errors": cached_data["errors"], "rewrite": cached_data["rewrite"]
+                }
+        except Exception as e: print(f"Lỗi đọc Supabase: {e}")
 
-    # 2. NẾU CHƯA CÓ TRONG CACHE -> GỌI AI
+    # 2. GỌI AI
     try:
         content_type = rules_v38.classify_prompt(prompt_text)
         criteria = rules_v38.get_criteria_by_type(content_type)
-        
-        if not criteria:
-            return {"error": "Không xác định được loại tiêu chí phù hợp."}
+        if not criteria: return {"error": "Không xác định được loại tiêu chí."}
         
         criteria_desc = "\n".join([f"- {k}: {v['name']}" for k, v in criteria.items()])
         error_codes_desc = "\n".join([f"- {k}: {v}" for k, v in rules_v38.VALID_ERROR_CODES.items()])
@@ -84,8 +61,8 @@ async def evaluate(req: PromptRequest):
         
         system_prompt = f"""
 Bạn là chuyên gia đánh giá prompt. Chấm điểm prompt sau. Điểm mỗi tiêu chí từ 0-10.
-BƯỚC 1: Chấm điểm dựa trên bản gốc (Nếu viết sai chính tả, trừ điểm).
-BƯỚC 2: Viết 11 mục bản sửa, tự động sửa lỗi chính tả cho người dùng.
+BƯỚC 1: Chấm điểm dựa trên bản gốc.
+BƯỚC 2: Viết 11 mục bản sửa.
 
 TIÊU CHÍ BẮT BUỘC:
 {criteria_desc}
@@ -93,11 +70,7 @@ TIÊU CHÍ BẮT BUỘC:
 MÃ LỖI BẮT BUỘC:
 {error_codes_desc}
 
-LƯU Ý VỀ BẰNG CHỨNG (evidence):
-- Nếu lỗi ở từ/cụm từ cụ thể, trích dẫn CHÍNH XÁC từ đó.
-- Nếu lỗi mang tính bao quát toàn bài, ghi ngắn gọn là "Toàn bộ prompt". KHÔNG copy lại cả câu.
-
-CHỈ TRẢ VỀ CHUỖI JSON HỢP LỆ (Không markdown, không giải thích):
+CHỈ TRẢ VỀ CHUỖI JSON HỢP LỆ:
 {{
   "scores": {{ {scores_example} }},
   "errors": [ {{"code": "[Mã lỗi]", "evidence": "[Trích dẫn hoặc 'Toàn bộ prompt']"}} ],
@@ -108,69 +81,47 @@ CHỈ TRẢ VỀ CHUỖI JSON HỢP LỆ (Không markdown, không giải thích)
     "10. THỨ TỰ ƯU TIÊN": "...", "11. XỬ LÝ NỘI BỘ": "..." 
   }}
 }}
-
-Prompt gốc cần đánh giá: {prompt_text}
+Prompt gốc: {prompt_text}
 """
-
         max_retries = 3
         response = None
-        
         for attempt in range(max_retries):
             try:
                 response = client.chat.completions.create(
                     model="openai/gpt-oss-120b", 
-                    messages=[
-                        {"role": "system", "content": system_prompt},
-                        {"role": "user", "content": prompt_text}
-                    ],
-                    response_format={"type": "json_object"},
-                    temperature=0.0,
-                    top_p=0.1 
+                    messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": prompt_text}],
+                    response_format={"type": "json_object"}, temperature=0.0, top_p=0.1 
                 )
                 break
             except Exception as e:
-                error_msg = str(e)
-                if "429" in error_msg or "rate_limit" in error_msg:
-                    if attempt < max_retries - 1:
-                        time.sleep(3)
-                        continue
-                    else:
-                        return {"error": "Hệ thống AI đang quá tải. Vui lòng thử lại sau ít phút!"}
+                if "429" in str(e) or "rate_limit" in str(e):
+                    if attempt < max_retries - 1: time.sleep(3); continue
+                    else: return {"error": "Hệ thống AI quá tải."}
                 raise e
         
         raw_text = response.choices[0].message.content.strip()
-        if raw_text.startswith("```json"): 
-            raw_text = raw_text[7:-3].strip()
+        if raw_text.startswith("```json"): raw_text = raw_text[7:-3].strip()
         
         ai_data = json.loads(raw_text)
-        
         validate_full_report(ai_data, content_type, prompt_text)
         final_score = calculate_final_score(ai_data["scores"], content_type)
         
         result = {
-            "prompt": prompt_text,
-            "type": content_type,
-            "total": final_score,
+            "prompt": prompt_text, "type": content_type, "total": final_score,
             "details": {criteria[k]["name"]: v for k, v in ai_data["scores"].items()},
-            "errors": ai_data["errors"],
-            "rewrite": ai_data["rewrite"]
+            "errors": ai_data["errors"], "rewrite": ai_data["rewrite"]
         }
 
-        # 3. LƯU KẾT QUẢ VÀO BỘ NHỚ ĐỆM CHO LẦN SAU
-        try:
-            conn = sqlite3.connect('cache.db')
-            c = conn.cursor()
-            c.execute("INSERT OR REPLACE INTO cache (prompt, response) VALUES (?, ?)", 
-                      (prompt_text, json.dumps(result, ensure_ascii=False)))
-            conn.commit()
-            conn.close()
-        except Exception as e:
-            print(f"Lỗi lưu cache: {e}")
+        # 3. LƯU VÀO SUPABASE
+        if supabase:
+            try:
+                supabase.table("history").insert({
+                    "prompt": prompt_text, "type": content_type, "total_score": final_score,
+                    "details": result["details"], "errors": result["errors"], "rewrite": result["rewrite"]
+                }).execute()
+            except Exception as e: print(f"Lỗi lưu Supabase: {e}")
 
         return result
-        
-    except Exception as e:
-        return {"error": str(e)}
+    except Exception as e: return {"error": str(e)}
 
-if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+if __name__ == "__main__": uvicorn.run(app, host="0.0.0.0", port=8000)
