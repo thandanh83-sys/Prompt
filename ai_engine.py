@@ -1,19 +1,23 @@
-import google.generativeai as genai
 import json
 import rules_v38
 from validator import validate_full_report
-import google.api_core.exceptions
 import streamlit as st
+
+# SỬ DỤNG THƯ VIỆN MỚI (google-genai)
+from google import genai
+from google.genai import types
 
 try:
     api_key = st.secrets["GEMINI_API_KEY"]
 except:
     api_key = "YOUR_API_KEY_HERE"
-genai.configure(api_key=api_key)
+
+# Khởi tạo client mới
+client = genai.Client(api_key=api_key)
 
 def get_ai_evaluation(prompt_text: str, content_type: str, retries: int = 1):
     criteria = rules_v38.get_criteria_by_type(content_type)
-    if not criteria: raise ValueError("Không tìm thấy tiêu chí cho loại này.")
+    if not criteria: raise ValueError("Không tìm thấy tiêu chí.")
     
     criteria_desc = "\n".join([f"- {k}: {v['name']}" for k, v in criteria.items()])
     error_codes_desc = "\n".join([f"- {k}: {v}" for k, v in rules_v38.VALID_ERROR_CODES.items()])
@@ -38,20 +42,25 @@ CHỈ TRẢ VỀ CHUỖI JSON HỢP LỆ (Không markdown):
 
 Prompt gốc: {prompt_text}
 """
-    model = genai.GenerativeModel('gemini-1.5-flash')
     
     for attempt in range(retries + 1):
         try:
-            response = model.generate_content(system_prompt)
-            if not response.parts: raise ValueError("API trả về rỗng.")
+            # Gọi API bằng thư viện mới
+            response = client.models.generate_content(
+                model='gemini-1.5-flash',
+                contents=system_prompt,
+                config=types.GenerateContentConfig(
+                    response_mime_type="application/json",
+                ),
+            )
+            
             raw_text = response.text.strip()
             if raw_text.startswith("```json"): raw_text = raw_text[7:-3].strip()
             ai_data = json.loads(raw_text)
             validate_full_report(ai_data, content_type, prompt_text)
             return ai_data
-        except google.api_core.exceptions.ResourceExhausted:
-            raise RuntimeError("Hệ thống AI quá tải. Vui lòng thử lại sau.")
-        except (json.JSONDecodeError, ValueError) as e:
+            
+        except Exception as e:
             if attempt == retries:
-                raise RuntimeError(f"AI trả về sai định dạng sau {retries} lần thử: {str(e)}")
+                raise RuntimeError(f"Lỗi AI: {str(e)}")
             continue
