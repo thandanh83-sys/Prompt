@@ -5,6 +5,7 @@ import uvicorn
 import os
 import json
 import time
+import sqlite3
 from groq import Groq
 
 import rules_v38
@@ -25,6 +26,22 @@ class PromptRequest(BaseModel):
 api_key = os.environ.get("GROQ_API_KEY", "")
 client = Groq(api_key=api_key)
 
+# ==========================================
+# KHỞI TẠO BỘ NHỚ ĐỆM (SQLITE)
+# ==========================================
+def init_db():
+    # Tạo file database tên là cache.db
+    conn = sqlite3.connect('cache.db')
+    c = conn.cursor()
+    # Bảng lưu prompt và kết quả (dạng JSON)
+    c.execute('''CREATE TABLE IF NOT EXISTS cache (prompt TEXT PRIMARY KEY, response TEXT)''')
+    conn.commit()
+    return conn
+
+@app.on_event("startup")
+def startup_event():
+    init_db()
+
 @app.get("/")
 def read_root():
     return {"status": "Backend đang chạy ổn định!"}
@@ -39,6 +56,21 @@ async def evaluate(req: PromptRequest):
     if not prompt_text:
         return {"error": "Prompt trống, vui lòng nhập nội dung cần đánh giá."}
     
+    # 1. KIỂM TRA TRONG BỘ NHỚ ĐỆM TRƯỚC
+    try:
+        conn = sqlite3.connect('cache.db')
+        c = conn.cursor()
+        c.execute("SELECT response FROM cache WHERE prompt = ?", (prompt_text,))
+        row = c.fetchone()
+        conn.close()
+        
+        if row:
+            print(f"Lấy từ Cache: {prompt_text}")
+            return json.loads(row[0]) # Trả về kết quả cũ ngay lập tức
+    except Exception as e:
+        print(f"Lỗi đọc cache: {e}")
+
+    # 2. NẾU CHƯA CÓ TRONG CACHE -> GỌI AI
     try:
         content_type = rules_v38.classify_prompt(prompt_text)
         criteria = rules_v38.get_criteria_by_type(content_type)
@@ -86,7 +118,7 @@ Prompt gốc cần đánh giá: {prompt_text}
         for attempt in range(max_retries):
             try:
                 response = client.chat.completions.create(
-                    model="openai/gpt-oss-120b", # Đã cập nhật model mới
+                    model="openai/gpt-oss-120b", 
                     messages=[
                         {"role": "system", "content": system_prompt},
                         {"role": "user", "content": prompt_text}
@@ -115,7 +147,7 @@ Prompt gốc cần đánh giá: {prompt_text}
         validate_full_report(ai_data, content_type, prompt_text)
         final_score = calculate_final_score(ai_data["scores"], content_type)
         
-        return {
+        result = {
             "prompt": prompt_text,
             "type": content_type,
             "total": final_score,
@@ -123,6 +155,19 @@ Prompt gốc cần đánh giá: {prompt_text}
             "errors": ai_data["errors"],
             "rewrite": ai_data["rewrite"]
         }
+
+        # 3. LƯU KẾT QUẢ VÀO BỘ NHỚ ĐỆM CHO LẦN SAU
+        try:
+            conn = sqlite3.connect('cache.db')
+            c = conn.cursor()
+            c.execute("INSERT OR REPLACE INTO cache (prompt, response) VALUES (?, ?)", 
+                      (prompt_text, json.dumps(result, ensure_ascii=False)))
+            conn.commit()
+            conn.close()
+        except Exception as e:
+            print(f"Lỗi lưu cache: {e}")
+
+        return result
         
     except Exception as e:
         return {"error": str(e)}
