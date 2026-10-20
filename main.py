@@ -52,7 +52,6 @@ async def evaluate(req: PromptRequest):
         criteria = rules_v38.get_criteria_by_type(content_type)
         if not criteria: return {"error": "Không xác định được loại tiêu chí."}
         
-        # [CẬP NHẬT]: Đưa Rubric chi tiết vào Prompt cho AI
         criteria_desc = ""
         for k, v in criteria.items():
             criteria_desc += f"- ID {k} ({v['name']}): {v['rubric']}\n"
@@ -71,7 +70,7 @@ MÃ LỖI BẮT BUỘC:
 
 QUY TẮC CHỌN LỖI:
 1. CHỈ CHỌN TỐI ĐA 3 LỖI NGHIÊM TRỌNG NHẤT.
-2. Bằng chứng (evidence) phải trích dẫn chính xác từ Prompt gốc, nếu lỗi toàn bài ghi "Toàn bộ".
+2. Bằng chứng (evidence) phải trích dẫn chính xác từ Prompt gốc. Nếu lỗi áp dụng cho cả câu, BẮT BUỘC ghi CHÍNH XÁC là "Toàn bộ".
 
 CHỈ TRẢ VỀ CHUỖI JSON HỢP LỆ:
 {{
@@ -107,10 +106,11 @@ Prompt gốc: {prompt_text}
         
         ai_data = json.loads(raw_text)
 
+        # Tự động sửa nếu AI trả về bằng chứng sai
         if "errors" in ai_data and isinstance(ai_data["errors"], list):
             for err in ai_data["errors"]:
                 evidence = str(err.get("evidence", "")).strip()
-                if evidence and evidence.lower() != "toàn bộ prompt" and evidence not in prompt_text:
+                if evidence and evidence.lower() not in ["toàn bộ", "toàn bộ prompt"] and evidence not in prompt_text:
                     err["evidence"] = "Toàn bộ"
 
         validate_full_report(ai_data, content_type, prompt_text)
