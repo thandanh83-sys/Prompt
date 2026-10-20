@@ -3,19 +3,19 @@ import rules_v38
 from validator import validate_full_report
 import streamlit as st
 from google import genai
-from google.genai import types
 
 try:
     api_key = st.secrets["GEMINI_API_KEY"]
 except:
     api_key = "YOUR_API_KEY_HERE"
 
-# Khởi tạo client chuẩn của thư viện mới
+# Khởi tạo client (dùng cho cả Interactions API)
 client = genai.Client(api_key=api_key)
 
 def get_ai_evaluation(prompt_text: str, content_type: str, retries: int = 1):
     criteria = rules_v38.get_criteria_by_type(content_type)
-    if not criteria: raise ValueError("Không tìm thấy tiêu chí.")
+    if not criteria:
+        raise ValueError("Không tìm thấy tiêu chí.")
     
     criteria_desc = "\n".join([f"- {k}: {v['name']}" for k, v in criteria.items()])
     error_codes_desc = "\n".join([f"- {k}: {v}" for k, v in rules_v38.VALID_ERROR_CODES.items()])
@@ -43,17 +43,20 @@ Prompt gốc: {prompt_text}
     
     for attempt in range(retries + 1):
         try:
-            # ĐÃ SỬA THÀNH MODEL CHUẨN TRONG ẢNH GỢI Ý
-            response = client.models.generate_content(
-                model='gemini-2.0-flash', 
-                contents=system_prompt,
-                config=types.GenerateContentConfig(
-                    response_mime_type="application/json",
-                ),
+            # SỬ DỤNG INTERACTIONS API MỚI NHẤT THEO ĐÚNG KHUYẾN NGHỊ CỦA GOOGLE
+            interaction = client.interactions.create(
+                model="gemini-3.8-flash",
+                input=system_prompt,
+                response_format={"type": "json_object"}  # Yêu cầu trả về JSON
             )
             
-            raw_text = response.text.strip()
-            if raw_text.startswith("```json"): raw_text = raw_text[7:-3].strip()
+            # Lấy kết quả text từ output_text
+            raw_text = interaction.output_text.strip()
+            
+            # Loại bỏ markdown nếu AI lỡ thêm vào
+            if raw_text.startswith("```json"):
+                raw_text = raw_text[7:-3].strip()
+                
             ai_data = json.loads(raw_text)
             validate_full_report(ai_data, content_type, prompt_text)
             return ai_data
