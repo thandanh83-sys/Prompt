@@ -107,10 +107,10 @@ function applyTheme(dark) {
 })();
 $('themeToggle').addEventListener('click', () => applyTheme(!document.documentElement.classList.contains('dark')));
 
-// Hàm gọi API có Timeout 120s
+// Hàm gọi API có Timeout 3 phút (180s)
 async function evaluatePrompt(prompt) {
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 120000); // 120 giây
+  const timeoutId = setTimeout(() => controller.abort(), 180000); // Tăng lên 3 phút (180s)
 
   try {
     const response = await fetch(API_URL, {
@@ -128,7 +128,7 @@ async function evaluatePrompt(prompt) {
   } catch (error) {
     clearTimeout(timeoutId);
     if (error.name === 'AbortError') {
-        throw new Error("Quá thời gian chờ (2 phút). Server Render đang khởi động rất chậm, bạn vui lòng bấm lại lần nữa!");
+        throw new Error("Quá thời gian chờ (3 phút). Server Render đang khởi động rất chậm, bạn vui lòng bấm lại lần nữa!");
     }
     throw error;
   }
@@ -167,7 +167,7 @@ function render(r) {
   $('adminLastType').innerText = r.type;
 }
 
-// ĐÃ CẬP NHẬT HIỆU ỨNG ĐẾM NGƯỢC
+// Hiệu ứng đếm ngược khi chờ AI
 $('btnEvaluate').addEventListener('click', async () => {
   const prompt = $('promptInput').value.trim();
   if (!prompt) { $('errorMsg').style.display = 'block'; return; }
@@ -176,7 +176,6 @@ $('btnEvaluate').addEventListener('click', async () => {
   const btn = $('btnEvaluate');
   btn.disabled = true; 
   
-  // Hiệu ứng đếm ngược để bạn biết nó không bị treo
   let seconds = 0;
   btn.textContent = 'Đang kết nối Server (0s)...';
   const timer = setInterval(() => {
