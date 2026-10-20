@@ -52,7 +52,7 @@
                     </div>
                 </div>
 
-                <!-- Khối Danh sách lỗi chi tiết (Đã cải tiến) -->
+                <!-- Khối Danh sách lỗi chi tiết -->
                 <div class="glass-card bg-white/40 dark:bg-slate-800/60 backdrop-blur-lg border border-white/60 dark:border-slate-700/60 shadow-xl rounded-3xl p-6">
                     <h3 class="font-bold text-lg mb-4 text-red-500">Danh sách lỗi chi tiết</h3>
                     <ul id="userErrorList" class="space-y-3 text-sm text-slate-700 dark:text-slate-300">
@@ -63,7 +63,7 @@
                 <!-- Khối Điểm tiêu chí -->
                 <div class="glass-card bg-white/40 dark:bg-slate-800/60 backdrop-blur-lg border border-white/60 dark:border-slate-700/60 shadow-xl rounded-3xl p-6">
                     <h3 class="font-bold text-lg mb-4">Điểm từng tiêu chí</h3>
-                    <div id="criteriaList" class="grid grid-cols-2 gap-x-4 gap-y-4"></div>
+                    <div id="criteriaList" class="grid grid-cols-2 gap-x-6 gap-y-5"></div>
                 </div>
 
                 <!-- Khối Bản sửa 11 mục -->
@@ -143,7 +143,6 @@
     let lastResult = null;
     let historyData = [];
 
-    // [CẢI TIẾN]: Từ điển ánh xạ mã lỗi sang tên lỗi để hiển thị cho đẹp
     const ERROR_NAMES = {
         "A01": "Lỗi chính tả", "A02": "Thiếu dấu câu", "A03": "Lặp lại",
         "B01": "Thiếu thành phần cấu trúc", "B02": "Mục không logic", "B03": "Sai phân cấp", "B04": "Chưa quy định định dạng đầu ra",
@@ -196,34 +195,32 @@
         $('totalScore').textContent = r.total;
         $('promptType').textContent = r.type;
 
-        // 1. Render Điểm tiêu chí (Thanh Gradient)
+        // 1. Render Điểm tiêu chí (Chỉ tên + Thanh Gradient Hồng-Xanh)
         const list = $('criteriaList'); list.replaceChildren();
         Object.entries(r.details).forEach(([name, score]) => {
-            const weak = score < 6;
             const row = document.createElement('div');
             row.innerHTML = `
                 <div class="flex justify-between text-sm font-semibold mb-1">
                     <span class="truncate pr-1" title="${name}">${name}</span>
-                    <span class="${weak ? 'text-pink-500' : 'text-blue-500'}">${score}/10</span>
+                    <span class="${score < 6 ? 'text-pink-500' : 'text-blue-500'}">${score}/10</span>
                 </div>
                 <div class="w-full bg-slate-200/50 dark:bg-slate-700/50 rounded-full h-2">
-                    <div class="h-2 rounded-full bg-gradient-to-r ${weak ? 'from-pink-600 to-pink-400' : 'from-blue-600 to-blue-400'}" style="width: ${score * 10}%"></div>
+                    <div class="h-2 rounded-full bg-gradient-to-r from-pink-500 to-blue-500" style="width: ${score * 10}%"></div>
                 </div>`;
             list.append(row);
         });
 
-        // 2. Render Danh sách lỗi (Đã cải tiến hiển thị Tên lỗi)
+        // 2. Render Danh sách lỗi
         const userErrList = $('userErrorList');
         userErrList.innerHTML = '';
         if (r.errors && r.errors.length > 0) {
             r.errors.forEach(err => {
                 const errName = ERROR_NAMES[err.code] || "Lỗi không xác định";
-                // Nếu bằng chứng là "Toàn bộ prompt" thì in đậm chữ đó lên
                 const evidenceText = (err.evidence === "Toàn bộ prompt") ? "Toàn bộ prompt" : `"${err.evidence}"`;
                 userErrList.innerHTML += `
-                    <li class="flex items-start gap-2">
+                    <li class="flex items-start gap-2 mb-2">
                         <span class="bg-red-100 text-red-600 px-2 py-0.5 rounded font-bold text-xs mt-0.5 whitespace-nowrap">${err.code}</span>
-                        <span><strong>${errName}:</strong> <i>${evidenceText}</i></span>
+                        <span><strong>${errName}:</strong> <i class="text-slate-500">${evidenceText}</i></span>
                     </li>`;
             });
         } else {
@@ -245,11 +242,7 @@
         $('adminLastPrompt').innerText = r.prompt;
         $('adminLastScore').innerText = r.total;
         $('adminLastType').innerText = r.type;
-        if (r.errors && r.errors.length > 0) {
-            $('adminTotalErrors').innerText = r.errors.length;
-        } else {
-            $('adminTotalErrors').innerText = "0";
-        }
+        $('adminTotalErrors').innerText = (r.errors && r.errors.length > 0) ? r.errors.length : "0";
     }
 
     function updateAdminHistory() {
