@@ -52,10 +52,10 @@
                     </div>
                 </div>
 
-                <!-- Khối Danh sách lỗi chi tiết -->
+                <!-- Khối Danh sách lỗi chi tiết (Đã cải tiến) -->
                 <div class="glass-card bg-white/40 dark:bg-slate-800/60 backdrop-blur-lg border border-white/60 dark:border-slate-700/60 shadow-xl rounded-3xl p-6">
                     <h3 class="font-bold text-lg mb-4 text-red-500">Danh sách lỗi chi tiết</h3>
-                    <ul id="userErrorList" class="space-y-2 text-sm text-slate-700 dark:text-slate-300 list-disc pl-5">
+                    <ul id="userErrorList" class="space-y-3 text-sm text-slate-700 dark:text-slate-300">
                         <li>Chưa có dữ liệu</li>
                     </ul>
                 </div>
@@ -105,22 +105,11 @@
                             <span class="text-slate-600 dark:text-slate-400">Số lỗi gốc:</span>
                             <span class="font-bold text-red-500" id="adminTotalErrors">0</span>
                         </div>
-                        <div class="flex justify-between text-sm mb-1">
-                            <span class="text-slate-600 dark:text-slate-400">Số lần xuất hiện:</span>
-                            <span class="font-bold text-orange-500" id="adminOccurrences">0</span>
-                        </div>
                         <div class="flex justify-between text-sm">
                             <span class="text-slate-600 dark:text-slate-400">Lỗi phái sinh:</span>
                             <span class="font-bold text-slate-500">0</span>
                         </div>
                     </div>
-                </div>
-
-                <div class="bg-white/60 dark:bg-slate-900/60 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
-                    <p class="text-xs text-slate-500 uppercase font-bold mb-2">Danh sách mã lỗi chi tiết:</p>
-                    <ul id="adminErrorList" class="text-sm space-y-2 list-disc pl-5 text-slate-700 dark:text-slate-300">
-                        <li>Chưa có dữ liệu</li>
-                    </ul>
                 </div>
 
                 <div class="overflow-x-auto mt-4">
@@ -152,17 +141,20 @@
     const SECTION_NAMES = ["1. VAI TRÒ", "2. BỐI CẢNH", "3. INPUT", "4. MỤC TIÊU", "5. YÊU CẦU", "6. RÀNG BUỘC", "7. TASK", "8. ĐỊNH DẠNG ĐẦU RA", "9. NEVER DO", "10. THỨ TỰ ƯU TIÊN", "11. XỬ LÝ NỘI BỘ"];
     const $ = id => document.getElementById(id);
     let lastResult = null;
-    
-    // Bộ nhớ đệm Local
     let historyData = [];
-    let promptCache = {}; 
+
+    // [CẢI TIẾN]: Từ điển ánh xạ mã lỗi sang tên lỗi để hiển thị cho đẹp
+    const ERROR_NAMES = {
+        "A01": "Lỗi chính tả", "A02": "Thiếu dấu câu", "A03": "Lặp lại",
+        "B01": "Thiếu thành phần cấu trúc", "B02": "Mục không logic", "B03": "Sai phân cấp", "B04": "Chưa quy định định dạng đầu ra",
+        "C01": "Đối tượng chưa rõ", "C02": "Thiếu bối cảnh", "C03": "Yêu cầu chung chung", "C04": "Thiếu ví dụ",
+        "D01": "Mâu thuẫn nội bộ", "D02": "Yêu cầu bất khả thi", "D03": "Vai trò không phù hợp",
+        "E01": "Trộn lĩnh vực", "E02": "Thuật ngữ không nhất quán", "E03": "Thiếu tính đặc thù lĩnh vực"
+    };
 
     try {
-        const savedHistory = localStorage.getItem('prompt_history');
-        if (savedHistory) historyData = JSON.parse(savedHistory);
-        
-        const savedCache = localStorage.getItem('prompt_cache');
-        if (savedCache) promptCache = JSON.parse(savedCache);
+        const saved = localStorage.getItem('prompt_history');
+        if (saved) historyData = JSON.parse(saved);
     } catch(e) {}
 
     function applyTheme(dark) {
@@ -194,7 +186,7 @@
         } catch (error) {
             clearTimeout(timeoutId);
             if (error.name === 'AbortError') {
-                throw new Error("Quá thời gian chờ. Server Render đang khởi động, bạn vui lòng bấm lại!");
+                throw new Error("Quá thời gian chờ (3 phút). Server Render đang khởi động rất chậm, bạn vui lòng bấm lại lần nữa!");
             }
             throw error;
         }
@@ -204,6 +196,7 @@
         $('totalScore').textContent = r.total;
         $('promptType').textContent = r.type;
 
+        // 1. Render Điểm tiêu chí (Thanh Gradient)
         const list = $('criteriaList'); list.replaceChildren();
         Object.entries(r.details).forEach(([name, score]) => {
             const weak = score < 6;
@@ -219,16 +212,25 @@
             list.append(row);
         });
 
+        // 2. Render Danh sách lỗi (Đã cải tiến hiển thị Tên lỗi)
         const userErrList = $('userErrorList');
         userErrList.innerHTML = '';
         if (r.errors && r.errors.length > 0) {
             r.errors.forEach(err => {
-                userErrList.innerHTML += `<li><strong class="text-red-500">${err.code}</strong>: <i>"${err.evidence || 'Không có trích dẫn'}"</i></li>`;
+                const errName = ERROR_NAMES[err.code] || "Lỗi không xác định";
+                // Nếu bằng chứng là "Toàn bộ prompt" thì in đậm chữ đó lên
+                const evidenceText = (err.evidence === "Toàn bộ prompt") ? "Toàn bộ prompt" : `"${err.evidence}"`;
+                userErrList.innerHTML += `
+                    <li class="flex items-start gap-2">
+                        <span class="bg-red-100 text-red-600 px-2 py-0.5 rounded font-bold text-xs mt-0.5 whitespace-nowrap">${err.code}</span>
+                        <span><strong>${errName}:</strong> <i>${evidenceText}</i></span>
+                    </li>`;
             });
         } else {
             userErrList.innerHTML = `<li class="text-green-500 font-semibold">Không phát hiện lỗi.</li>`;
         }
 
+        // 3. Render Bản sửa 11 mục
         const rw = $('rewriteList'); rw.replaceChildren();
         SECTION_NAMES.forEach(sec => {
             const card = document.createElement('div');
@@ -239,22 +241,14 @@
         
         $('resultArea').style.display = 'block';
 
+        // 4. Cập nhật Admin
         $('adminLastPrompt').innerText = r.prompt;
         $('adminLastScore').innerText = r.total;
         $('adminLastType').innerText = r.type;
-        
-        const adminErrorList = $('adminErrorList');
-        adminErrorList.innerHTML = '';
         if (r.errors && r.errors.length > 0) {
             $('adminTotalErrors').innerText = r.errors.length;
-            $('adminOccurrences').innerText = r.errors.length;
-            r.errors.forEach(err => {
-                adminErrorList.innerHTML += `<li><strong class="text-red-500">${err.code}</strong>: <i>"${err.evidence || 'Không có bằng chứng'}"</i></li>`;
-            });
         } else {
             $('adminTotalErrors').innerText = "0";
-            $('adminOccurrences').innerText = "0";
-            adminErrorList.innerHTML = `<li class="text-green-500 font-semibold">Không phát hiện lỗi.</li>`;
         }
     }
 
@@ -283,31 +277,23 @@
         $('errorMsg').style.display = 'none';
         
         const btn = $('btnEvaluate');
-        
-        if (promptCache[prompt]) {
-            lastResult = promptCache[prompt];
-            render(lastResult);
-            btn.textContent = 'Lấy từ lịch sử!';
-            setTimeout(() => btn.textContent = 'Đánh giá', 1500);
-            return;
-        }
-
         btn.disabled = true; 
+        
         let seconds = 0;
         btn.textContent = 'Đang kết nối Server (0s)...';
         const timer = setInterval(() => {
             seconds++;
-            if (seconds < 15) btn.textContent = `Đang đợi Server (${seconds}s)...`;
-            else btn.textContent = `AI đang viết 11 mục (${seconds}s)...`;
+            if (seconds < 15) {
+                btn.textContent = `Đang đợi Server tỉnh dậy (${seconds}s)...`;
+            } else {
+                btn.textContent = `AI đang viết 11 mục (${seconds}s)...`;
+            }
         }, 1000);
         
         try {
             lastResult = await evaluatePrompt(prompt);
             render(lastResult);
             
-            promptCache[prompt] = lastResult;
-            localStorage.setItem('prompt_cache', JSON.stringify(promptCache));
-
             const now = new Date();
             const timeStr = now.toLocaleTimeString('vi-VN') + ' ' + now.toLocaleDateString('vi-VN');
             historyData.push({
@@ -351,11 +337,8 @@
     $('btnClearHistory').addEventListener('click', () => {
         if(confirm("Bạn có chắc chắn muốn xóa toàn bộ lịch sử đánh giá?")) {
             historyData = [];
-            promptCache = {}; 
             localStorage.removeItem('prompt_history');
-            localStorage.removeItem('prompt_cache');
             updateAdminHistory();
-            $('resultArea').style.display = 'none';
         }
     });
 
