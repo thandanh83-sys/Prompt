@@ -52,20 +52,20 @@ async def evaluate(req: PromptRequest):
         
         system_prompt = f"""
 Bạn là chuyên gia đánh giá prompt. Chấm điểm prompt sau. Điểm mỗi tiêu chí từ 0-10.
-BƯỚC 1: Chấm điểm dựa trên bản gốc.
+BƯỚC 1: Chấm điểm dựa trên bản gốc (Nếu viết sai chính tả, trừ điểm).
 BƯỚC 2: Viết 11 mục bản sửa, tự động sửa lỗi chính tả cho người dùng.
 
-TIÊU CHÍ BẮT BUỘC (Chỉ dùng các ID này):
+TIÊU CHÍ BẮT BUỘC:
 {criteria_desc}
 
-MÃ LỖI BẮT BUỘC (Nếu có lỗi, chỉ dùng các mã này):
+MÃ LỖI BẮT BUỘC:
 {error_codes_desc}
 
-LƯU Ý QUAN TRỌNG VỀ BẰNG CHỨNG (evidence):
-- Nếu lỗi nằm ở một từ/cụm từ cụ thể (VD: sai chính tả), hãy trích dẫn CHÍNH XÁC từ/cụm từ đó.
-- Nếu lỗi mang tính bao quát toàn bài (VD: thiếu bối cảnh, thiếu mục tiêu, thiếu cấu trúc), hãy ghi ngắn gọn là "Toàn bộ prompt". KHÔNG copy lại toàn bộ prompt.
+LƯU Ý VỀ BẰNG CHỨNG (evidence):
+- Nếu lỗi ở từ/cụm từ cụ thể, trích dẫn CHÍNH XÁC từ đó.
+- Nếu lỗi mang tính bao quát toàn bài, ghi ngắn gọn là "Toàn bộ prompt". KHÔNG copy lại cả câu.
 
-CHỈ TRẢ VỀ CHUỖI JSON HỢP LỆ (Không markdown, không giải thích thêm):
+CHỈ TRẢ VỀ CHUỖI JSON HỢP LỆ (Không markdown, không giải thích):
 {{
   "scores": {{ {scores_example} }},
   "errors": [ {{"code": "[Mã lỗi]", "evidence": "[Trích dẫn hoặc 'Toàn bộ prompt']"}} ],
@@ -86,13 +86,14 @@ Prompt gốc cần đánh giá: {prompt_text}
         for attempt in range(max_retries):
             try:
                 response = client.chat.completions.create(
-                    model="openai/gpt-oss-120b", 
+                    model="llama3-70b-8192", # Đổi sang Llama 3 70B cho ổn định
                     messages=[
                         {"role": "system", "content": system_prompt},
                         {"role": "user", "content": prompt_text}
                     ],
                     response_format={"type": "json_object"},
-                    temperature=0.0
+                    temperature=0.0,
+                    top_p=0.1 # Ép AI chọn kết quả có xác suất cao nhất, tránh sáng tạo
                 )
                 break
             except Exception as e:
