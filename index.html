@@ -107,7 +107,7 @@ function applyTheme(dark) {
 })();
 $('themeToggle').addEventListener('click', () => applyTheme(!document.documentElement.classList.contains('dark')));
 
-// Hàm gọi API có Timeout 120s (Không bao giờ bị treo vô tận)
+// Hàm gọi API có Timeout 120s
 async function evaluatePrompt(prompt) {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 120000); // 120 giây
@@ -167,6 +167,7 @@ function render(r) {
   $('adminLastType').innerText = r.type;
 }
 
+// ĐÃ CẬP NHẬT HIỆU ỨNG ĐẾM NGƯỢC
 $('btnEvaluate').addEventListener('click', async () => {
   const prompt = $('promptInput').value.trim();
   if (!prompt) { $('errorMsg').style.display = 'block'; return; }
@@ -174,7 +175,18 @@ $('btnEvaluate').addEventListener('click', async () => {
   
   const btn = $('btnEvaluate');
   btn.disabled = true; 
-  btn.textContent = 'AI Đang chấm điểm (vui lòng đợi 1-2 phút)...';
+  
+  // Hiệu ứng đếm ngược để bạn biết nó không bị treo
+  let seconds = 0;
+  btn.textContent = 'Đang kết nối Server (0s)...';
+  const timer = setInterval(() => {
+    seconds++;
+    if (seconds < 15) {
+        btn.textContent = `Đang đợi Server tỉnh dậy (${seconds}s)...`;
+    } else {
+        btn.textContent = `AI đang viết 11 mục (${seconds}s)...`;
+    }
+  }, 1000);
   
   try {
     lastResult = await evaluatePrompt(prompt);
@@ -183,6 +195,7 @@ $('btnEvaluate').addEventListener('click', async () => {
     $('errorMsg').textContent = e.message; 
     $('errorMsg').style.display = 'block';
   } finally {
+    clearInterval(timer);
     btn.disabled = false; 
     btn.textContent = 'Đánh giá';
   }
