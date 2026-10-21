@@ -4,6 +4,7 @@ import time
 import logging
 import secrets
 import uvicorn
+import google.generativeai as genai
 from fastapi import FastAPI, Request, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -22,18 +23,19 @@ logger = logging.getLogger("prompt-evaluator")
 
 MAX_PROMPT_LENGTH = 5000
 RATE_LIMIT = "20/minute"
-GENERIC_ERROR = {"error": "Hệ thống đang bận, vui lòng thử lại sau."}
 
 ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD")
 ADMIN_SECRET_TOKEN = os.environ.get("ADMIN_SECRET_TOKEN")
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 
 if not ADMIN_PASSWORD or not ADMIN_SECRET_TOKEN or not GROQ_API_KEY:
     raise RuntimeError("LỖI BẢO MẬT: Thiếu biến môi trường bắt buộc trên Render.")
 
 api_key_header = APIKeyHeader(name="X-Admin-Token", auto_error=False)
 
-DEFAULT_ORIGINS = ["https://thandanh83-sys.github.io"]
+# Cập nhật CORS để chấp nhận cả link GitHub Pages và Vercel sau này
+DEFAULT_ORIGINS = ["https://thandanh83-sys.github.io", "https://*.vercel.app"]
 env_origins = os.environ.get("ALLOWED_ORIGINS", "")
 ALLOWED_ORIGINS = [o.strip() for o in env_origins.split(",") if o.strip()] or DEFAULT_ORIGINS
 
@@ -64,30 +66,55 @@ class PromptRequest(BaseModel):
 class LoginRequest(BaseModel):
     password: str
 
+# Khởi tạo AI
 client = Groq(api_key=GROQ_API_KEY)
+if GEMINI_API_KEY:
+    genai.configure(api_key=GEMINI_API_KEY)
+    gemini_model = genai.GenerativeModel('gemini-1.5-flash')
+else:
+    gemini_model = None
+
 supabase_url = os.environ.get("SUPABASE_URL", "")
 supabase_key = os.environ.get("SUPABASE_KEY", "")
 supabase: Client = create_client(supabase_url, supabase_key) if supabase_url and supabase_key else None
 
-def call_llm(system_prompt: str, user_prompt: str, max_retries: int = 3) -> str:
-    for attempt in range(max_retries):
+def call_llm(system_prompt: str, user_prompt: str) -> str:
+    messages = [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": f"<prompt_can_cham>\n{user_prompt}\n</prompt_can_cham>"},
+    ]
+
+    # 1. Thử Groq trước (Tốc độ cao)
+    try:
+        logger.info("Đang gọi Groq...")
+        resp = client.chat.completions.create(
+            model="openai/gpt-oss-120b",
+            messages=messages,
+            response_format={"type": "json_object"},
+            temperature=0.0,
+        )
+        return resp.choices[0].message.content
+    except Exception as e:
+        logger.warning(f"Groq thất bại: {e}. Chuyển sang Gemini...")
+
+    # 2. Fallback sang Gemini (Nếu Groq sập)
+    if gemini_model:
         try:
-            resp = client.chat.completions.create(
-                model="openai/gpt-oss-120b",
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": f"<prompt_can_cham>\n{user_prompt}\n</prompt_can_cham>"},
-                ],
-                response_format={"type": "json_object"},
-                temperature=0.0,
+            full_prompt = f"{system_prompt}\n\n---\n\n<prompt_can_cham>\n{user_prompt}\n</prompt_can_cham>"
+            response = gemini_model.generate_content(
+                full_prompt,
+                generation_config=genai.types.GenerationConfig(
+                    response_mime_type="application/json",
+                    temperature=0.0,
+                )
             )
-            return resp.choices[0].message.content
+            logger.info("Gemini trả về thành công (Fallback).")
+            return response.text
         except Exception as e:
-            logger.warning(f"Lỗi gọi LLM (Lần {attempt+1}): {e}")
-            if attempt < max_retries - 1:
-                time.sleep(2 ** attempt)
-                continue
-            raise
+            logger.error(f"Gemini cũng thất bại: {e}")
+            raise Exception("Cả 2 hệ thống AI đều đang bận.")
+    else:
+        raise Exception("Chưa cấu hình GEMINI_API_KEY và Groq đang gặp sự cố.")
 
 @app.get("/")
 def read_root(): return {"status": "Backend đang chạy ổn định!"}
@@ -109,7 +136,7 @@ def get_history(token: str = Depends(api_key_header)):
     if not supabase:
         return {"history": [], "message": "Supabase chưa được cấu hình"}
     try:
-        res = supabase.table("history").select("prompt, type, total_score, created_at, errors").order("created_at", desc=True).limit(50).execute()
+        res = supabase.table("history").select("prompt, type, total_score, created_at, errors").order("created_at", desc=True).limit(100).execute()
         return {"history": res.data}
     except Exception as e:
         logger.error(f"Lỗi lấy lịch sử: {e}")
@@ -136,10 +163,8 @@ def evaluate(request: Request, req: PromptRequest):
         error_codes_desc = "\n".join([f"- {k}: {v}" for k, v in rules_v38.VALID_ERROR_CODES.items()])
         scores_example = ", ".join([f'"{k}": 8' for k in criteria.keys()])
 
-        # Cải thiện System Prompt để AI hiểu cả prompt dài
         system_prompt = f"""
-Bạn là Chuyên gia Prompt Engineering. Nhiệm vụ của bạn là đánh giá câu lệnh của người dùng và viết lại nó.
-LƯU Ý QUAN TRỌNG: Nếu người dùng dán vào một prompt đã có cấu trúc 11 mục, hãy đánh giá nó dựa trên cấu trúc đó, và tinh chỉnh lại cho hoàn hảo hơn. Đừng cố gắng tạo lại từ đầu nếu nó đã quá tốt.
+Bạn là Chuyên gia Prompt Engineering. Đánh giá và viết lại câu lệnh của người dùng theo form 11 mục.
 
 BƯỚC 1: XÁC ĐỊNH LĨNH VỰC & CHUYÊN GIA.
 BƯỚC 2: VIẾT LẠI PROMPT THEO ĐÚNG CẤU TRÚC JSON SAU (Sử dụng \\n để xuống dòng trong nội dung):
@@ -147,17 +172,9 @@ BƯỚC 2: VIẾT LẠI PROMPT THEO ĐÚNG CẤU TRÚC JSON SAU (Sử dụng \\n
   "scores": {{ {scores_example} }},
   "errors": [ {{"code": "[Mã lỗi]", "evidence": "[Trích dẫn hoặc 'Toàn bộ']"}} ],
   "rewrite": {{ 
-    "1. VAI TRÒ": "...",
-    "2. BỐI CẢNH": "...",
-    "3. INPUT": "...",
-    "4. MỤC TIÊU": "...",
-    "5. YÊU CẦU": "...",
-    "6. RÀNG BUỘC": "...",
-    "7. TASK": "...",
-    "8. ĐỊNH DẠNG ĐẦU RA": "...",
-    "9. NEVER DO": "...",
-    "10. THỨ TỰ ƯU TIÊN": "...",
-    "11. XỬ LÝ NỘI BỘ": "..."
+    "1. VAI TRÒ": "...", "2. BỐI CẢNH": "...", "3. INPUT": "...", "4. MỤC TIÊU": "...", "5. YÊU CẦU": "...",
+    "6. RÀNG BUỘC": "...", "7. TASK": "...", "8. ĐỊNH DẠNG ĐẦU RA": "...", "9. NEVER DO": "...", 
+    "10. THỨ TỰ ƯU TIÊN": "...", "11. XỬ LÝ NỘI BỘ": "..."
   }}
 }}
 
@@ -171,7 +188,6 @@ CHỈ TRẢ VỀ CHUỖI JSON HỢP LỆ. KHÔNG THÊM BẤT KỲ VĂN BẢN NÀ
 """
         raw_text = call_llm(system_prompt, prompt_text)
 
-        # LÀM SẠCH JSON (Sửa lỗi nếu AI trả về kèm ```json)
         if "```json" in raw_text:
             raw_text = raw_text.split("```json")[1].split("```")[0].strip()
         elif "```" in raw_text:
@@ -179,20 +195,16 @@ CHỈ TRẢ VỀ CHUỖI JSON HỢP LỆ. KHÔNG THÊM BẤT KỲ VĂN BẢN NÀ
 
         ai_data = json.loads(raw_text)
 
-        # [AUTO-REPAIR]: Tự động sửa lỗi nếu AI trả về thiếu mục
         try:
             validate_full_report(ai_data, content_type, prompt_text)
         except ValueError as ve:
-            logger.warning(f"AI trả về sai cấu trúc: {ve}. Đang tự động sửa (Auto-Repair)...")
-            
+            logger.warning(f"Auto-Repair: {ve}")
             if "scores" not in ai_data or not isinstance(ai_data["scores"], dict): ai_data["scores"] = {}
             for k in criteria.keys():
                 if k not in ai_data["scores"]: ai_data["scores"][k] = 0
-
             if "rewrite" not in ai_data or not isinstance(ai_data["rewrite"], dict): ai_data["rewrite"] = {}
             for sec in rules_v38.REQUIRED_REWRITE_SECTIONS:
                 if sec not in ai_data["rewrite"]: ai_data["rewrite"][sec] = "[AI chưa tạo được mục này]"
-
             valid_errors = []
             if "errors" in ai_data and isinstance(ai_data["errors"], list):
                 for err in ai_data["errors"]:
@@ -219,12 +231,8 @@ CHỈ TRẢ VỀ CHUỖI JSON HỢP LỆ. KHÔNG THÊM BẤT KỲ VĂN BẢN NÀ
 
         return result
 
-    except json.JSONDecodeError:
-        logger.error("AI trả về JSON không hợp lệ.")
-        return JSONResponse(status_code=500, content={"error": "AI trả về dữ liệu lỗi. Vui lòng thử lại với prompt ngắn hơn."})
     except Exception as e:
         logger.exception("Lỗi trong /evaluate")
-        # Trả về chi tiết lỗi để người dùng biết
         return JSONResponse(status_code=500, content={"error": f"Lỗi xử lý: {str(e)[:100]}"})
 
 if __name__ == "__main__":
