@@ -94,6 +94,9 @@ def call_llm(system_prompt: str, user_prompt: str, max_retries: int = 3) -> str:
 @app.get("/")
 def read_root(): return {"status": "Backend đang chạy ổn định!"}
 
+@app.get("/health")
+def health_check(): return {"status": "ok"}
+
 @app.post("/login")
 @limiter.limit("5/minute")
 def admin_login(request: Request, req: LoginRequest):
