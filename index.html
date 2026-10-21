@@ -1,10 +1,3 @@
-Ý tưởng của bạn quá tuyệt vời! Việc đưa nút Admin vào bên trong Menu 3 gạch sẽ giúp giao diện sạch sẽ 100%, không còn nút tròn nào "chướng mắt" nữa.
-
-Đồng thời, nhờ cơ chế kiểm tra IP, mục "Quản trị viên" này sẽ hoàn toàn vô hình đối với những người dùng bình thường (không đúng IP). Chỉ khi nào bạn dùng đúng mạng (đúng IP), dòng chữ đó mới xuất hiện trong Menu để bạn bấm vào.
-
-Mình đã cập nhật xong toàn bộ file index.html. Bạn copy dán đè lên nhé:
-
-```html
 <!DOCTYPE html>
 <html lang="vi" class="light">
 <head>
@@ -38,61 +31,63 @@ Mình đã cập nhật xong toàn bộ file index.html. Bạn copy dán đè l�
 </head>
 <body class="antialiased min-h-screen relative text-slate-800 dark:text-slate-100 transition-colors duration-300 bg-slate-50 dark:bg-slate-900 dark-glow flex flex-col">
 
-    <!-- KHU VỰC MENU 3 GẠCH -->
-    <div class="fixed top-4 left-4 z-50">
-        <button id="btnHamburger" class="w-10 h-10 flex items-center justify-center rounded-full bg-white dark:bg-slate-800 shadow-md border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:scale-105 transition-transform relative z-50">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-        </button>
+    <!-- THANH HEADER CỐ ĐỊNH (Chứa Menu và Nút Sáng/Tối) -->
+    <header class="fixed top-0 left-0 w-full z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-700/50">
+        <div class="max-w-xl mx-auto px-4 h-16 flex items-center justify-between">
+            
+            <!-- Bên trái: Nút Menu 3 Gạch -->
+            <div class="relative">
+                <button id="btnHamburger" class="w-10 h-10 flex items-center justify-center rounded-full text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                </button>
 
-        <!-- Menu Xổ Xuống -->
-        <div id="dropdownMenu" class="menu-dropdown absolute top-12 left-0 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-xl w-48 overflow-hidden hidden opacity-0 scale-95">
-            <div class="flex flex-col py-2">
-                <button onclick="window.location.href='./landing.html'" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors text-left">
-                    🏠 Về trang chủ
-                </button>
-                <div class="h-px bg-slate-100 dark:bg-slate-700/50 mx-2"></div>
-                <button id="menuBtnEvaluate" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors text-left">
-                    ⚡ Đánh giá
-                </button>
-                <button id="menuBtnLibrary" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors text-left">
-                    📚 Thư viện mẫu
-                </button>
-                
-                <!-- Nút Admin (Bị ẩn mặc định, hiện lên nếu đúng IP) -->
-                <div id="adminMenuDivider" class="h-px bg-slate-100 dark:bg-slate-700/50 mx-2" style="display: none;"></div>
-                <button id="menuBtnAdmin" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors text-left" style="display: none;">
-                    🛡️ Quản trị viên
-                </button>
+                <!-- Menu Xổ Xuống -->
+                <div id="dropdownMenu" class="menu-dropdown absolute top-12 left-0 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-xl w-48 overflow-hidden hidden opacity-0 scale-95">
+                    <div class="flex flex-col py-2">
+                        <button onclick="window.location.href='./landing.html'" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors text-left">
+                            🏠 Về trang chủ
+                        </button>
+                        <div class="h-px bg-slate-100 dark:bg-slate-700/50 mx-2"></div>
+                        <button id="menuBtnEvaluate" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors text-left">
+                            ⚡ Đánh giá
+                        </button>
+                        <button id="menuBtnLibrary" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors text-left">
+                            📚 Thư viện mẫu
+                        </button>
+                        
+                        <!-- Nút Admin (Chỉ hiện khi đúng IP) -->
+                        <div id="adminMenuDivider" class="h-px bg-slate-100 dark:bg-slate-700/50 mx-2" style="display: none;"></div>
+                        <button id="menuBtnAdmin" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors text-left" style="display: none;">
+                            🛡️ Quản trị viên
+                        </button>
+                    </div>
+                </div>
             </div>
+
+            <!-- Giữa: Logo nhỏ -->
+            <div class="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-blue-500 pointer-events-none">
+                Trợ lý AI
+            </div>
+
+            <!-- Bên phải: Nút Sáng/Tối -->
+            <button id="themeToggle" class="w-10 h-10 flex items-center justify-center rounded-full text-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                🌙
+            </button>
         </div>
-    </div>
+    </header>
 
-    <!-- KHU VỰC NÚT NỔI (Chỉ còn nút Theme) -->
-    <div id="floatingButtons" class="fixed top-4 right-4 flex flex-col gap-2 z-50">
-        <button id="themeToggle" class="w-10 h-10 flex items-center justify-center rounded-full bg-white dark:bg-slate-800 shadow-md border border-slate-200 dark:border-slate-700 text-lg hover:scale-105 transition-transform">
-            🌙
-        </button>
-    </div>
-
-    <div class="max-w-xl w-full mx-auto px-5 pt-20 pb-32 flex-grow flex flex-col" id="mainContainer">
+    <!-- NỘI DUNG CHÍNH (Đã thêm pt-24 để không bị Header đè) -->
+    <div class="max-w-xl w-full mx-auto px-5 pt-24 pb-32 flex-grow flex flex-col" id="mainContainer">
         
-        <div class="text-center mb-6 px-6">
+        <div class="text-center mb-8 px-6">
             <h1 class="text-2xl md:text-3xl font-extrabold mb-3 leading-tight">
                 <span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-blue-500">✨ Trợ lý tối ưu hoá Prompt</span>
             </h1>
             <p class="text-slate-500 dark:text-slate-400 text-sm font-medium leading-relaxed max-w-sm mx-auto">
                 Thích nghi mọi lĩnh vực.<br>AI tự động nhận diện và tạo Prompt chuẩn chuyên gia.
             </p>
-        </div>
-
-        <!-- THANH CHUYỂN TAB -->
-        <div class="flex justify-center mb-6">
-            <div class="flex bg-white dark:bg-slate-800/80 rounded-full p-1 border border-slate-200 dark:border-slate-700/50 shadow-sm">
-                <button id="tabEvaluate" class="px-6 py-2 rounded-full font-bold text-sm bg-indigo-500 text-white shadow-md transition-all">Đánh giá</button>
-                <button id="tabLibrary" class="px-6 py-2 rounded-full font-bold text-sm text-slate-500 hover:text-slate-800 dark:hover:text-white transition-all">Thư viện mẫu</button>
-            </div>
         </div>
 
         <!-- USER MODE (TAB ĐÁNH GIÁ) -->
@@ -325,15 +320,29 @@ Mình đã cập nhật xong toàn bộ file index.html. Bạn copy dán đè l�
         }
     });
 
-    // Các nút trong Menu
+    // Các nút chuyển đổi trong Menu
     $('menuBtnEvaluate').addEventListener('click', () => {
-        $('tabEvaluate').click();
+        switchToEvaluate();
         btnHamburger.click(); // Đóng menu
     });
     $('menuBtnLibrary').addEventListener('click', () => {
-        $('tabLibrary').click();
+        switchToLibrary();
         btnHamburger.click(); // Đóng menu
     });
+
+    // Hàm chuyển đổi giao diện
+    function switchToEvaluate() {
+        $('userModeSection').style.display = 'block';
+        $('libraryModeSection').style.display = 'none';
+        $('adminModeSection').style.display = 'none';
+    }
+
+    function switchToLibrary() {
+        $('userModeSection').style.display = 'none';
+        $('libraryModeSection').style.display = 'block';
+        $('adminModeSection').style.display = 'none';
+        if (!isLibraryLoaded) { fetchLibrary(); }
+    }
 
     // --- POPUP HƯỚNG DẪN ---
     function closeModal() {
@@ -341,26 +350,20 @@ Mình đã cập nhật xong toàn bộ file index.html. Bạn copy dán đè l�
         if (modal) {
             modal.style.opacity = '0'; 
             modal.style.pointerEvents = 'none';
-            const floatBtns = $('floatingButtons');
-            if (floatBtns) floatBtns.style.display = 'flex';
             setTimeout(() => { modal.style.display = 'none'; }, 300);
         }
     }
     $('btnCloseModalX').addEventListener('click', closeModal);
     $('btnCloseModalStart').addEventListener('click', closeModal);
-    
-    $('floatingButtons').style.display = 'none';
 
     // --- KIỂM TRA QUYỀN ADMIN ---
     async function checkAdminAccess() {
         try {
             const res = await fetch(`${API_URL}/check_admin_ip`);
             if (res.ok) {
-                // Nếu đúng IP, hiện nút Admin TRONG MENU
                 $('adminMenuDivider').style.display = 'block';
                 $('menuBtnAdmin').style.display = 'flex';
             } else {
-                // Nếu sai IP, giấu biệt
                 $('adminMenuDivider').style.display = 'none';
                 $('menuBtnAdmin').style.display = 'none';
             }
@@ -390,23 +393,6 @@ Mình đã cập nhật xong toàn bộ file index.html. Bạn copy dán đè l�
 
     const typeMap = { "PROMPT": "PROMPT", "TEMPLATE": "TEMPLATE", "PROMPT META": "META", "TABLE": "TABLE", "STEM": "STEM", "IMAGE": "IMAGE" };
     const typeColors = { "PROMPT": "bg-blue-500", "TEMPLATE": "bg-purple-500", "META": "bg-orange-500", "TABLE": "bg-teal-500", "STEM": "bg-green-500", "IMAGE": "bg-pink-500" };
-
-    // --- CHUYỂN TAB ---
-    $('tabEvaluate').addEventListener('click', () => {
-        $('tabEvaluate').className = 'px-6 py-2 rounded-full font-bold text-sm bg-indigo-500 text-white shadow-md transition-all';
-        $('tabLibrary').className = 'px-6 py-2 rounded-full font-bold text-sm text-slate-500 hover:text-slate-800 dark:hover:text-white transition-all';
-        $('userModeSection').style.display = 'block';
-        $('libraryModeSection').style.display = 'none';
-    });
-
-    $('tabLibrary').addEventListener('click', () => {
-        $('tabLibrary').className = 'px-6 py-2 rounded-full font-bold text-sm bg-indigo-500 text-white shadow-md transition-all';
-        $('tabEvaluate').className = 'px-6 py-2 rounded-full font-bold text-sm text-slate-500 hover:text-slate-800 dark:hover:text-white transition-all';
-        $('userModeSection').style.display = 'none';
-        $('libraryModeSection').style.display = 'block';
-        
-        if (!isLibraryLoaded) { fetchLibrary(); }
-    });
 
     // --- TẢI THƯ VIỆN ---
     async function fetchLibrary() {
@@ -622,15 +608,13 @@ Mình đã cập nhật xong toàn bộ file index.html. Bạn copy dán đè l�
     });
 
     function backToUserMode() { 
-        $('userModeSection').style.display = 'block'; 
         $('adminModeSection').style.display = 'none'; 
         $('adminLoginBox').style.display = 'block'; 
         $('adminDashboard').style.display = 'none'; 
         $('adminPassword').value = ''; 
         $('adminError').style.display = 'none'; 
         adminToken = null;
-        // Chuyển về tab đánh giá
-        $('tabEvaluate').click();
+        switchToEvaluate(); 
     }
     $('btnBackToUser').addEventListener('click', backToUserMode); 
     $('btnAdminLogout').addEventListener('click', backToUserMode);
@@ -735,13 +719,3 @@ Mình đã cập nhật xong toàn bộ file index.html. Bạn copy dán đè l�
 </script>
 </body>
 </html>
-```
-
-🎯 Những thay đổi bạn sẽ thấy:
-
-1. Mất hoàn toàn nút tròn Ổ khóa/User ở góc trên bên phải. Giờ chỉ còn nút Mặt trời/Mặt trăng.
-2. Khi bạn mở Menu 3 gạch, sẽ có thêm dòng "🛡️ Quản trị viên" nằm dưới cùng (ngăn cách bằng một đường kẻ mờ).
-3. Dòng "Quản trị viên" này chỉ hiện lên khi bạn dùng đúng mạng (đúng IP). Nếu người khác dùng mạng khác, họ mở Menu ra sẽ chỉ thấy 3 dòng: Trang chủ, Đánh giá, Thư viện mẫu.
-4. Khi bạn bấm "Quản trị viên" trong Menu, nó sẽ tự động đưa bạn sang trang Đăng nhập Admin.
-
-Giao diện giờ đây đã đạt độ tinh gọn tuyệt đối, đúng chuẩn các ứng dụng cao cấp. Bạn thử xem sao nhé!
