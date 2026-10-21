@@ -2,47 +2,39 @@ import os
 import json
 import time
 import logging
-
 import uvicorn
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, HTTPException, Depends, Security
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.security import APIKeyHeader
 from pydantic import BaseModel
 from groq import Groq
 from supabase import create_client, Client
 from slowapi import Limiter
 from slowapi.errors import RateLimitExceeded
+from slowapi.util import get_remote_address
+from typing import Optional
 
 import rules_v38
 from validator import validate_full_report, calculate_final_score
 
-# ---------------------------------------------------------------------------
-# Logging: mọi thứ in ra đây sẽ hiện trong tab "Logs" của Render
-# ---------------------------------------------------------------------------
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger("prompt-evaluator")
 
-# ---------------------------------------------------------------------------
-# Hằng số cấu hình
-# ---------------------------------------------------------------------------
 MAX_PROMPT_LENGTH = 5000
 RATE_LIMIT = "20/minute"
 GENERIC_ERROR = {"error": "Hệ thống đang bận, vui lòng thử lại sau."}
 
-# ---------------------------------------------------------------------------
-# CORS (Lỗi P2)
-# HƯỚNG DẪN ĐIỀN:
-#   - Nếu GitHub Pages của bạn là  https://tenban.github.io/ten-repo/
-#     thì origin chỉ là             https://tenban.github.io
-# ---------------------------------------------------------------------------
-DEFAULT_ORIGINS = [
-    "https://thandanh83-sys.github.io", # <-- ĐÃ ĐIỀN LINK CỦA BẠN VÀO ĐÂY
-    # "http://localhost:5500",
-    # "http://127.0.0.1:5500",
-]
+# [CẤU HÌNH ADMIN BẢO MẬT]
+# Mật khẩu Admin được lấy từ biến môi trường trên Render. Nếu không có, dùng mặc định.
+ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "bisdo091121")
+# Mã Token bí mật (Trong thực tế nên dùng JWT, nhưng với app cá nhân, 1 chuỗi tĩnh là đủ)
+ADMIN_SECRET_TOKEN = os.environ.get("ADMIN_SECRET_TOKEN", "admin-token-secret-123")
+api_key_header = APIKeyHeader(name="X-Admin-Token", auto_error=False)
+
+DEFAULT_ORIGINS = ["https://thandanh83-sys.github.io"]
 env_origins = os.environ.get("ALLOWED_ORIGINS", "")
 ALLOWED_ORIGINS = [o.strip() for o in env_origins.split(",") if o.strip()] or DEFAULT_ORIGINS
-
 
 def get_client_ip(request: Request) -> str:
     forwarded = request.headers.get("x-forwarded-for")
@@ -56,20 +48,20 @@ app.state.limiter = limiter
 
 @app.exception_handler(RateLimitExceeded)
 async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
-    return JSONResponse(
-        status_code=429,
-        content={"error": "Bạn đã đạt giới hạn sử dụng, vui lòng thử lại sau 1 phút."},
-    )
+    return JSONResponse(status_code=429, content={"error": "Bạn đã đạt giới hạn sử dụng, vui lòng thử lại sau 1 phút."})
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS,
     allow_methods=["GET", "POST", "OPTIONS"],
-    allow_headers=["Content-Type"],
+    allow_headers=["Content-Type", "X-Admin-Token"], # Cho phép header Admin
 )
 
 class PromptRequest(BaseModel):
     prompt: str
+
+class LoginRequest(BaseModel):
+    password: str
 
 api_key = os.environ.get("GROQ_API_KEY", "")
 client = Groq(api_key=api_key)
@@ -78,14 +70,49 @@ supabase_url = os.environ.get("SUPABASE_URL", "")
 supabase_key = os.environ.get("SUPABASE_KEY", "")
 supabase: Client = create_client(supabase_url, supabase_key) if supabase_url and supabase_key else None
 
+def call_llm(system_prompt: str, user_prompt: str, max_retries: int = 3) -> str:
+    for attempt in range(max_retries):
+        try:
+            resp = client.chat.completions.create(
+                model="openai/gpt-oss-120b",
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": f"<prompt_can_cham>\n{user_prompt}\n</prompt_can_cham>"},
+                ],
+                response_format={"type": "json_object"},
+                temperature=0.0,
+            )
+            return resp.choices[0].message.content
+        except Exception as e:
+            if ("429" in str(e) or "rate_limit" in str(e)) and attempt < max_retries - 1:
+                time.sleep(2 ** attempt)
+                continue
+            raise
 
 @app.get("/")
-def read_root():
-    return {"status": "Backend đang chạy ổn định!"}
+def read_root(): return {"status": "Backend đang chạy ổn định!"}
 
-@app.get("/health")
-def health_check():
-    return {"status": "ok"}
+# [API ĐĂNG NHẬP ADMIN]
+@app.post("/login")
+def admin_login(req: LoginRequest):
+    if req.password == ADMIN_PASSWORD:
+        return {"token": ADMIN_SECRET_TOKEN}
+    raise HTTPException(status_code=401, detail="Sai mật khẩu")
+
+# [API LẤY LỊCH SỬ TỪ SUPABASE - YÊU CẦU TOKEN]
+@app.get("/history")
+def get_history(token: str = Depends(api_key_header)):
+    if token != ADMIN_SECRET_TOKEN:
+        raise HTTPException(status_code=401, detail="Không có quyền truy cập")
+    if not supabase:
+        return {"history": [], "message": "Supabase chưa được cấu hình"}
+    try:
+        # Lấy 50 bản ghi mới nhất
+        res = supabase.table("history").select("prompt, type, total_score, created_at").order("created_at", desc=True).limit(50).execute()
+        return {"history": res.data}
+    except Exception as e:
+        logger.error(f"Lỗi lấy lịch sử: {e}")
+        raise HTTPException(status_code=500, detail="Lỗi máy chủ")
 
 @app.post("/evaluate")
 @limiter.limit(RATE_LIMIT)
@@ -150,26 +177,8 @@ CHỈ TRẢ VỀ CHUỖI JSON HỢP LỆ:
 }}
 Prompt gốc: {prompt_text}
 """
-        max_retries = 3
-        response = None
-        for attempt in range(max_retries):
-            try:
-                response = client.chat.completions.create(
-                    model="openai/gpt-oss-120b",
-                    messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": prompt_text}],
-                    response_format={"type": "json_object"}, temperature=0.0, top_p=0.1,
-                )
-                break
-            except Exception as e:
-                if "429" in str(e) or "rate_limit" in str(e):
-                    logger.warning(f"Groq rate limit (lần thử {attempt + 1}/{max_retries})")
-                    if attempt < max_retries - 1:
-                        time.sleep(3)
-                        continue
-                    return JSONResponse(status_code=503, content={"error": "Hệ thống AI quá tải, vui lòng thử lại sau."})
-                raise
+        raw_text = call_llm(system_prompt, prompt_text)
 
-        raw_text = response.choices[0].message.content.strip()
         if raw_text.startswith("```json"):
             raw_text = raw_text[7:-3].strip()
 
