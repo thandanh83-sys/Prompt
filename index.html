@@ -9,7 +9,7 @@
     <script> tailwind.config = { darkMode: 'class' } </script>
     <style>
         .glass-card { transition: all 0.3s ease; }
-        .pre-wrap { white-space: pre-wrap; } /* Giữ nguyên định dạng xuống dòng */
+        .pre-wrap { white-space: pre-wrap; }
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         .dark ::-webkit-scrollbar-thumb { background: #475569; }
@@ -23,7 +23,7 @@
     <div class="max-w-4xl mx-auto pt-10 px-4 pb-20">
         <div class="text-center mb-8">
             <h1 class="text-3xl md:text-4xl font-extrabold mb-3 text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-blue-400">Trợ lý Prompt Vạn Năng</h1>
-            <p class="text-slate-600 dark:text-slate-300 text-sm md:text-base font-medium max-w-2xl mx-auto">Thích nghi mọi lĩnh vực: Lập trình, Viết lách, Nấu ăn, Tâm lý... <br>AI sẽ tự nhận diện và tạo Prompt chuẩn chuyên gia cho bạn.</p>
+            <p class="text-slate-600 dark:text-slate-300 text-sm md:text-base font-medium max-w-2xl mx-auto">Thích nghi mọi lĩnh vực. <br>AI sẽ tự nhận diện và tạo Prompt chuẩn chuyên gia cho bạn.</p>
         </div>
 
         <div class="flex justify-center mb-8">
@@ -36,7 +36,7 @@
         <!-- USER MODE -->
         <div id="userModeSection">
             <div class="glass-card bg-white/40 dark:bg-slate-800/60 backdrop-blur-lg border border-white/60 dark:border-slate-700/60 shadow-xl rounded-3xl p-6">
-                <textarea id="promptInput" maxlength="5000" class="w-full h-32 p-4 rounded-2xl bg-white/60 dark:bg-slate-900/60 border border-white/80 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-pink-400 resize-none text-slate-800 dark:text-slate-100" placeholder="Nhập bất kỳ ý tưởng gì... (VD: viết email xin việc, công thức nấu phở, code game rắn săn mồi...)"></textarea>
+                <textarea id="promptInput" maxlength="5000" class="w-full h-32 p-4 rounded-2xl bg-white/60 dark:bg-slate-900/60 border border-white/80 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-pink-400 resize-none text-slate-800 dark:text-slate-100" placeholder="Nhập ý tưởng... (VD: viết email xin việc, công thức nấu phở, code game rắn...)"></textarea>
                 <p id="errorMsg" class="text-red-500 text-sm mt-2 font-semibold" style="display: none;">Vui lòng nhập prompt!</p>
                 <button id="btnEvaluate" class="w-full mt-4 py-3 rounded-full font-bold bg-gradient-to-r from-pink-500 to-blue-400 text-white shadow-lg hover:opacity-90 disabled:opacity-60 transition text-lg">Đánh giá & Viết lại</button>
             </div>
@@ -90,7 +90,7 @@
             </div>
 
             <div id="adminDashboard" class="glass-card bg-white/40 dark:bg-slate-800/60 backdrop-blur-lg border border-white/60 dark:border-slate-700/60 shadow-xl rounded-3xl p-6 space-y-6" style="display: none;">
-                <h3 class="font-bold text-xl border-b border-slate-200 dark:border-slate-700 pb-4">🔧 CHI TIẾT NỘI BỘ (Lịch sử Supabase)</h3>
+                <h3 class="font-bold text-xl border-b border-slate-200 dark:border-slate-700 pb-4">🔧 CHI TIẾT NỘI BỘ</h3>
                 
                 <div class="overflow-x-auto mt-4">
                     <p class="text-xs text-slate-500 uppercase font-bold mb-2">Lịch sử đánh giá:</p>
@@ -142,12 +142,12 @@
 
 <script>
     const API_URL = "https://prompt-tx2e.onrender.com"; 
-    // Cập nhật lại tên 11 mục cho khớp form mới
     const SECTION_NAMES = ["1. VAI TRÒ", "2. BỐI CẢNH", "3. INPUT", "4. MỤC TIÊU", "5. YÊU CẦU", "6. RÀNG BUỘC", "7. TASK", "8. ĐỊNH DẠNG ĐẦU RA", "9. NEVER DO", "10. THỨ TỰ ƯU TIÊN", "11. XỬ LÝ NỘI BỘ"];
     const $ = id => document.getElementById(id);
     let lastResult = null;
     let adminToken = null;
 
+    // Đã đồng bộ đúng chuẩn 17 mã lỗi của v38
     const ERROR_NAMES = {
         "A01": "Lỗi chính tả", "A02": "Thiếu dấu câu", "A03": "Lặp lại",
         "B01": "Thiếu thành phần cấu trúc", "B02": "Mục không logic", "B03": "Sai phân cấp", "B04": "Chưa quy định định dạng đầu ra",
@@ -200,7 +200,7 @@
         }
     }
 
-    // RENDER KẾT QUẢ (CHỐNG XSS + HIỂN THỊ XUỐNG DÒNG)
+    // RENDER KẾT QUẢ
     function render(r) {
         $('totalScore').textContent = r.total;
         const typeMap = { "PROMPT": "PROMPT", "TEMPLATE": "TEMPLATE", "PROMPT META": "PROMPT META", "TABLE": "TABLE", "STEM": "TOÁN/LÝ/HÓA" };
@@ -258,7 +258,7 @@
             const card = document.createElement('div'); card.className = 'p-3 bg-white/50 dark:bg-slate-900/50 rounded-xl border border-white/60 dark:border-slate-700/60 mb-2';
             const pTitle = document.createElement('p'); pTitle.className = 'font-bold text-pink-500 mb-1'; pTitle.textContent = sec;
             const pContent = document.createElement('p'); 
-            pContent.className = 'text-slate-700 dark:text-slate-200 break-words pre-wrap'; // Thêm pre-wrap để giữ xuống dòng
+            pContent.className = 'text-slate-700 dark:text-slate-200 break-words pre-wrap';
             pContent.textContent = r.rewrite[sec] || '';
             card.appendChild(pTitle); card.appendChild(pContent); rw.appendChild(card);
         });
@@ -335,13 +335,20 @@
                 $('adminError').textContent = data.detail || data.error || "Sai mật khẩu.";
             }
         } catch (e) {
-            $('adminError').style.display = 'block'; $('adminError').textContent = "Lỗi kết nối Server (Not Found). Hãy chắc chắn API /login đã có trên Render.";
+            $('adminError').style.display = 'block'; $('adminError').textContent = "Lỗi kết nối Server.";
         }
     });
 
-    // LẤY LỊCH SỬ
+    // [VÁ LỖI XSS 100%]: LẤY LỊCH SỬ KHÔNG DÙNG innerHTML
     async function fetchHistory() {
-        const tbody = $('adminHistoryList'); tbody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-slate-500">Đang tải dữ liệu...</td></tr>';
+        const tbody = $('adminHistoryList'); 
+        tbody.replaceChildren();
+        
+        const loadingRow = document.createElement('tr');
+        const loadingTd = document.createElement('td');
+        loadingTd.colSpan = 4; loadingTd.className = "text-center py-4 text-slate-500"; loadingTd.textContent = "Đang tải dữ liệu...";
+        loadingRow.appendChild(loadingTd); tbody.appendChild(loadingRow);
+
         try {
             const response = await fetch(`${API_URL}/history`, {
                 method: 'GET',
@@ -351,7 +358,13 @@
             
             if (response.ok && data.history) {
                 tbody.replaceChildren();
-                if (data.history.length === 0) { tbody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-slate-500">Chưa có dữ liệu.</td></tr>'; return; }
+                if (data.history.length === 0) { 
+                    const emptyRow = document.createElement('tr');
+                    const emptyTd = document.createElement('td');
+                    emptyTd.colSpan = 4; emptyTd.className = "text-center py-4 text-slate-500"; emptyTd.textContent = "Chưa có dữ liệu.";
+                    emptyRow.appendChild(emptyTd); tbody.appendChild(emptyRow); 
+                    return; 
+                }
                 
                 data.history.forEach(item => {
                     const tr = document.createElement('tr'); 
@@ -373,7 +386,13 @@
                     tbody.appendChild(tr);
                 });
             }
-        } catch (e) { tbody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-red-500">Lỗi tải dữ liệu.</td></tr>'; }
+        } catch (e) { 
+            tbody.replaceChildren();
+            const errRow = document.createElement('tr');
+            const errTd = document.createElement('td');
+            errTd.colSpan = 4; errTd.className = "text-center py-4 text-red-500"; errTd.textContent = "Lỗi tải dữ liệu.";
+            errRow.appendChild(errTd); tbody.appendChild(errRow);
+        }
     }
 
     $('btnAdminLogout').addEventListener('click', () => {
