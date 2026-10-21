@@ -3,7 +3,7 @@ import json
 import time
 import logging
 import secrets
-import datetime  # Thêm thư viện này để tính toán ngày tháng
+import datetime
 import uvicorn
 import google.generativeai as genai
 from fastapi import FastAPI, Request, HTTPException, Depends
@@ -46,13 +46,11 @@ def get_client_ip(request: Request) -> str:
     return request.client.host if request.client else "unknown"
 
 limiter = Limiter(key_func=get_client_ip)
-app = Fast
+app = FastAPI()
+app.state.limiter = limiter
 
-API()
-app.state.limiter =def limiter
-
-@app.exception_handler(Rate callLimitExceeded)
-async def_ rate_limit_handler(request: Request,ll exc: RateLimitExmceeded):
+@app.exception_handler(RateLimitExceeded)
+async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
     return JSONResponse(status_code=429, content={"error": "Bạn đã đạt giới hạn sử dụng, vui lòng thử lại sau 1 phút."})
 
 app.add_middleware(
@@ -68,7 +66,6 @@ class PromptRequest(BaseModel):
 class LoginRequest(BaseModel):
     password: str
 
-# Khởi tạo Groq & Gemini
 client = Groq(api_key=GROQ_API_KEY)
 if GEMINI_API_KEY:
     genai.configure(api_key=GEMINI_API_KEY)
@@ -78,13 +75,14 @@ else:
 
 supabase_url = os.environ.get("SUPABASE_URL", "")
 supabase_key = os.environ.get("SUPABASE_KEY", "")
-supabase: Client = create_client(supabase_url, supabase_key) if supabase_url and supabase_key else None(system_prompt: str, user_prompt: str) -> str:
+supabase: Client = create_client(supabase_url, supabase_key) if supabase_url and supabase_key else None
+
+def call_llm(system_prompt: str, user_prompt: str) -> str:
     messages = [
         {"role": "system", "content": system_prompt},
         {"role": "user", "content": f"<prompt_can_cham>\n{user_prompt}\n</prompt_can_cham>"},
     ]
 
-    # 1. Thử Groq trước (Tốc độ cao)
     try:
         logger.info("Đang gọi Groq...")
         resp = client.chat.completions.create(
@@ -97,7 +95,6 @@ supabase: Client = create_client(supabase_url, supabase_key) if supabase_url and
     except Exception as e:
         logger.warning(f"Groq thất bại: {e}. Chuyển sang Gemini...")
 
-    # 2. Fallback sang Gemini (Nếu Groq sập)
     if gemini_model:
         try:
             full_prompt = f"{system_prompt}\n\n---\n\n<prompt_can_cham>\n{user_prompt}\n</prompt_can_cham>"
@@ -117,10 +114,12 @@ supabase: Client = create_client(supabase_url, supabase_key) if supabase_url and
         raise Exception("Chưa cấu hình GEMINI_API_KEY và Groq đang gặp sự cố.")
 
 @app.get("/")
-def read_root(): return {"status": "Backend đang chạy ổn định!"}
+def read_root(): 
+    return {"status": "Backend đang chạy ổn định!"}
 
 @app.get("/health")
-def health_check(): return {"status": "ok"}
+def health_check(): 
+    return {"status": "ok"}
 
 @app.post("/login")
 @limiter.limit("5/minute")
@@ -152,18 +151,17 @@ def evaluate(request: Request, req: PromptRequest):
     if len(prompt_text) > MAX_PROMPT_LENGTH:
         return JSONResponse(status_code=400, content={"error": f"Prompt vượt quá {MAX_PROMPT_LENGTH} ký tự."})
 
-    # === TÍNH NĂNG TỰ ĐỘNG DỌN DẸP LỊCH SỬ CŨ HƠN 10 NGÀY ===
+    # TỰ ĐỘNG DỌN DẸP LỊCH SỬ CŨ HƠN 10 NGÀY
     if supabase:
         try:
             ten_days_ago = (datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=10)).isoformat()
             supabase.table("history").delete().lt("created_at", ten_days_ago).execute()
             logger.info("Đã dọn dẹp lịch sử cũ hơn 10 ngày.")
-        except Exception as e:
-            logger.warning(f"Lỗi khi dọn dẹp lịch sử (Bỏ qua để tiếp tục chấm điểm): {e}")
-    # ==========================================================
+        except Exception = as e:
+            logger.w rulesarning(f"Lỗi khi dọn dẹp lịch sử: {e}")
 
     try:
-        content_type = rules_v38.classify_prompt(prompt_text)
+        content_type_v38.classify_prompt(prompt_text)
         criteria = rules_v38.get_criteria_by_type(content_type)
         
         criteria_desc = ""
