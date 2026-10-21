@@ -35,7 +35,6 @@
         <!-- USER MODE -->
         <div id="userModeSection">
             <div class="glass-card bg-white/40 dark:bg-slate-800/60 backdrop-blur-lg border border-white/60 dark:border-slate-700/60 shadow-xl rounded-3xl p-6">
-                <!-- [VÁ LỖI]: Thêm maxlength="5000" để chặn trước khi gửi -->
                 <textarea id="promptInput" maxlength="5000" class="w-full h-32 p-4 rounded-2xl bg-white/60 dark:bg-slate-900/60 border border-white/80 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-pink-400 resize-none text-slate-800 dark:text-slate-100" placeholder="Nhập câu lệnh của bạn vào đây..."></textarea>
                 <p id="errorMsg" class="text-red-500 text-sm mt-2 font-semibold" style="display: none;">Vui lòng nhập prompt!</p>
                 <button id="btnEvaluate" class="w-full mt-4 py-3 rounded-full font-bold bg-gradient-to-r from-pink-500 to-blue-400 text-white shadow-lg hover:opacity-90 disabled:opacity-60 transition text-lg">Đánh giá & Viết lại</button>
@@ -82,7 +81,6 @@
             <div id="adminLoginBox" class="glass-card bg-white/40 dark:bg-slate-800/60 backdrop-blur-lg border border-white/60 dark:border-slate-700/60 shadow-xl rounded-3xl p-6 max-w-md mx-auto text-center">
                 <h3 class="font-bold text-lg mb-4">Đăng nhập Admin</h3>
                 <div class="relative w-full mb-4">
-                    <!-- [VÁ LỖI]: Xóa mật khẩu mặc định, bắt người dùng tự nhập -->
                     <input type="password" id="adminPassword" class="w-full p-3 rounded-xl bg-white/60 dark:bg-slate-900/60 border border-white/80 dark:border-slate-700 text-center pr-10 focus:outline-none focus:ring-2 focus:ring-pink-400 text-slate-800 dark:text-slate-100" placeholder="Mật khẩu...">
                     <button type="button" id="toggleAdminPassword" class="absolute inset-y-0 right-0 pr-4 flex items-center text-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 cursor-pointer">👁️</button>
                 </div>
@@ -92,7 +90,6 @@
 
             <div id="adminDashboard" class="glass-card bg-white/40 dark:bg-slate-800/60 backdrop-blur-lg border border-white/60 dark:border-slate-700/60 shadow-xl rounded-3xl p-6 space-y-6" style="display: none;">
                 <h3 class="font-bold text-xl border-b border-slate-200 dark:border-slate-700 pb-4">🔧 CHI TIẾT NỘI BỘ (Lịch sử Supabase)</h3>
-                
                 <div class="overflow-x-auto mt-4">
                     <table class="w-full text-sm text-left">
                         <thead class="text-xs text-slate-500 uppercase bg-white/50 dark:bg-slate-900/50">
@@ -108,7 +105,6 @@
                         </tbody>
                     </table>
                 </div>
-
                 <div class="flex gap-4 pt-2">
                     <button id="btnAdminLogout" class="flex-1 py-3 rounded-full font-bold bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 transition">Đăng xuất</button>
                 </div>
@@ -117,9 +113,32 @@
     </div>
 </div>
 
-<script>
-    const API_URL = "https://prompt-tx2e.onrender.com"; // Đã bỏ /evaluate ở cuối để dùng chung cho /login và /history
+<!-- POPUP HƯỚNG DẪN (Đã khôi phục) -->
+<div id="instructionModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-opacity duration-300">
+    <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-md p-6 relative transform transition-transform duration-300 scale-100">
+        <button id="closeModalBtn" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 bg-slate-100 dark:bg-slate-700 w-8 h-8 rounded-full flex items-center justify-center transition">✕</button>
+        <h2 class="text-2xl font-bold text-center mb-6 text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-blue-400">Hướng dẫn sử dụng</h2>
+        <div class="space-y-5 mb-8">
+            <div class="flex items-start gap-4">
+                <div class="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 font-bold flex items-center justify-center shrink-0">1</div>
+                <div><p class="font-bold text-slate-800 dark:text-slate-200">Nhập ý tưởng của bạn</p><p class="text-sm text-slate-500 dark:text-slate-400 mt-1">VD: "viết bài văn tả mẹ"</p></div>
+            </div>
+            <div class="flex items-start gap-4">
+                <div class="w-8 h-8 rounded-full bg-pink-100 dark:bg-pink-900/50 text-pink-600 dark:text-pink-400 font-bold flex items-center justify-center shrink-0">2</div>
+                <div><p class="font-bold text-slate-800 dark:text-slate-200">AI chấm điểm</p><p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Chỉ ra điểm yếu cần khắc phục</p></div>
+            </div>
+            <div class="flex items-start gap-4">
+                <div class="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-400 font-bold flex items-center justify-center shrink-0">3</div>
+                <div><p class="font-bold text-slate-800 dark:text-slate-200">Copy & Sử dụng</p><p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Dán Prompt vào ChatGPT/Claude</p></div>
+            </div>
+        </div>
+        <button id="startAppBtn" class="w-full py-3 rounded-full font-bold bg-gradient-to-r from-pink-500 to-blue-400 text-white shadow-lg hover:opacity-90 transition text-lg">Đã hiểu, Bắt đầu</button>
+    </div>
+</div>
 
+<script>
+    // [QUAN TRỌNG]: Link API gốc (Không có /evaluate ở cuối)
+    const API_URL = "https://prompt-tx2e.onrender.com"; 
     const SECTION_NAMES = ["1. VAI TRÒ", "2. BỐI CẢNH", "3. INPUT", "4. MỤC TIÊU", "5. YÊU CẦU", "6. RÀNG BUỘC", "7. TASK", "8. ĐỊNH DẠNG ĐẦU RA", "9. NEVER DO", "10. THỨ TỰ ƯU TIÊN", "11. XỬ LÝ NỘI BỘ"];
     const $ = id => document.getElementById(id);
     let lastResult = null;
@@ -133,6 +152,15 @@
         "E01": "Trộn lĩnh vực", "E02": "Thuật ngữ không nhất quán", "E03": "Thiếu tính đặc thù lĩnh vực"
     };
 
+    // POPUP
+    const instructionModal = $('instructionModal');
+    function closeInstructionModal() {
+        instructionModal.style.opacity = '0';
+        setTimeout(() => { instructionModal.style.display = 'none'; }, 300);
+    }
+    $('closeModalBtn').addEventListener('click', closeInstructionModal);
+    $('startAppBtn').addEventListener('click', closeInstructionModal);
+
     // THEME
     function applyTheme(dark) {
         document.documentElement.classList.toggle('dark', dark);
@@ -145,7 +173,7 @@
     })();
     $('themeToggle').addEventListener('click', () => applyTheme(!document.documentElement.classList.contains('dark')));
 
-    // FETCH API BẢO MẬT
+    // FETCH ĐÁNH GIÁ
     async function evaluatePrompt(prompt) {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 180000); 
@@ -158,8 +186,6 @@
             });
             clearTimeout(timeoutId);
             const data = await response.json();
-            
-            // [VÁ LỖI]: FastAPI trả lỗi validation ở 'detail', code của chúng ta trả ở 'error'
             if (!response.ok) throw new Error(data.error || data.detail || `Lỗi HTTP: ${response.status}`);
             if (data.error) throw new Error(data.error);
             return data;
@@ -170,54 +196,32 @@
         }
     }
 
-    // [HÀM RENDER CHỐNG XSS TUYỆT ĐỐI]
+    // RENDER KẾT QUẢ (Đã chống XSS tuyệt đối)
     function render(r) {
         $('totalScore').textContent = r.total;
         const typeMap = { "PROMPT": "PROMPT", "TEMPLATE": "TEMPLATE", "PROMPT META": "PROMPT META", "TABLE": "TABLE", "STEM": "TOÁN/LÝ/HÓA" };
         $('promptType').textContent = typeMap[r.type] || r.type;
 
-        // 1. Render Tiêu chí
         const list = $('criteriaList'); 
         list.replaceChildren();
         Object.entries(r.details).forEach(([name, score]) => {
             const row = document.createElement('div');
-            
-            const flexDiv = document.createElement('div');
-            flexDiv.className = 'flex justify-between text-sm font-semibold mb-1';
-            
-            const spanName = document.createElement('span');
-            spanName.className = 'truncate pr-1';
-            spanName.title = name;
-            spanName.textContent = name; // textContent chống XSS
-            
-            const spanScore = document.createElement('span');
-            spanScore.className = score < 6 ? 'text-pink-500' : 'text-blue-500';
-            spanScore.textContent = `${score}/10`;
-            
+            const flexDiv = document.createElement('div'); flexDiv.className = 'flex justify-between text-sm font-semibold mb-1';
+            const spanName = document.createElement('span'); spanName.className = 'truncate pr-1'; spanName.title = name; spanName.textContent = name;
+            const spanScore = document.createElement('span'); spanScore.className = score < 6 ? 'text-pink-500' : 'text-blue-500'; spanScore.textContent = `${score}/10`;
             flexDiv.appendChild(spanName); flexDiv.appendChild(spanScore);
-            
-            const barBg = document.createElement('div');
-            barBg.className = 'w-full bg-slate-200/50 dark:bg-slate-700/50 rounded-full h-2';
-            const barFill = document.createElement('div');
-            barFill.className = 'h-2 rounded-full bg-gradient-to-r from-pink-500 to-blue-500';
-            barFill.style.width = `${score * 10}%`;
-            
-            barBg.appendChild(barFill);
-            row.appendChild(flexDiv); row.appendChild(barBg);
-            list.appendChild(row);
+            const barBg = document.createElement('div'); barBg.className = 'w-full bg-slate-200/50 dark:bg-slate-700/50 rounded-full h-2';
+            const barFill = document.createElement('div'); barFill.className = 'h-2 rounded-full bg-gradient-to-r from-pink-500 to-blue-500'; barFill.style.width = `${score * 10}%`;
+            barBg.appendChild(barFill); row.appendChild(flexDiv); row.appendChild(barBg); list.appendChild(row);
         });
 
-        // 2. Render Lỗi
         const userErrList = $('userErrorList');
         userErrList.replaceChildren();
         if (r.errors && r.errors.length > 0) {
             r.errors.forEach(err => {
                 const errName = ERROR_NAMES[err.code] || "Lỗi không xác định";
                 let evidenceText = "";
-                if (err.evidence && err.evidence !== "Toàn bộ" && err.evidence !== "Toàn bộ prompt") {
-                    evidenceText = `"${err.evidence}"`;
-                }
-                
+                if (err.evidence && err.evidence !== "Toàn bộ" && err.evidence !== "Toàn bộ prompt") { evidenceText = `"${err.evidence}"`; }
                 let suggestion = "Hãy bổ sung thêm thông tin chi tiết.";
                 if (errName.includes("bối cảnh")) suggestion = "Bạn cần nêu rõ hoàn cảnh, mục đích sử dụng.";
                 else if (errName.includes("đối tượng")) suggestion = "Bạn cần chỉ định rõ người, vật hoặc dữ liệu.";
@@ -225,50 +229,32 @@
                 else if (errName.includes("mục tiêu")) suggestion = "Hãy nói rõ bạn muốn AI làm gì (viết, phân tích...).";
                 else if (errName.includes("định dạng")) suggestion = "Hãy yêu cầu cụ thể đầu ra là đoạn văn, gạch đầu dòng hay bảng.";
 
-                const li = document.createElement('li');
-                li.className = 'flex items-start gap-3 mb-3 p-3 bg-red-50/80 dark:bg-red-900/20 rounded-xl border border-red-100 dark:border-red-900/50';
-                
-                const bullet = document.createElement('span');
-                bullet.className = 'text-red-500 font-bold mt-0.5 text-lg';
-                bullet.textContent = '•';
-                
+                const li = document.createElement('li'); li.className = 'flex items-start gap-3 mb-3 p-3 bg-red-50/80 dark:bg-red-900/20 rounded-xl border border-red-100 dark:border-red-900/50';
+                const bullet = document.createElement('span'); bullet.className = 'text-red-500 font-bold mt-0.5 text-lg'; bullet.textContent = '•';
                 const div = document.createElement('div');
-                const pName = document.createElement('p');
-                pName.className = 'text-slate-800 dark:text-slate-200 font-semibold';
-                pName.textContent = errName;
+                const pName = document.createElement('p'); pName.className = 'text-slate-800 dark:text-slate-200 font-semibold'; pName.textContent = errName;
+                const pDetail = document.createElement('p'); pDetail.className = 'text-sm text-slate-600 dark:text-slate-400 mt-1';
                 
-                const pDetail = document.createElement('p');
-                pDetail.className = 'text-sm text-slate-600 dark:text-slate-400 mt-1';
-                pDetail.innerHTML = `${evidenceText ? `Trích dẫn: <i>${evidenceText}</i><br>` : ''}<span class="text-red-600 dark:text-red-400 font-medium">👉 Gợi ý: ${suggestion}</span>`;
-                
-                div.appendChild(pName); div.appendChild(pDetail);
-                li.appendChild(bullet); li.appendChild(div);
-                userErrList.appendChild(li);
+                if (evidenceText) {
+                    pDetail.appendChild(document.createTextNode('Trích dẫn: '));
+                    const italic = document.createElement('i'); italic.textContent = evidenceText;
+                    pDetail.appendChild(italic); pDetail.appendChild(document.createElement('br'));
+                }
+                const suggestionSpan = document.createElement('span'); suggestionSpan.className = 'text-red-600 dark:text-red-400 font-medium'; suggestionSpan.textContent = `👉 Gợi ý: ${suggestion}`;
+                pDetail.appendChild(suggestionSpan);
+                div.appendChild(pName); div.appendChild(pDetail); li.appendChild(bullet); li.appendChild(div); userErrList.appendChild(li);
             });
         } else {
-            const li = document.createElement('li');
-            li.className = 'text-green-600 dark:text-green-400 font-semibold p-3 bg-green-50 dark:bg-green-900/20 rounded-xl';
-            li.textContent = 'Tuyệt vời! Không phát hiện lỗi nào.';
-            userErrList.appendChild(li);
+            const li = document.createElement('li'); li.className = 'text-green-600 dark:text-green-400 font-semibold p-3 bg-green-50 dark:bg-green-900/20 rounded-xl'; li.textContent = 'Tuyệt vời! Không phát hiện lỗi nào.'; userErrList.appendChild(li);
         }
 
-        // 3. Render Bản sửa
         const rw = $('rewriteList'); 
         rw.replaceChildren();
         SECTION_NAMES.forEach(sec => {
-            const card = document.createElement('div');
-            card.className = 'p-3 bg-white/50 dark:bg-slate-900/50 rounded-xl border border-white/60 dark:border-slate-700/60';
-            
-            const pTitle = document.createElement('p');
-            pTitle.className = 'font-bold text-pink-500 mb-1';
-            pTitle.textContent = sec;
-            
-            const pContent = document.createElement('p');
-            pContent.className = 'text-slate-700 dark:text-slate-200 break-words';
-            pContent.textContent = r.rewrite[sec] || ''; // textContent chống XSS
-            
-            card.appendChild(pTitle); card.appendChild(pContent);
-            rw.appendChild(card);
+            const card = document.createElement('div'); card.className = 'p-3 bg-white/50 dark:bg-slate-900/50 rounded-xl border border-white/60 dark:border-slate-700/60';
+            const pTitle = document.createElement('p'); pTitle.className = 'font-bold text-pink-500 mb-1'; pTitle.textContent = sec;
+            const pContent = document.createElement('p'); pContent.className = 'text-slate-700 dark:text-slate-200 break-words'; pContent.textContent = r.rewrite[sec] || '';
+            card.appendChild(pTitle); card.appendChild(pContent); rw.appendChild(card);
         });
         
         $('resultArea').style.display = 'block';
@@ -280,11 +266,8 @@
         if (!prompt) { $('errorMsg').style.display = 'block'; return; }
         $('errorMsg').style.display = 'none';
         
-        const btn = $('btnEvaluate');
-        btn.disabled = true; 
-        
-        let seconds = 0;
-        btn.textContent = 'Đang kết nối Server (0s)...';
+        const btn = $('btnEvaluate'); btn.disabled = true; 
+        let seconds = 0; btn.textContent = 'Đang kết nối Server (0s)...';
         const timer = setInterval(() => {
             seconds++;
             btn.textContent = seconds < 15 ? `Đang đợi Server tỉnh dậy (${seconds}s)...` : `AI đang viết 11 mục (${seconds}s)...`;
@@ -297,9 +280,7 @@
             $('errorMsg').textContent = e.message; 
             $('errorMsg').style.display = 'block';
         } finally {
-            clearInterval(timer);
-            btn.disabled = false; 
-            btn.textContent = 'Đánh giá & Viết lại';
+            clearInterval(timer); btn.disabled = false; btn.textContent = 'Đánh giá & Viết lại';
         }
     });
 
@@ -309,45 +290,28 @@
         let text = ""; 
         SECTION_NAMES.forEach(sec => {
             let content = lastResult.rewrite[sec] || '';
-            if (sec === "10. THỨ TỰ ƯU TIÊN") {
-                content = content.replace(/;\s*/g, '.\n').replace(/(\d+\.)\s*/g, '\n$1 ').trim();
-                text += `${sec}:\n${content}\n\n`;
-            } else if (sec === "11. XỬ LÝ NỘI BỘ") {
-                text += `11.XỬ LÝ NỘI BỘ\n${content}\n\n`;
-            } else {
-                text += `${sec}:\n${content}\n\n`;
-            }
+            if (sec === "10. THỨ TỰ ƯU TIÊN") { content = content.replace(/;\s*/g, '.\n').replace(/(\d+\.)\s*/g, '\n$1 ').trim(); text += `${sec}:\n${content}\n\n`; } 
+            else if (sec === "11. XỬ LÝ NỘI BỘ") { text += `11.XỬ LÝ NỘI BỘ\n${content}\n\n`; } 
+            else { text += `${sec}:\n${content}\n\n`; }
         });
-
         try {
             await navigator.clipboard.writeText(text);
-            const btn = $('btnCopyAll');
-            const btnText = $('copyBtnText');
-            const originalSVG = btn.querySelector('svg').outerHTML;
-            
-            btnText.textContent = 'Đã chép!'; 
-            btnText.classList.add('text-green-500');
+            const btn = $('btnCopyAll'); const btnText = $('copyBtnText'); const originalSVG = btn.querySelector('svg').outerHTML;
+            btnText.textContent = 'Đã chép!'; btnText.classList.add('text-green-500');
             btn.querySelector('svg').outerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>`;
-                
-            setTimeout(() => { 
-                btnText.textContent = 'Sao chép'; 
-                btnText.classList.remove('text-green-500');
-                btn.querySelector('svg').outerHTML = originalSVG;
-            }, 2000);
+            setTimeout(() => { btnText.textContent = 'Sao chép'; btnText.classList.remove('text-green-500'); btn.querySelector('svg').outerHTML = originalSVG; }, 2000);
         } catch (e) { alert("Không thể sao chép. Vui lòng thử lại!"); }
     });
 
-    // [ADMIN ĐĂNG NHẬP & LẤY LỊCH SỬ TỪ BACKEND]
+    // ĐĂNG NHẬP ADMIN
     $('toggleAdminPassword').addEventListener('click', function() {
         const pwdInput = $('adminPassword');
-        if (pwdInput.type === 'password') { pwdInput.type = 'text'; this.innerText = '🙈'; } 
-        else { pwdInput.type = 'password'; this.innerText = '👁️'; }
+        if (pwdInput.type === 'password') { pwdInput.type = 'text'; this.innerText = '🙈'; } else { pwdInput.type = 'password'; this.innerText = '👁️'; }
     });
 
     $('btnAdminLogin').addEventListener('click', async () => {
         const pwd = $('adminPassword').value.trim();
         if (!pwd) return;
-
         try {
             const response = await fetch(`${API_URL}/login`, {
                 method: 'POST',
@@ -355,76 +319,55 @@
                 body: JSON.stringify({ password: pwd })
             });
             const data = await response.json();
-            
             if (response.ok && data.token) {
                 adminToken = data.token;
                 $('adminLoginBox').style.display = 'none'; 
                 $('adminDashboard').style.display = 'block';
-                fetchHistory(); // Gọi API lấy lịch sử thật
+                fetchHistory(); 
             } else {
                 $('adminError').style.display = 'block'; 
                 $('adminError').textContent = data.detail || data.error || "Sai mật khẩu.";
             }
         } catch (e) {
-            $('adminError').style.display = 'block';
-            $('adminError').textContent = "Lỗi kết nối Server.";
+            $('adminError').style.display = 'block'; $('adminError').textContent = "Lỗi kết nối Server (Not Found). Hãy chắc chắn API /login đã có trên Render.";
         }
     });
 
     async function fetchHistory() {
-        const tbody = $('adminHistoryList');
-        tbody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-slate-500">Đang tải dữ liệu...</td></tr>';
-        
+        const tbody = $('adminHistoryList'); tbody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-slate-500">Đang tải dữ liệu...</td></tr>';
         try {
             const response = await fetch(`${API_URL}/history`, {
                 method: 'GET',
                 headers: { 'X-Admin-Token': adminToken }
             });
             const data = await response.json();
-            
             if (response.ok && data.history) {
                 tbody.replaceChildren();
-                if (data.history.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-slate-500">Chưa có dữ liệu trên Server.</td></tr>';
-                    return;
-                }
+                if (data.history.length === 0) { tbody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-slate-500">Chưa có dữ liệu.</td></tr>'; return; }
                 data.history.forEach(item => {
-                    const tr = document.createElement('tr');
-                    tr.className = "border-b border-slate-200/50 dark:border-slate-700/50 bg-white/30 dark:bg-slate-800/30";
-                    
+                    const tr = document.createElement('tr'); tr.className = "border-b border-slate-200/50 dark:border-slate-700/50 bg-white/30 dark:bg-slate-800/30";
                     const tdTime = document.createElement('td'); tdTime.className = "px-4 py-3 whitespace-nowrap text-xs text-slate-500"; tdTime.textContent = new Date(item.created_at).toLocaleString('vi-VN');
                     const tdPrompt = document.createElement('td'); tdPrompt.className = "px-4 py-3 truncate max-w-[200px]"; tdPrompt.title = item.prompt; tdPrompt.textContent = item.prompt;
                     const tdType = document.createElement('td'); tdType.className = "px-4 py-3 font-semibold text-blue-500"; tdType.textContent = item.type;
                     const tdScore = document.createElement('td'); tdScore.className = "px-4 py-3 font-bold text-pink-500"; tdScore.textContent = item.total_score;
-                    
-                    tr.appendChild(tdTime); tr.appendChild(tdPrompt); tr.appendChild(tdType); tr.appendChild(tdScore);
-                    tbody.appendChild(tr);
+                    tr.appendChild(tdTime); tr.appendChild(tdPrompt); tr.appendChild(tdType); tr.appendChild(tdScore); tbody.appendChild(tr);
                 });
             }
-        } catch (e) {
-            tbody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-red-500">Lỗi tải dữ liệu.</td></tr>';
-        }
+        } catch (e) { tbody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-red-500">Lỗi tải dữ liệu.</td></tr>'; }
     }
 
     $('btnAdminLogout').addEventListener('click', () => {
-        adminToken = null;
-        $('adminLoginBox').style.display = 'block'; 
-        $('adminDashboard').style.display = 'none'; 
-        $('adminPassword').value = ''; 
-        $('adminError').style.display = 'none';
+        adminToken = null; $('adminLoginBox').style.display = 'block'; $('adminDashboard').style.display = 'none'; $('adminPassword').value = ''; $('adminError').style.display = 'none';
     });
 
     // CHUYỂN TAB
     $('tabUser').addEventListener('click', () => {
-        $('userModeSection').style.display = 'block'; 
-        $('adminModeSection').style.display = 'none';
+        $('userModeSection').style.display = 'block'; $('adminModeSection').style.display = 'none';
         $('tabUser').className = "px-8 py-2 rounded-full font-semibold bg-gradient-to-r from-pink-500 to-blue-400 text-white shadow-md transition-all";
         $('tabAdmin').className = "px-8 py-2 rounded-full font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all";
     });
-
     $('tabAdmin').addEventListener('click', () => {
-        $('userModeSection').style.display = 'none'; 
-        $('adminModeSection').style.display = 'block';
+        $('userModeSection').style.display = 'none'; $('adminModeSection').style.display = 'block';
         $('tabAdmin').className = "px-8 py-2 rounded-full font-semibold bg-gradient-to-r from-pink-500 to-blue-400 text-white shadow-md transition-all";
         $('tabUser').className = "px-8 py-2 rounded-full font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all";
     });
