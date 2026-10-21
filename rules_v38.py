@@ -25,7 +25,7 @@ VALID_ERROR_CODES = {
     "E01": "Trộn lĩnh vực", "E02": "Thuật ngữ không nhất quán", "E03": "Thiếu tính đặc thù lĩnh vực"
 }
 
-# --- 3. BỘ TIÊU CHÍ NHIỆM VỤ CHÍNH (Giữ nguyên của bạn) ---
+# --- 3. BỘ TIÊU CHÍ NHIỆM VỤ CHÍNH ---
 
 CRITERIA_PROMPT = {
     "P01": {"name": "Độ rõ nhiệm vụ", "weight": 1.2, "rubric": "0-2: Không có động từ hành động. 3-4: Động từ mơ hồ. 5-6: Rõ hành động. 7-10: Rõ hành động, rõ kết quả."},
@@ -91,7 +91,7 @@ CRITERIA_TABLE = {
     "TB09": {"name": "Mức độ chi tiết", "weight": 1.0, "rubric": "0-2: Quá sơ sài. 7-10: Rất chi tiết."}
 }
 
-# --- 4. BỘ TIÊU CHÍ KỸ THUẬT BỔ TRỢ (MỚI) ---
+# --- 4. BỘ TIÊU CHÍ KỸ THUẬT BỔ TRỢ ---
 
 CRITERIA_ROLE_PLAY = {
     "R01": {"name": "Sự phù hợp của vai trò", "weight": 1.5, "rubric": "0-2: Vai trò không liên quan. 3-4: Vai trò chung chung. 5-6: Vai trò phù hợp với nhiệm vụ. 7-10: Vai trò được chọn lọc, tối ưu cho nhiệm vụ."},
@@ -129,33 +129,31 @@ REQUIRED_REWRITE_SECTIONS = [
     "10. THỨ TỰ ƯU TIÊN", "11. XỬ LÝ NỘI BỘ"
 ]
 
-# --- 5. HÀM GỘP CRITERIA ĐA CHIỀU ---
+# --- 5. HÀM TÁCH CRITERIA 2 TẦNG ---
 def get_criteria_by_type(classification: dict) -> dict:
     """
-    Nhận vào dict {"main_task": "...", "techniques": [...]}
-    Trả về dict gộp tất cả tiêu chí.
+    Trả về dict gồm 2 tầng riêng biệt: {"main": {...}, "tech": {...}}
     """
     main_task = classification.get("main_task", TYPE_PROMPT)
     techniques = classification.get("techniques", [])
     
-    # Lấy tiêu chí cơ bản dựa trên main_task
+    # TẦNG 1: MAIN CRITERIA
     mapping = {
         TYPE_PROMPT: CRITERIA_PROMPT, TYPE_TEMPLATE: CRITERIA_TEMPLATE,
         TYPE_PROMPT_META: CRITERIA_PROMPT_META, TYPE_TABLE: CRITERIA_TABLE,
         TYPE_STEM: CRITERIA_STEM, TYPE_IMAGE: CRITERIA_PROMPT, TYPE_EMPTY: {}
     }
-    
-    # Copy để tránh thay đổi trực tiếp vào dict gốc
-    criteria = mapping.get(main_task, CRITERIA_PROMPT).copy()
+    main_criteria = mapping.get(main_task, CRITERIA_PROMPT).copy()
 
-    # Gộp thêm tiêu chí kỹ thuật (nếu có)
-    if TECH_ROLE_PLAY in techniques: criteria.update(CRITERIA_ROLE_PLAY)
-    if TECH_FEW_SHOT in techniques: criteria.update(CRITERIA_FEW_SHOT)
-    if TECH_COT in techniques: criteria.update(CRITERIA_COT)
-    if TECH_FORMAT in techniques: criteria.update(CRITERIA_FORMATTED_OUTPUT)
-    if TECH_CREATIVE in techniques: criteria.update(CRITERIA_CREATIVE)
+    # TẦNG 2: TECH CRITERIA
+    tech_criteria = {}
+    if TECH_ROLE_PLAY in techniques: tech_criteria.update(CRITERIA_ROLE_PLAY)
+    if TECH_FEW_SHOT in techniques: tech_criteria.update(CRITERIA_FEW_SHOT)
+    if TECH_COT in techniques: tech_criteria.update(CRITERIA_COT)
+    if TECH_FORMAT in techniques: tech_criteria.update(CRITERIA_FORMATTED_OUTPUT)
+    if TECH_CREATIVE in techniques: tech_criteria.update(CRITERIA_CREATIVE)
 
-    return criteria
+    return {"main": main_criteria, "tech": tech_criteria}
 
 # --- 6. HÀM PHÂN LOẠI ĐA CHIỀU ---
 def classify_prompt(prompt_text: str) -> dict:
@@ -165,7 +163,7 @@ def classify_prompt(prompt_text: str) -> dict:
     lower_text = text.lower()
     techniques = []
     
-    # 1. Nhận diện Kỹ thuật (Techniques)
+    # 1. Nhận diện Kỹ thuật
     if any(kw in lower_text for kw in ["đóng vai", "bạn là", "hãy vào vai", "giả sử bạn là", "act as"]):
         techniques.append(TECH_ROLE_PLAY)
     
@@ -181,7 +179,7 @@ def classify_prompt(prompt_text: str) -> dict:
     if any(kw in lower_text for kw in ["viết truyện", "làm thơ", "sáng tác", "kịch bản", "viết quảng cáo", "brainstorm", "viết content"]):
         techniques.append(TECH_CREATIVE)
 
-    # 2. Nhận diện Nhiệm vụ chính (Main Tasks - Ưu tiên Template trước)
+    # 2. Nhận diện Nhiệm vụ chính
     if any(kw in lower_text for kw in ["[điền", "[thay", "[chọn", "___", "{}"]):
         return {"main_task": TYPE_TEMPLATE, "techniques": techniques}
     if text.count('[') >= 3 and text.count(']') >= 3:
