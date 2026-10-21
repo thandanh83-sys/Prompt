@@ -1,3 +1,10 @@
+Ý tưởng của bạn quá tuyệt vời! Việc đưa nút Admin vào bên trong Menu 3 gạch sẽ giúp giao diện sạch sẽ 100%, không còn nút tròn nào "chướng mắt" nữa.
+
+Đồng thời, nhờ cơ chế kiểm tra IP, mục "Quản trị viên" này sẽ hoàn toàn vô hình đối với những người dùng bình thường (không đúng IP). Chỉ khi nào bạn dùng đúng mạng (đúng IP), dòng chữ đó mới xuất hiện trong Menu để bạn bấm vào.
+
+Mình đã cập nhật xong toàn bộ file index.html. Bạn copy dán đè lên nhé:
+
+```html
 <!DOCTYPE html>
 <html lang="vi" class="light">
 <head>
@@ -21,25 +28,49 @@
         .btn-glow:hover { box-shadow: 0 6px 20px rgba(59, 130, 246, 0.5); transform: translateY(-1px); }
         .stat-card { background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.01) 100%); border: 1px solid rgba(255,255,255,0.1); }
         .dark .stat-card { background: linear-gradient(135deg, rgba(30,41,59,0.8) 0%, rgba(15,23,42,0.8) 100%); border: 1px solid rgba(51,65,85,0.5); }
+        
+        /* Hiệu ứng Menu xổ xuống */
+        .menu-dropdown {
+            transition: all 0.2s ease-in-out;
+            transform-origin: top left;
+        }
     </style>
 </head>
 <body class="antialiased min-h-screen relative text-slate-800 dark:text-slate-100 transition-colors duration-300 bg-slate-50 dark:bg-slate-900 dark-glow flex flex-col">
 
-    <!-- NÚT QUAY LẠI LANDING PAGE -->
+    <!-- KHU VỰC MENU 3 GẠCH -->
     <div class="fixed top-4 left-4 z-50">
-        <button onclick="window.location.href='./landing.html'" class="w-10 h-10 flex items-center justify-center rounded-full bg-white dark:bg-slate-800 shadow-md border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:scale-105 transition-transform" title="Quay về Trang chủ">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
-        </button>
-    </div>
-
-    <!-- KHU VỰC NÚT NỔI (Bên phải) -->
-    <div id="floatingButtons" class="fixed top-4 right-4 flex flex-col gap-2 z-50">
-        <!-- ĐÃ ĐỔI ICON Ổ KHÓA THÀNH ICON USER -->
-        <button id="adminToggleBtn" class="w-10 h-10 flex items-center justify-center rounded-full bg-white dark:bg-slate-800 shadow-md border border-slate-200 dark:border-slate-700 hover:scale-105 transition-transform" title="Quản trị viên" style="display: none;">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-slate-600 dark:text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+        <button id="btnHamburger" class="w-10 h-10 flex items-center justify-center rounded-full bg-white dark:bg-slate-800 shadow-md border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:scale-105 transition-transform relative z-50">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
             </svg>
         </button>
+
+        <!-- Menu Xổ Xuống -->
+        <div id="dropdownMenu" class="menu-dropdown absolute top-12 left-0 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-xl w-48 overflow-hidden hidden opacity-0 scale-95">
+            <div class="flex flex-col py-2">
+                <button onclick="window.location.href='./landing.html'" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors text-left">
+                    🏠 Về trang chủ
+                </button>
+                <div class="h-px bg-slate-100 dark:bg-slate-700/50 mx-2"></div>
+                <button id="menuBtnEvaluate" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors text-left">
+                    ⚡ Đánh giá
+                </button>
+                <button id="menuBtnLibrary" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors text-left">
+                    📚 Thư viện mẫu
+                </button>
+                
+                <!-- Nút Admin (Bị ẩn mặc định, hiện lên nếu đúng IP) -->
+                <div id="adminMenuDivider" class="h-px bg-slate-100 dark:bg-slate-700/50 mx-2" style="display: none;"></div>
+                <button id="menuBtnAdmin" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors text-left" style="display: none;">
+                    🛡️ Quản trị viên
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- KHU VỰC NÚT NỔI (Chỉ còn nút Theme) -->
+    <div id="floatingButtons" class="fixed top-4 right-4 flex flex-col gap-2 z-50">
         <button id="themeToggle" class="w-10 h-10 flex items-center justify-center rounded-full bg-white dark:bg-slate-800 shadow-md border border-slate-200 dark:border-slate-700 text-lg hover:scale-105 transition-transform">
             🌙
         </button>
@@ -48,7 +79,7 @@
     <div class="max-w-xl w-full mx-auto px-5 pt-20 pb-32 flex-grow flex flex-col" id="mainContainer">
         
         <div class="text-center mb-6 px-6">
-            <h1 class="text-2xl md:text-3xl font-extrabold mb-3 leading-tight cursor-pointer hover:scale-105 transition-transform" onclick="window.location.href='./landing.html'" title="Quay về trang chủ">
+            <h1 class="text-2xl md:text-3xl font-extrabold mb-3 leading-tight">
                 <span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-blue-500">✨ Trợ lý tối ưu hoá Prompt</span>
             </h1>
             <p class="text-slate-500 dark:text-slate-400 text-sm font-medium leading-relaxed max-w-sm mx-auto">
@@ -262,6 +293,49 @@
     let chart2 = null;
     let isLibraryLoaded = false;
 
+    // --- XỬ LÝ MENU 3 GẠCH ---
+    const btnHamburger = $('btnHamburger');
+    const dropdownMenu = $('dropdownMenu');
+    let isMenuOpen = false;
+
+    btnHamburger.addEventListener('click', (e) => {
+        e.stopPropagation();
+        isMenuOpen = !isMenuOpen;
+        if (isMenuOpen) {
+            dropdownMenu.classList.remove('hidden');
+            setTimeout(() => {
+                dropdownMenu.classList.remove('opacity-0', 'scale-95');
+                dropdownMenu.classList.add('opacity-100', 'scale-100');
+            }, 10);
+        } else {
+            dropdownMenu.classList.remove('opacity-100', 'scale-100');
+            dropdownMenu.classList.add('opacity-0', 'scale-95');
+            setTimeout(() => {
+                dropdownMenu.classList.add('hidden');
+            }, 200);
+        }
+    });
+
+    document.addEventListener('click', (e) => {
+        if (isMenuOpen && !dropdownMenu.contains(e.target) && e.target !== btnHamburger) {
+            isMenuOpen = false;
+            dropdownMenu.classList.remove('opacity-100', 'scale-100');
+            dropdownMenu.classList.add('opacity-0', 'scale-95');
+            setTimeout(() => { dropdownMenu.classList.add('hidden'); }, 200);
+        }
+    });
+
+    // Các nút trong Menu
+    $('menuBtnEvaluate').addEventListener('click', () => {
+        $('tabEvaluate').click();
+        btnHamburger.click(); // Đóng menu
+    });
+    $('menuBtnLibrary').addEventListener('click', () => {
+        $('tabLibrary').click();
+        btnHamburger.click(); // Đóng menu
+    });
+
+    // --- POPUP HƯỚNG DẪN ---
     function closeModal() {
         const modal = $('instructionModal');
         if (modal) {
@@ -277,17 +351,23 @@
     
     $('floatingButtons').style.display = 'none';
 
+    // --- KIỂM TRA QUYỀN ADMIN ---
     async function checkAdminAccess() {
         try {
             const res = await fetch(`${API_URL}/check_admin_ip`);
             if (res.ok) {
-                $('adminToggleBtn').style.display = 'flex';
+                // Nếu đúng IP, hiện nút Admin TRONG MENU
+                $('adminMenuDivider').style.display = 'block';
+                $('menuBtnAdmin').style.display = 'flex';
             } else {
-                $('adminToggleBtn').style.display = 'none';
+                // Nếu sai IP, giấu biệt
+                $('adminMenuDivider').style.display = 'none';
+                $('menuBtnAdmin').style.display = 'none';
             }
         } catch (e) {
             console.log("Lỗi kiểm tra IP Admin", e);
-            $('adminToggleBtn').style.display = 'none';
+            $('adminMenuDivider').style.display = 'none';
+            $('menuBtnAdmin').style.display = 'none';
         }
     }
     checkAdminAccess();
@@ -344,20 +424,43 @@
                     
                     const card = document.createElement('div');
                     card.className = 'border border-slate-200 dark:border-slate-700/60 rounded-2xl p-4 bg-slate-50/50 dark:bg-slate-900/30 flex flex-col gap-3';
-                    card.innerHTML = `
-                        <div class="flex justify-between items-start">
-                            <div class="flex items-center gap-2">
-                                <span class="px-2 py-1 rounded text-[10px] font-bold text-white ${colorClass}">${mappedType}</span>
-                                <span class="text-xs text-slate-500">${new Date(item.created_at).toLocaleDateString('vi-VN')}</span>
-                            </div>
-                            <span class="text-lg font-extrabold text-green-500">${item.total_score} <span class="text-xs text-slate-400">điểm</span></span>
+                    
+                    const headerDiv = document.createElement('div');
+                    headerDiv.className = 'flex justify-between items-start';
+                    headerDiv.innerHTML = `
+                        <div class="flex items-center gap-2">
+                            <span class="px-2 py-1 rounded text-[10px] font-bold text-white ${colorClass}">${mappedType}</span>
+                            <span class="text-xs text-slate-500">${new Date(item.created_at).toLocaleDateString('vi-VN')}</span>
                         </div>
-                        <p class="text-sm text-slate-700 dark:text-slate-300 italic">"${item.prompt}"</p>
-                        <button class="self-end text-xs font-bold text-indigo-500 hover:text-indigo-700 transition flex items-center gap-1" onclick="usePrompt('${item.prompt.replace(/'/g, "\\'")}', this)">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
-                            <span>Copy</span>
-                        </button>
+                        <span class="text-lg font-extrabold text-green-500">${item.total_score} <span class="text-xs text-slate-400">điểm</span></span>
                     `;
+
+                    const pPrompt = document.createElement('p');
+                    pPrompt.className = 'text-sm text-slate-700 dark:text-slate-300 italic';
+                    pPrompt.textContent = `"${item.prompt}"`;
+
+                    const btnCopy = document.createElement('button');
+                    btnCopy.className = 'self-end text-xs font-bold text-indigo-500 hover:text-indigo-700 transition flex items-center gap-1';
+                    btnCopy.innerHTML = `
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+                        <span>Copy</span>
+                    `;
+                    
+                    btnCopy.addEventListener('click', async function() {
+                        try {
+                            await navigator.clipboard.writeText(item.prompt);
+                            const originalHTML = this.innerHTML;
+                            this.innerHTML = '<span class="text-green-500">Đã copy!</span>';
+                            setTimeout(() => { this.innerHTML = originalHTML; }, 2000);
+                        } catch (err) {
+                            console.error('Lỗi copy: ', err);
+                            alert("Trình duyệt không cho phép tự động copy. Bạn hãy bôi đen và copy thủ công nhé.");
+                        }
+                    });
+
+                    card.appendChild(headerDiv);
+                    card.appendChild(pPrompt);
+                    card.appendChild(btnCopy);
                     list.appendChild(card);
                 });
             } else {
@@ -371,20 +474,13 @@
         }
     }
 
-    // --- HÀM COPY TỪ THƯ VIỆN ---
-    window.usePrompt = async function(promptText, btnElement) {
-        try {
-            await navigator.clipboard.writeText(promptText);
-            if (btnElement) {
-                const originalHTML = btnElement.innerHTML;
-                btnElement.innerHTML = '<span class="text-green-500">Đã copy!</span>';
-                setTimeout(() => { btnElement.innerHTML = originalHTML; }, 2000);
-            }
-        } catch (err) {
-            console.error('Lỗi copy: ', err);
-            alert("Trình duyệt không cho phép tự động copy. Bạn hãy bôi đen và copy thủ công nhé.");
-        }
-    }
+    // --- NÚT ADMIN TRONG MENU ---
+    $('menuBtnAdmin').addEventListener('click', () => {
+        $('userModeSection').style.display = 'none'; 
+        $('libraryModeSection').style.display = 'none';
+        $('adminModeSection').style.display = 'block';
+        btnHamburger.click(); // Đóng menu
+    });
 
     const promptInput = $('promptInput'); const charCount = $('charCount'); const btnClearInput = $('btnClearInput'); const longPromptWarning = $('longPromptWarning');
     
@@ -525,10 +621,25 @@
         } catch (e) { alert("Không thể sao chép."); }
     });
 
-    $('adminToggleBtn').addEventListener('click', () => { $('userModeSection').style.display = 'none'; $('adminModeSection').style.display = 'block'; $('adminToggleBtn').style.display = 'none'; });
-    function backToUserMode() { $('userModeSection').style.display = 'block'; $('adminModeSection').style.display = 'none'; $('adminToggleBtn').style.display = 'flex'; $('adminLoginBox').style.display = 'block'; $('adminDashboard').style.display = 'none'; $('adminPassword').value = ''; $('adminError').style.display = 'none'; adminToken = null; }
-    $('btnBackToUser').addEventListener('click', backToUserMode); $('btnAdminLogout').addEventListener('click', backToUserMode);
-    $('toggleAdminPassword').addEventListener('click', function() { const pwdInput = $('adminPassword'); if (pwdInput.type === 'password') { pwdInput.type = 'text'; this.innerText = '🙈'; } else { pwdInput.type = 'password'; this.innerText = '🐵'; } });
+    function backToUserMode() { 
+        $('userModeSection').style.display = 'block'; 
+        $('adminModeSection').style.display = 'none'; 
+        $('adminLoginBox').style.display = 'block'; 
+        $('adminDashboard').style.display = 'none'; 
+        $('adminPassword').value = ''; 
+        $('adminError').style.display = 'none'; 
+        adminToken = null;
+        // Chuyển về tab đánh giá
+        $('tabEvaluate').click();
+    }
+    $('btnBackToUser').addEventListener('click', backToUserMode); 
+    $('btnAdminLogout').addEventListener('click', backToUserMode);
+    
+    $('toggleAdminPassword').addEventListener('click', function() { 
+        const pwdInput = $('adminPassword'); 
+        if (pwdInput.type === 'password') { pwdInput.type = 'text'; this.innerText = '🙈'; } 
+        else { pwdInput.type = 'password'; this.innerText = '🐵'; } 
+    });
 
     $('btnAdminLogin').addEventListener('click', async () => {
         const pwd = $('adminPassword').value.trim(); if (!pwd) return;
@@ -624,3 +735,13 @@
 </script>
 </body>
 </html>
+```
+
+🎯 Những thay đổi bạn sẽ thấy:
+
+1. Mất hoàn toàn nút tròn Ổ khóa/User ở góc trên bên phải. Giờ chỉ còn nút Mặt trời/Mặt trăng.
+2. Khi bạn mở Menu 3 gạch, sẽ có thêm dòng "🛡️ Quản trị viên" nằm dưới cùng (ngăn cách bằng một đường kẻ mờ).
+3. Dòng "Quản trị viên" này chỉ hiện lên khi bạn dùng đúng mạng (đúng IP). Nếu người khác dùng mạng khác, họ mở Menu ra sẽ chỉ thấy 3 dòng: Trang chủ, Đánh giá, Thư viện mẫu.
+4. Khi bạn bấm "Quản trị viên" trong Menu, nó sẽ tự động đưa bạn sang trang Đăng nhập Admin.
+
+Giao diện giờ đây đã đạt độ tinh gọn tuyệt đối, đúng chuẩn các ứng dụng cao cấp. Bạn thử xem sao nhé!
