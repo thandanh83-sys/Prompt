@@ -20,36 +20,36 @@
 </head>
 <body class="antialiased min-h-screen relative text-slate-800 dark:text-slate-100 transition-colors duration-300 bg-slate-50 dark:bg-slate-900 dark-glow">
 
-    <div class="max-w-xl mx-auto pt-6 px-4 pb-24">
+    <!-- NÚT NỔI GÓC DƯỚI BÊN PHẢI (Không đè lên tiêu đề nữa) -->
+    <div class="fixed bottom-6 right-5 flex flex-col gap-3 z-[100]">
+        <button id="adminToggleBtn" class="w-12 h-12 flex items-center justify-center rounded-full bg-white dark:bg-slate-800 shadow-xl border border-slate-200 dark:border-slate-700 text-xl hover:scale-105 transition-transform" title="Quản trị viên">
+            🔐
+        </button>
+        <button id="themeToggle" class="w-12 h-12 flex items-center justify-center rounded-full bg-white dark:bg-slate-800 shadow-xl border border-slate-200 dark:border-slate-700 text-xl hover:scale-105 transition-transform">
+            🌙
+        </button>
+    </div>
+
+    <div class="max-w-xl mx-auto px-5 pt-12 pb-32">
         
-        <!-- HEADER: Đã gom nút ổ khóa và mặt trời lên đây, không dùng fixed nữa để không đè nội dung -->
-        <div class="flex justify-between items-start mb-6">
-            <div class="pr-4">
-                <h1 class="text-2xl font-extrabold mb-1 leading-tight text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-blue-500">
-                    ✨ Trợ lý tối ưu hoá Prompt
-                </h1>
-                <p class="text-slate-500 dark:text-slate-400 text-xs font-medium leading-relaxed">Thích nghi mọi lĩnh vực. AI tự động nhận diện và tạo Prompt chuẩn chuyên gia.</p>
-            </div>
-            
-            <!-- Cụm nút chức năng -->
-            <div class="flex flex-col gap-2 shrink-0">
-                <button id="adminToggleBtn" class="w-9 h-9 flex items-center justify-center rounded-full bg-white dark:bg-slate-800 shadow-sm border border-slate-200 dark:border-slate-700 text-sm hover:scale-105 transition-transform" title="Quản trị viên">
-                    🔐
-                </button>
-                <button id="themeToggle" class="w-9 h-9 flex items-center justify-center rounded-full bg-white dark:bg-slate-800 shadow-sm border border-slate-200 dark:border-slate-700 text-sm hover:scale-105 transition-transform">
-                    🌙
-                </button>
-            </div>
+        <!-- HEADER: Rộng rãi, thoáng đãng -->
+        <div class="text-center mb-8">
+            <h1 class="text-2xl md:text-3xl font-extrabold mb-3 leading-tight">
+                <span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-blue-500">✨ Trợ lý tối ưu hoá Prompt</span>
+            </h1>
+            <p class="text-slate-500 dark:text-slate-400 text-sm font-medium leading-relaxed max-w-sm mx-auto">
+                Thích nghi mọi lĩnh vực.<br>AI tự động nhận diện và tạo Prompt chuẩn chuyên gia.
+            </p>
         </div>
 
         <!-- USER MODE -->
         <div id="userModeSection">
             <!-- Thẻ nhập liệu -->
-            <div class="glass-card bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/50 shadow-sm rounded-2xl p-4">
+            <div class="glass-card bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/50 shadow-sm rounded-3xl p-5">
                 <div class="relative">
-                    <textarea id="promptInput" maxlength="5000" class="w-full h-28 p-3 pb-8 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700/50 focus:outline-none focus:ring-1 focus:ring-pink-500 focus:border-pink-500 resize-none text-slate-800 dark:text-slate-100 placeholder-slate-400 text-sm transition-all" placeholder="Mô tả điều bạn muốn AI thực hiện..."></textarea>
+                    <textarea id="promptInput" maxlength="5000" class="w-full h-36 p-4 pb-10 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700/50 focus:outline-none focus:ring-1 focus:ring-pink-500 focus:border-pink-500 resize-none text-slate-800 dark:text-slate-100 placeholder-slate-400 text-sm transition-all" placeholder="Mô tả điều bạn muốn AI thực hiện..."></textarea>
                     
-                    <div class="absolute bottom-2 right-3 flex items-center gap-3">
+                    <div class="absolute bottom-3 right-4 flex items-center gap-3">
                         <span id="charCount" class="text-[11px] font-medium text-slate-400">0/5000</span>
                         <button id="btnClearInput" class="hidden text-slate-400 hover:text-red-500 transition-colors" title="Xóa nội dung">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
@@ -59,16 +59,17 @@
                 
                 <p id="errorMsg" class="text-red-500 text-xs mt-2 font-medium" style="display: none;">Vui lòng nhập prompt!</p>
                 
-                <button id="btnEvaluate" class="w-full mt-3 py-3 rounded-xl font-bold bg-gradient-to-r from-pink-500 to-blue-500 text-white shadow-md btn-glow disabled:opacity-50 disabled:shadow-none disabled:transform-none transition-all text-sm flex items-center justify-center gap-2">
+                <button id="btnEvaluate" class="w-full mt-4 py-3.5 rounded-2xl font-bold bg-gradient-to-r from-pink-500 to-blue-500 text-white shadow-md btn-glow disabled:opacity-50 disabled:shadow-none disabled:transform-none transition-all text-sm flex items-center justify-center gap-2">
                     <span id="btnText">Đánh giá & Viết lại</span>
                     <svg id="loadingSpinner" class="hidden animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                 </button>
             </div>
 
             <!-- KHU VỰC KẾT QUẢ -->
-            <div id="resultArea" class="mt-4 space-y-4" style="display: none;">
-                <!-- 1. Điểm tổng -->
-                <div class="glass-card bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/50 shadow-sm rounded-2xl p-5 flex justify-between items-center relative overflow-hidden">
+            <div id="resultArea" class="mt-6 space-y-5" style="display: none;">
+                
+                <!-- 1. Thẻ Điểm tổng -->
+                <div class="glass-card bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/50 shadow-sm rounded-3xl p-6 flex justify-between items-center relative overflow-hidden">
                     <div class="flex flex-col w-1/2">
                         <p class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1">Điểm tổng</p>
                         <div class="flex items-baseline">
@@ -85,65 +86,63 @@
                     </div>
                 </div>
 
-                <!-- 2. ĐIỂM SÁNG (MỚI THÊM) -->
-                <div class="glass-card bg-green-50/50 dark:bg-green-900/10 border border-green-200 dark:border-green-800/30 shadow-sm rounded-2xl p-5">
+                <!-- 2. ĐIỂM SÁNG -->
+                <div class="glass-card bg-green-50/50 dark:bg-green-900/10 border border-green-200 dark:border-green-800/30 shadow-sm rounded-3xl p-6">
                     <h3 class="font-bold text-sm mb-3 text-green-700 dark:text-green-400 flex items-center gap-2">
                         <span class="text-lg">🌟</span> Điểm sáng của bạn
                     </h3>
                     <ul id="strengthsList" class="space-y-2 text-sm text-slate-700 dark:text-slate-300 list-disc pl-4"></ul>
                 </div>
 
-                <!-- 3. Lỗi & Gợi ý tư duy -->
-                <div class="glass-card bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/50 shadow-sm rounded-2xl p-5">
-                    <h3 class="font-bold text-sm mb-3 text-slate-800 dark:text-slate-200 flex items-center gap-2">
+                <!-- 3. Lỗi & Gợi ý -->
+                <div class="glass-card bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/50 shadow-sm rounded-3xl p-6">
+                    <h3 class="font-bold text-sm mb-4 text-slate-800 dark:text-slate-200 flex items-center gap-2">
                         <span class="w-2 h-2 rounded-full bg-red-500"></span> Điểm nên luyện thêm
                     </h3>
                     <ul id="userErrorList" class="space-y-3 text-sm text-slate-700 dark:text-slate-300"></ul>
                 </div>
 
                 <!-- 4. Chi tiết điểm -->
-                <div class="glass-card bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/50 shadow-sm rounded-2xl p-5">
-                    <h3 class="font-bold text-sm mb-4 text-slate-800 dark:text-slate-200 flex items-center gap-2">
+                <div class="glass-card bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/50 shadow-sm rounded-3xl p-6">
+                    <h3 class="font-bold text-sm mb-5 text-slate-800 dark:text-slate-200 flex items-center gap-2">
                         <span class="w-2 h-2 rounded-full bg-blue-500"></span> Chi tiết điểm
                     </h3>
                     <div id="criteriaList" class="grid grid-cols-1 gap-y-4"></div>
                 </div>
 
                 <!-- 5. Bản sửa -->
-                <div class="glass-card bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/50 shadow-sm rounded-2xl p-5 relative">
-                    <div class="flex justify-between items-center mb-4">
+                <div class="glass-card bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/50 shadow-sm rounded-3xl overflow-hidden">
+                    <div class="flex justify-between items-center px-5 py-3 border-b border-slate-200 dark:border-slate-700/50 bg-slate-50 dark:bg-slate-900/40">
                         <h3 class="font-bold text-sm text-slate-800 dark:text-slate-200 flex items-center gap-2">
                             <span class="w-2 h-2 rounded-full bg-indigo-500"></span> Bản sửa hoàn chỉnh
                         </h3>
+                        <button id="btnCopyAll" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 rounded-md border border-slate-200 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 transition">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+                            <span id="copyBtnText">Sao chép</span>
+                        </button>
                     </div>
-                    <div id="rewriteList" class="space-y-3 text-sm mb-4"></div>
-                    
-                    <!-- Nút Copy to rõ ràng ở dưới cùng -->
-                    <button id="btnCopyAll" class="w-full py-3 rounded-xl font-bold bg-slate-100 dark:bg-slate-700/50 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition flex items-center justify-center gap-2 text-sm border border-slate-200 dark:border-slate-600">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
-                        <span id="copyBtnText">Sao chép toàn bộ bản sửa</span>
-                    </button>
+                    <div id="rewriteList" class="p-5 space-y-5 text-sm"></div>
                 </div>
             </div>
         </div>
 
         <!-- ADMIN MODE -->
         <div id="adminModeSection" style="display: none;">
-            <div id="adminLoginBox" class="glass-card bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/50 shadow-sm rounded-2xl p-6 max-w-sm mx-auto text-center relative">
-                <button id="btnBackToUser" class="absolute top-4 left-4 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition text-xs font-semibold flex items-center gap-1">
+            <div id="adminLoginBox" class="glass-card bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/50 shadow-sm rounded-3xl p-6 max-w-sm mx-auto text-center relative mt-10">
+                <button id="btnBackToUser" class="absolute top-5 left-5 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition text-xs font-semibold flex items-center gap-1">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
                     Quay lại
                 </button>
-                <h3 class="font-bold text-base mb-4 mt-4 text-slate-800 dark:text-slate-200">Đăng nhập Admin</h3>
+                <h3 class="font-bold text-lg mb-5 mt-6 text-slate-800 dark:text-slate-200">Đăng nhập Admin</h3>
                 <div class="relative w-full mb-4">
-                    <input type="password" id="adminPassword" class="w-full p-3 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 text-center text-sm focus:outline-none focus:ring-1 focus:ring-pink-500 text-slate-800 dark:text-slate-100" placeholder="Mật khẩu...">
-                    <button type="button" id="toggleAdminPassword" class="absolute inset-y-0 right-0 pr-3 flex items-center text-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 cursor-pointer">🐵</button>
+                    <input type="password" id="adminPassword" class="w-full p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 text-center text-sm focus:outline-none focus:ring-1 focus:ring-pink-500 text-slate-800 dark:text-slate-100" placeholder="Mật khẩu...">
+                    <button type="button" id="toggleAdminPassword" class="absolute inset-y-0 right-0 pr-4 flex items-center text-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 cursor-pointer">🐵</button>
                 </div>
                 <p id="adminError" class="text-red-500 text-xs font-semibold mb-4" style="display: none;">Sai mật khẩu hoặc lỗi kết nối.</p>
-                <button id="btnAdminLogin" class="w-full py-3 rounded-xl font-bold bg-indigo-600 text-white shadow-sm hover:bg-indigo-700 transition text-sm">Đăng nhập</button>
+                <button id="btnAdminLogin" class="w-full py-3.5 rounded-xl font-bold bg-indigo-600 text-white shadow-sm hover:bg-indigo-700 transition text-sm">Đăng nhập</button>
             </div>
 
-            <div id="adminDashboard" class="glass-card bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/50 shadow-sm rounded-2xl p-5 space-y-4" style="display: none;">
+            <div id="adminDashboard" class="glass-card bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/50 shadow-sm rounded-3xl p-5 space-y-4 mt-6" style="display: none;">
                 <h3 class="font-bold text-base border-b border-slate-200 dark:border-slate-700 pb-3 text-slate-800 dark:text-slate-200">🔧 Lịch sử hệ thống</h3>
                 
                 <div class="overflow-x-auto">
@@ -163,7 +162,7 @@
                 </div>
 
                 <div class="pt-2">
-                    <button id="btnAdminLogout" class="w-full py-2.5 rounded-xl font-bold bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 transition text-sm text-slate-700 dark:text-slate-300">Đăng xuất</button>
+                    <button id="btnAdminLogout" class="w-full py-3 rounded-xl font-bold bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 transition text-sm text-slate-700 dark:text-slate-300">Đăng xuất</button>
                 </div>
             </div>
         </div>
@@ -174,9 +173,9 @@
     <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-sm p-6 relative">
         <button type="button" onclick="closeModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 bg-slate-100 dark:bg-slate-700 w-8 h-8 rounded-full flex items-center justify-center transition">✕</button>
         
-        <h2 class="text-xl font-bold text-center mb-5 text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-blue-500">Hướng dẫn sử dụng</h2>
+        <h2 class="text-xl font-bold text-center mb-6 text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-blue-500">Hướng dẫn sử dụng</h2>
         
-        <div class="space-y-4 mb-6">
+        <div class="space-y-5 mb-8">
             <div class="flex items-start gap-3">
                 <div class="w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 font-bold flex items-center justify-center shrink-0 text-xs">1</div>
                 <div><p class="font-bold text-sm text-slate-800 dark:text-slate-200">Nhập ý tưởng của bạn</p><p class="text-xs text-slate-500 mt-0.5">VD: "viết bài văn tả mẹ", "code web"</p></div>
@@ -194,7 +193,7 @@
             </div>
         </div>
         
-        <button type="button" onclick="closeModal()" class="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-pink-500 to-blue-500 text-white shadow-lg text-sm">Đã hiểu, Bắt đầu</button>
+        <button type="button" onclick="closeModal()" class="w-full py-3.5 rounded-xl font-bold bg-gradient-to-r from-pink-500 to-blue-500 text-white shadow-lg text-sm">Đã hiểu, Bắt đầu</button>
     </div>
 </div>
 
@@ -285,13 +284,13 @@
         pType.textContent = mappedType;
         pType.className = `px-4 py-1.5 rounded-full text-xs font-bold text-white shadow-sm ${typeColors[mappedType] || 'bg-slate-500'}`;
 
-        // --- MỚI: XỬ LÝ ĐIỂM SÁNG (STRENGTHS) ---
+        // Điểm sáng
         const strengthsList = $('strengthsList');
         strengthsList.replaceChildren();
         let hasStrength = false;
         
         Object.entries(r.details).forEach(([name, score]) => {
-            if (score >= 7) { // Nếu điểm >= 7 thì coi là điểm sáng
+            if (score >= 7) {
                 hasStrength = true;
                 const li = document.createElement('li');
                 li.innerHTML = `Bạn đã làm rất tốt tiêu chí <strong>${name}</strong> (đạt ${score}/10).`;
@@ -305,7 +304,7 @@
             strengthsList.appendChild(li);
         }
 
-        // --- CẬP NHẬT: THANH ĐIỂM ĐỒNG BỘ MÀU GRADIENT ---
+        // Chi tiết điểm
         const list = $('criteriaList'); 
         list.replaceChildren();
         Object.entries(r.details).forEach(([name, score]) => {
@@ -317,14 +316,13 @@
             
             const barBg = document.createElement('div'); barBg.className = 'w-full bg-slate-100 dark:bg-slate-700/50 rounded-full h-1.5';
             const barFill = document.createElement('div'); 
-            // Xóa logic if (score < 6) để tất cả đều dùng gradient
             barFill.className = `h-1.5 rounded-full bg-gradient-to-r from-pink-500 to-blue-500`; 
             barFill.style.width = `${score * 10}%`;
             
             barBg.appendChild(barFill); row.appendChild(flexDiv); row.appendChild(barBg); list.appendChild(row);
         });
 
-        // --- CẬP NHẬT: GỢI Ý TƯ DUY (THAY VÌ CÁCH SỬA) ---
+        // Lỗi
         const userErrList = $('userErrorList');
         userErrList.replaceChildren();
         if (r.errors && r.errors.length > 0) {
@@ -343,37 +341,40 @@
                 else if (errName.includes("cấu trúc") || errName.includes("mục tiêu")) { suggestion = "Thử sắp xếp lại các phần xem mục đích chính đã nổi bật chưa?"; }
                 else if (errName.includes("định dạng")) { suggestion = "Đầu ra bạn muốn là bảng, gạch đầu dòng hay đoạn văn? Hãy yêu cầu cụ thể nhé."; }
 
-                const li = document.createElement('li'); li.className = 'mb-3 p-3 bg-slate-50 dark:bg-slate-900/30 rounded-xl border border-slate-100 dark:border-slate-700/50';
+                const li = document.createElement('li'); li.className = 'mb-3 p-3.5 bg-slate-50 dark:bg-slate-900/30 rounded-xl border border-slate-100 dark:border-slate-700/50';
                 const headerDiv = document.createElement('div'); headerDiv.className = 'flex justify-between items-start mb-1';
                 const pName = document.createElement('p'); pName.className = 'text-slate-800 dark:text-slate-200 font-bold text-xs'; pName.textContent = errName;
                 const spanSev = document.createElement('span'); spanSev.className = `text-[10px] px-2 py-0.5 rounded-md font-bold ${severity}`; spanSev.textContent = severityText;
                 headerDiv.appendChild(pName); headerDiv.appendChild(spanSev);
 
-                const pDetail = document.createElement('p'); pDetail.className = 'text-[11px] text-slate-500 dark:text-slate-400 mt-1 leading-relaxed';
+                const pDetail = document.createElement('p'); pDetail.className = 'text-[11px] text-slate-500 dark:text-slate-400 mt-1.5 leading-relaxed';
                 if (evidenceText) {
                     pDetail.appendChild(document.createTextNode('Trích dẫn: '));
                     const italic = document.createElement('i'); italic.className = "text-slate-600 dark:text-slate-300"; italic.textContent = evidenceText;
                     pDetail.appendChild(italic); pDetail.appendChild(document.createElement('br'));
                 }
-                // Đổi từ "Cách sửa" thành "Gợi ý tư duy"
-                const suggestionSpan = document.createElement('span'); suggestionSpan.className = 'text-blue-600 dark:text-blue-400 font-medium inline-block mt-1'; suggestionSpan.textContent = `💡 Gợi ý tư duy: ${suggestion}`;
+                const suggestionSpan = document.createElement('span'); suggestionSpan.className = 'text-blue-600 dark:text-blue-400 font-medium inline-block mt-1.5'; suggestionSpan.textContent = `💡 Gợi ý tư duy: ${suggestion}`;
                 pDetail.appendChild(suggestionSpan);
                 
                 li.appendChild(headerDiv); li.appendChild(pDetail); userErrList.appendChild(li);
             });
         } else {
-            const li = document.createElement('li'); li.className = 'text-green-600 dark:text-green-400 text-xs font-semibold p-3 bg-green-50 dark:bg-green-900/20 rounded-xl'; li.textContent = 'Tuyệt vời! Không phát hiện lỗi nào.'; userErrList.appendChild(li);
+            const li = document.createElement('li'); li.className = 'text-green-600 dark:text-green-400 text-xs font-semibold p-3.5 bg-green-50 dark:bg-green-900/20 rounded-xl'; li.textContent = 'Tuyệt vời! Không phát hiện lỗi nào.'; userErrList.appendChild(li);
         }
 
+        // Bản sửa (Thiết kế gộp khối)
         const rw = $('rewriteList'); 
         rw.replaceChildren();
         SECTION_NAMES.forEach(sec => {
-            const card = document.createElement('div'); card.className = 'p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-slate-700/50 mb-2';
-            const pTitle = document.createElement('p'); pTitle.className = 'font-bold text-pink-500 mb-1 text-xs'; pTitle.textContent = sec;
+            const item = document.createElement('div');
+            item.className = 'mb-4 last:mb-0'; 
+            const pTitle = document.createElement('p'); 
+            pTitle.className = 'font-bold text-pink-500 mb-1 text-[11px] uppercase tracking-wider'; 
+            pTitle.textContent = sec;
             const pContent = document.createElement('p'); 
-            pContent.className = 'text-slate-700 dark:text-slate-300 break-words pre-wrap text-xs leading-relaxed';
+            pContent.className = 'text-slate-700 dark:text-slate-300 break-words pre-wrap text-sm leading-relaxed';
             pContent.textContent = r.rewrite[sec] || '';
-            card.appendChild(pTitle); card.appendChild(pContent); rw.appendChild(card);
+            item.appendChild(pTitle); item.appendChild(pContent); rw.appendChild(item);
         });
         
         $('resultArea').style.display = 'block';
@@ -433,9 +434,9 @@
         try {
             await navigator.clipboard.writeText(text);
             const btn = $('btnCopyAll'); const btnText = $('copyBtnText'); const originalSVG = btn.querySelector('svg').outerHTML;
-            btnText.textContent = 'Đã chép toàn bộ!'; btnText.classList.add('text-green-500');
-            btn.querySelector('svg').outerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>`;
-            setTimeout(() => { btnText.textContent = 'Sao chép toàn bộ bản sửa'; btnText.classList.remove('text-green-500'); btn.querySelector('svg').outerHTML = originalSVG; }, 2000);
+            btnText.textContent = 'Đã chép!'; btnText.classList.add('text-green-500');
+            btn.querySelector('svg').outerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>`;
+            setTimeout(() => { btnText.textContent = 'Sao chép'; btnText.classList.remove('text-green-500'); btn.querySelector('svg').outerHTML = originalSVG; }, 2000);
         } catch (e) { alert("Không thể sao chép. Vui lòng thử lại!"); }
     });
 
