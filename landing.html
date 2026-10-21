@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="vi" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trợ lý AI - Tối ưu hoá Prompt</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23ec4899'/%3E%3Cstop offset='100%25' stop-color='%233b82f6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' rx='20' fill='url(%23g)'/%3E%3Ctext x='50' y='72' font-size='60' font-family='Arial,sans-serif' font-weight='bold' fill='white' text-anchor='middle'%3EP%3C/text%3E%3C/svg%3E">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        brand: { pink: '#ec4899', blue: '#3b82f6' }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background-color: #0f172a; color: #f8fafc; overflow-x: hidden; }
+        
+        /* Hiệu ứng ánh sáng nền (Glow Orbs) */
+        .glow-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(100px);
+            z-index: -1;
+            opacity: 0.5;
+            animation: float 10s infinite alternate;
+        }
+        @keyframes float {
+            0% { transform: translateY(0) scale(1); }
+            100% { transform: translateY(30px) scale(1.1); }
+        }
+        
+        /* Hiệu ứng hiện dần khi cuộn (Fade-in) */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+        }
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body class="antialiased font-sans">
+
+    <!-- BACKGROUND GLOW -->
+    <div class="glow-orb bg-brand-pink w-96 h-96 top-0 left-[-10%]"></div>
+    <div class="glow-orb bg-brand-blue w-[500px] h-[500px] top-[20%] right-[-20%]" style="animation-delay: -5s;"></div>
+
+    <!-- NAVBAR (Glassmorphism) -->
+    <nav class="fixed w-full top-0 z-50 bg-slate-900/70 backdrop-blur-md border-b border-slate-800">
+        <div class="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="text-xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-brand-pink to-brand-blue flex items-center gap-2">
+                ✨ Trợ lý AI
+            </div>
+            <div class="hidden md:flex gap-8 text-sm font-medium text-slate-300">
+                <a href="#features" class="hover:text-white transition">Tính năng</a>
+                <a href="#how-it-works" class="hover:text-white transition">Cách hoạt động</a>
+                <a href="#about" class="hover:text-white transition">Về dự án</a>
+            </div>
+            <!-- Nút CTA Navbar -->
+            <a href="index.html" class="bg-gradient-to-r from-brand-pink to-brand-blue text-white px-6 py-2.5 rounded-full font-semibold text-sm shadow-[0_0_15px_rgba(236,72,153,0.4)] hover:shadow-[0_0_25px_rgba(59,130,246,0.6)] transition-all transform hover:-translate-y-0.5">
+                Trải nghiệm ngay
+            </a>
+        </div>
+    </nav>
+
+    <!-- HERO SECTION -->
+    <section class="pt-32 pb-20 px-6 min-h-[90vh] flex items-center justify-center text-center">
+        <div class="max-w-4xl mx-auto fade-in">
+            <div class="inline-block mb-4 px-4 py-1.5 rounded-full border border-slate-700 bg-slate-800/50 text-sm font-medium text-brand-pink">
+                🚀 Chuẩn mực mới cho Prompt Engineering
+            </div>
+            <h1 class="text-4xl md:text-6xl font-extrabold leading-tight mb-6">
+                Biến câu lệnh thông thường <br>
+                thành <span class="text-transparent bg-clip-text bg-gradient-to-r from-brand-pink to-brand-blue">Prompt Chuyên Gia</span>
+            </h1>
+            <p class="text-lg md:text-xl text-slate-400 mb-10 max-w-2xl mx-auto leading-relaxed">
+                AI tự động phân tích, chấm điểm và tối ưu hóa câu lệnh của bạn theo cấu trúc 11 mục chuẩn quốc tế. Không còn nỗi lo AI trả lời sai ý.
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <!-- Nút CTA To rõ ràng (Fitts's Law) -->
+                <a href="index.html" class="px-8 py-4 bg-gradient-to-r from-brand-pink to-brand-blue text-white rounded-2xl font-bold text-lg shadow-lg shadow-brand-pink/30 hover:scale-105 transition-transform flex items-center justify-center gap-2">
+                    Bắt đầu đánh giá miễn phí
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
+                </a>
+                <a href="#features" class="px-8 py-4 bg-slate-800 border border-slate-700 text-white rounded-2xl font-bold text-lg hover:bg-slate-700 transition flex items-center justify-center">
+                    Tìm hiểu thêm
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- PAIN POINTS (Vấn đề) -->
+    <section class="py-20 px-6 bg-slate-900/50">
+        <div class="max-w-6xl mx-auto">
+            <div class="text-center mb-16 fade-in">
+                <h2 class="text-3xl font-bold mb-4">Bạn có đang gặp rắc rối với AI?</h2>
+                <p class="text-slate-400">Hầu hết mọi người đều mắc kẹt ở 3 vấn đề này.</p>
+            </div>
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="p-8 bg-slate-800/40 rounded-3xl border border-slate-700/50 fade-in">
+                    <div class="text-4xl mb-4">❌</div>
+                    <h3 class="text-xl font-bold mb-2">Prompt quá ngắn</h3>
+                    <p class="text-slate-400 text-sm">AI trả lời chung chung, hời hợt vì không đủ dữ kiện để hiểu yêu cầu của bạn.</p>
+                </div>
+                <div class="p-8 bg-slate-800/40 rounded-3xl border border-slate-700/50 fade-in">
+                    <div class="text-4xl mb-4">❌</div>
+                    <h3 class="text-xl font-bold mb-2">Thiếu bối cảnh</h3>
+                    <p class="text-slate-400 text-sm">AI "ngơ ngác" không biết bạn là ai, muốn viết cho đối tượng nào, với mục đích gì.</p>
+                </div>
+                <div class="p-8 bg-slate-800/40 rounded-3xl border border-slate-700/50 fade-in">
+                    <div class="text-4xl mb-4">❌</div>
+                    <h3 class="text-xl font-bold mb-2">Mất thời gian sửa</h3>
+                    <p class="text-slate-400 text-sm">Loay hoay sửa đi sửa lại câu lệnh mà không biết mình đang sai ở đâu.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FEATURES (Tính năng) -->
+    <section id="features" class="py-24 px-6">
+        <div class="max-w-6xl mx-auto">
+            <div class="text-center mb-16 fade-in">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4">Giải pháp toàn diện từ <span class="text-brand-pink">Trợ lý AI</span></h2>
+                <p class="text-slate-400 max-w-2xl mx-auto">Chúng tôi không chỉ chấm điểm, chúng tôi dạy bạn cách tư duy để viết ra những Prompt hoàn hảo nhất.</p>
+            </div>
+            
+            <div class="grid md:grid-cols-2 gap-6">
+                <div class="p-8 bg-gradient-to-br from-slate-800 to-slate-900 rounded-3xl border border-slate-700 hover:border-brand-pink/50 transition fade-in">
+                    <div class="w-12 h-12 rounded-xl bg-pink-500/20 flex items-center justify-center text-2xl mb-6">🎯</div>
+                    <h3 class="text-xl font-bold mb-3">Chấm điểm Đa chiều</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed">Phân tích hơn 14 tiêu chí khắt khe: Độ rõ nhiệm vụ, Bối cảnh, Định dạng đầu ra, Vai trò... để chỉ ra chính xác điểm yếu trong câu lệnh của bạn.</p>
+                </div>
+                <div class="p-8 bg-gradient-to-br from-slate-800 to-slate-900 rounded-3xl border border-slate-700 hover:border-brand-blue/50 transition fade-in">
+                    <div class="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center text-2xl mb-6">🧠</div>
+                    <h3 class="text-xl font-bold mb-3">Gợi ý Tư duy</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed">Không chỉ chê bai, AI còn đưa ra các câu hỏi gợi mở (Gợi ý tư duy) giúp bạn tự nhận ra và bổ sung những thông tin còn thiếu.</p>
+                </div>
+                <div class="p-8 bg-gradient-to-br from-slate-800 to-slate-900 rounded-3xl border border-slate-700 hover:border-purple-500/50 transition fade-in">
+                    <div class="w-12 h-12 rounded-xl bg-purple-500/20 flex items-center justify-center text-2xl mb-6">✨</div>
+                    <h3 class="text-xl font-bold mb-3">Viết lại chuẩn 11 mục</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed">Tự động cấu trúc lại ý tưởng của bạn thành một Prompt hoàn chỉnh với 11 phần chuẩn mực (Vai trò, Bối cảnh, Ràng buộc...). Copy là dùng được ngay.</p>
+                </div>
+                <div class="p-8 bg-gradient-to-br from-slate-800 to-slate-900 rounded-3xl border border-slate-700 hover:border-teal-500/50 transition fade-in">
+                    <div class="w-12 h-12 rounded-xl bg-teal-500/20 flex items-center justify-center text-2xl mb-6">📊</div>
+                    <h3 class="text-xl font-bold mb-3">Thống kê Thông minh</h3>
+                    <p class="text-slate-400 text-sm leading-relaxed">Hệ thống dành riêng cho Admin (Quản trị viên) với biểu đồ trực quan về tần suất lỗi, giúp bạn theo dõi và cải thiện chất lượng câu lệnh theo thời gian.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- HOW IT WORKS (Cách hoạt động) -->
+    <section id="how-it-works" class="py-24 px-6 bg-slate-900/50">
+        <div class="max-w-6xl mx-auto">
+            <div class="text-center mb-16 fade-in">
+                <h2 class="text-3xl font-bold mb-4">Chỉ 3 bước để có Prompt hoàn hảo</h2>
+                <p class="text-slate-400">Quy trình tối giản, phù hợp cho cả người mới bắt đầu.</p>
+            </div>
+            
+            <div class="flex flex-col md:flex-row justify-between items-center gap-8 relative">
+                <!-- Đường kẻ ngang nối các bước -->
+                <div class="hidden md:block absolute top-1/2 left-[10%] right-[10%] h-0.5 bg-slate-700 -z-10"></div>
+
+                <div class="flex flex-col items-center text-center w-full md:w-1/3 fade-in">
+                    <div class="w-16 h-16 rounded-full bg-gradient-to-r from-pink-500 to-brand-pink flex items-center justify-center text-2xl font-bold mb-6 border-4 border-slate-900 shadow-lg">1</div>
+                    <h3 class="text-lg font-bold mb-2">Nhập ý tưởng</h3>
+                    <p class="text-slate-400 text-sm">VD: "viết email xin việc", "code game rắn"</p>
+                </div>
+                <div class="flex flex-col items-center text-center w-full md:w-1/3 fade-in">
+                    <div class="w-16 h-16 rounded-full bg-gradient-to-r from-brand-pink to-purple-500 flex items-center justify-center text-2xl font-bold mb-6 border-4 border-slate-900 shadow-lg">2</div>
+                    <h3 class="text-lg font-bold mb-2">AI phân tích</h3>
+                    <p class="text-slate-400 text-sm">Hệ thống chấm điểm và chỉ ra lỗi sai.</p>
+                </div>
+                <div class="flex flex-col items-center text-center w-full md:w-1/3 fade-in">
+                    <div class="w-16 h-16 rounded-full bg-gradient-to-r from-purple-500 to-brand-blue flex items-center justify-center text-2xl font-bold mb-6 border-4 border-slate-900 shadow-lg">3</div>
+                    <h3 class="text-lg font-bold mb-2">Copy & Dùng</h3>
+                    <p class="text-slate-400 text-sm">Nhận bản sửa 11 mục và dán vào ChatGPT.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ABOUT (Về dự án) -->
+    <section id="about" class="py-24 px-6">
+        <div class="max-w-3xl mx-auto text-center bg-slate-800/30 p-12 rounded-3xl border border-slate-700 fade-in">
+            <h2 class="text-2xl font-bold mb-6">Về Dự án này</h2>
+            <p class="text-slate-400 mb-6 leading-relaxed">
+                Đây là dự án Nghiên cứu Khoa học Kỹ thuật tập trung vào việc giải quyết bài toán "Khoảng cách giữa tư duy con người và AI". Chúng tôi tin rằng: <strong class="text-white">"Sử dụng AI thông minh không phải là để AI suy nghĩ thay bạn, mà là để bạn suy nghĩ tốt hơn cùng AI."</strong>
+            </p>
+            <div class="flex flex-wrap justify-center gap-4 text-sm text-slate-300 font-medium">
+                <span class="px-4 py-2 bg-slate-900 rounded-lg border border-slate-700">FastAPI Backend</span>
+                <span class="px-4 py-2 bg-slate-900 rounded-lg border border-slate-700">Groq & Gemini AI</span>
+                <span class="px-4 py-2 bg-slate-900 rounded-lg border border-slate-700">Supabase DB</span>
+                <span class="px-4 py-2 bg-slate-900 rounded-lg border border-slate-700">Tailwind CSS</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- BOTTOM CTA -->
+    <section class="py-20 px-6 text-center">
+        <div class="max-w-4xl mx-auto fade-in">
+            <h2 class="text-3xl md:text-5xl font-extrabold mb-8">Sẵn sàng nâng cấp Prompt của bạn?</h2>
+            <a href="index.html" class="inline-block px-10 py-5 bg-gradient-to-r from-brand-pink to-brand-blue text-white rounded-full font-bold text-xl shadow-[0_0_30px_rgba(236,72,153,0.4)] hover:scale-105 hover:shadow-[0_0_50px_rgba(59,130,246,0.6)] transition-all">
+                Trải nghiệm Trợ lý AI ngay
+            </a>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="border-t border-slate-800 py-8 text-center text-slate-500 text-sm">
+        <p>© 2026 Trợ lý tối ưu hoá Prompt. Dự án Nghiên cứu Khoa học Kỹ thuật.</p>
+        <p class="mt-2">Được phát triển bởi Đội 2 - Nghiên cứu AI & Tư duy.</p>
+    </footer>
+
+    <!-- SCRIPT CHO HIỆU ỨNG FADE-IN -->
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, { threshold: 0.1 });
+
+            document.querySelectorAll('.fade-in').forEach((el) => {
+                observer.observe(el);
+            });
+        });
+    </script>
+</body>
+</html>
