@@ -25,7 +25,7 @@
 </head>
 <body class="antialiased min-h-screen relative text-slate-800 dark:text-slate-100 transition-colors duration-300 bg-slate-50 dark:bg-slate-900 dark-glow flex flex-col">
 
-    <!-- NÚT QUAY LẠI LANDING PAGE (Góc trên bên trái) -->
+    <!-- NÚT QUAY LẠI LANDING PAGE -->
     <div class="fixed top-4 left-4 z-50">
         <button onclick="window.location.href='./landing.html'" class="w-10 h-10 flex items-center justify-center rounded-full bg-white dark:bg-slate-800 shadow-md border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:scale-105 transition-transform" title="Quay về Trang chủ">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
@@ -34,8 +34,11 @@
 
     <!-- KHU VỰC NÚT NỔI (Bên phải) -->
     <div id="floatingButtons" class="fixed top-4 right-4 flex flex-col gap-2 z-50">
-        <button id="adminToggleBtn" class="w-10 h-10 flex items-center justify-center rounded-full bg-white dark:bg-slate-800 shadow-md border border-slate-200 dark:border-slate-700 text-lg hover:scale-105 transition-transform" title="Quản trị viên" style="display: none;">
-            🔐
+        <!-- ĐÃ ĐỔI ICON Ổ KHÓA THÀNH ICON USER -->
+        <button id="adminToggleBtn" class="w-10 h-10 flex items-center justify-center rounded-full bg-white dark:bg-slate-800 shadow-md border border-slate-200 dark:border-slate-700 hover:scale-105 transition-transform" title="Quản trị viên" style="display: none;">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-slate-600 dark:text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
         </button>
         <button id="themeToggle" class="w-10 h-10 flex items-center justify-center rounded-full bg-white dark:bg-slate-800 shadow-md border border-slate-200 dark:border-slate-700 text-lg hover:scale-105 transition-transform">
             🌙
@@ -341,7 +344,6 @@
                     
                     const card = document.createElement('div');
                     card.className = 'border border-slate-200 dark:border-slate-700/60 rounded-2xl p-4 bg-slate-50/50 dark:bg-slate-900/30 flex flex-col gap-3';
-                    // Cập nhật text nút thành "Copy" và truyền "this" để đổi text
                     card.innerHTML = `
                         <div class="flex justify-between items-start">
                             <div class="flex items-center gap-2">
@@ -369,7 +371,7 @@
         }
     }
 
-    // --- HÀM COPY TỪ THƯ VIỆN (KHÔNG CHUYỂN TAB) ---
+    // --- HÀM COPY TỪ THƯ VIỆN ---
     window.usePrompt = async function(promptText, btnElement) {
         try {
             await navigator.clipboard.writeText(promptText);
