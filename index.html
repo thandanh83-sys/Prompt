@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- Đã đổi Title -->
     <title>Trợ lý tối ưu hoá Prompt</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><defs><linearGradient id=%22g%22 x1=%220%%22 y1=%220%%22 x2=%22100%%22 y2=%22100%%22><stop offset=%220%%22 stop-color=%22%23ec4899%22/><stop offset=%22100%%22 stop-color=%22%233b82f6%22/></linearGradient></defs><rect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22url(%23g)%22/><text x=%2250%22 y=%2272%22 font-size=%2260%22 font-family=%22Arial,sans-serif%22 font-weight=%22bold%22 fill=%22white%22 text-anchor=%22middle%22>P</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -19,26 +18,29 @@
 <body class="antialiased">
 
 <div class="min-h-screen bg-gradient-to-br from-slate-50 to-blue-100 text-slate-800 dark:from-slate-900 dark:to-slate-800 dark:text-slate-100 transition-colors duration-300">
-    <button id="themeToggle" class="fixed top-4 right-4 w-12 h-12 flex items-center justify-center rounded-full bg-white/50 dark:bg-slate-800/60 backdrop-blur-md shadow-lg border border-white/50 dark:border-slate-700/60 text-2xl z-50 hover:scale-105 transition-transform">🌙</button>
+    
+    <!-- KHU VỰC NÚT GÓC TRÊN BÊN PHẢI (ADMIN & THEME) -->
+    <div class="fixed top-4 right-4 flex gap-2 z-50">
+        <!-- Nút Admin (Ổ khóa) -->
+        <button id="adminToggleBtn" class="w-10 h-10 flex items-center justify-center rounded-full bg-white/50 dark:bg-slate-800/60 backdrop-blur-md shadow-lg border border-white/50 dark:border-slate-700/60 text-lg hover:scale-105 transition-transform" title="Quản trị viên">
+            🔐
+        </button>
+        <!-- Nút Sáng/Tối -->
+        <button id="themeToggle" class="w-10 h-10 flex items-center justify-center rounded-full bg-white/50 dark:bg-slate-800/60 backdrop-blur-md shadow-lg border border-white/50 dark:border-slate-700/60 text-lg hover:scale-105 transition-transform">
+            🌙
+        </button>
+    </div>
 
-    <div class="max-w-4xl mx-auto pt-10 px-4 pb-20">
-        <div class="text-center mb-8">
-            <!-- Đã đổi thành Trợ lý tối ưu hoá, giữ nguyên hiệu ứng gradient rực rỡ -->
-            <h1 class="text-3xl md:text-4xl font-extrabold mb-3 text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-blue-400">Trợ lý tối ưu hoá Prompt</h1>
+    <div class="max-w-4xl mx-auto pt-20 px-4 pb-20">
+        <div class="text-center mb-8 px-8">
+            <!-- Đã thu nhỏ text để không bị đè lên nút góc phải -->
+            <h1 class="text-2xl md:text-3xl font-extrabold mb-3 text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-blue-400 leading-tight">Trợ lý tối ưu hoá Prompt</h1>
             <p class="text-slate-600 dark:text-slate-300 text-sm md:text-base font-medium max-w-2xl mx-auto">Thích nghi mọi lĩnh vực: Lập trình, Viết lách, Nấu ăn, Tâm lý... <br>AI sẽ tự nhận diện và tạo Prompt chuẩn chuyên gia cho bạn.</p>
-        </div>
-
-        <div class="flex justify-center mb-8">
-            <div class="flex bg-white/40 dark:bg-slate-800/60 backdrop-blur-md rounded-full p-1 border border-white/50 dark:border-slate-700/60 shadow-sm">
-                <button id="tabUser" class="px-8 py-2 rounded-full font-semibold bg-gradient-to-r from-pink-500 to-blue-400 text-white shadow-md transition-all">User</button>
-                <button id="tabAdmin" class="px-8 py-2 rounded-full font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all">Admin</button>
-            </div>
         </div>
 
         <!-- USER MODE -->
         <div id="userModeSection">
             <div class="glass-card bg-white/40 dark:bg-slate-800/60 backdrop-blur-lg border border-white/60 dark:border-slate-700/60 shadow-xl rounded-3xl p-6">
-                <!-- Đã rút gọn placeholder -->
                 <textarea id="promptInput" maxlength="5000" class="w-full h-32 p-4 rounded-2xl bg-white/60 dark:bg-slate-900/60 border border-white/80 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-pink-400 resize-none text-slate-800 dark:text-slate-100" placeholder="Nhập ý tưởng..."></textarea>
                 <p id="errorMsg" class="text-red-500 text-sm mt-2 font-semibold" style="display: none;">Vui lòng nhập prompt!</p>
                 <button id="btnEvaluate" class="w-full mt-4 py-3 rounded-full font-bold bg-gradient-to-r from-pink-500 to-blue-400 text-white shadow-lg hover:opacity-90 disabled:opacity-60 transition text-lg">Đánh giá & Viết lại</button>
@@ -82,8 +84,14 @@
 
         <!-- ADMIN MODE -->
         <div id="adminModeSection" style="display: none;">
-            <div id="adminLoginBox" class="glass-card bg-white/40 dark:bg-slate-800/60 backdrop-blur-lg border border-white/60 dark:border-slate-700/60 shadow-xl rounded-3xl p-6 max-w-md mx-auto text-center">
-                <h3 class="font-bold text-lg mb-4">Đăng nhập Admin</h3>
+            <div id="adminLoginBox" class="glass-card bg-white/40 dark:bg-slate-800/60 backdrop-blur-lg border border-white/60 dark:border-slate-700/60 shadow-xl rounded-3xl p-6 max-w-md mx-auto text-center relative">
+                <!-- Nút quay lại -->
+                <button id="btnBackToUser" class="absolute top-4 left-4 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white transition font-semibold text-sm flex items-center gap-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+                    Quay lại
+                </button>
+
+                <h3 class="font-bold text-lg mb-4 mt-4">Đăng nhập Admin</h3>
                 <div class="relative w-full mb-4">
                     <input type="password" id="adminPassword" class="w-full p-3 rounded-xl bg-white/60 dark:bg-slate-900/60 border border-white/80 dark:border-slate-700 text-center pr-10 focus:outline-none focus:ring-2 focus:ring-pink-400 text-slate-800 dark:text-slate-100" placeholder="Mật khẩu...">
                     <button type="button" id="toggleAdminPassword" class="absolute inset-y-0 right-0 pr-4 flex items-center text-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 cursor-pointer">🐵</button>
@@ -113,7 +121,7 @@
                 </div>
 
                 <div class="flex gap-4 pt-2">
-                    <button id="btnAdminLogout" class="flex-1 py-3 rounded-full font-bold bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 transition">Đăng xuất</button>
+                    <button id="btnAdminLogout" class="flex-1 py-3 rounded-full font-bold bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 transition">Đăng xuất & Quay lại</button>
                 </div>
             </div>
         </div>
@@ -311,6 +319,28 @@
         } catch (e) { alert("Không thể sao chép. Vui lòng thử lại!"); }
     });
 
+    // CHUYỂN ĐỔI QUA LẠI GIỮA ADMIN VÀ USER BẰNG NÚT Ổ KHÓA
+    $('adminToggleBtn').addEventListener('click', () => {
+        $('userModeSection').style.display = 'none'; 
+        $('adminModeSection').style.display = 'block';
+        $('adminToggleBtn').style.display = 'none'; // Ẩn nút ổ khóa đi khi đã vào trong
+    });
+
+    function backToUserMode() {
+        $('userModeSection').style.display = 'block'; 
+        $('adminModeSection').style.display = 'none';
+        $('adminToggleBtn').style.display = 'flex'; // Hiện lại nút ổ khóa
+        // Reset trạng thái admin
+        $('adminLoginBox').style.display = 'block'; 
+        $('adminDashboard').style.display = 'none'; 
+        $('adminPassword').value = ''; 
+        $('adminError').style.display = 'none';
+        adminToken = null;
+    }
+
+    $('btnBackToUser').addEventListener('click', backToUserMode);
+    $('btnAdminLogout').addEventListener('click', backToUserMode);
+
     // ĐĂNG NHẬP ADMIN
     $('toggleAdminPassword').addEventListener('click', function() {
         const pwdInput = $('adminPassword');
@@ -377,22 +407,6 @@
             }
         } catch (e) { tbody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-red-500">Lỗi tải dữ liệu.</td></tr>'; }
     }
-
-    $('btnAdminLogout').addEventListener('click', () => {
-        adminToken = null; $('adminLoginBox').style.display = 'block'; $('adminDashboard').style.display = 'none'; $('adminPassword').value = ''; $('adminError').style.display = 'none';
-    });
-
-    // CHUYỂN TAB
-    $('tabUser').addEventListener('click', () => {
-        $('userModeSection').style.display = 'block'; $('adminModeSection').style.display = 'none';
-        $('tabUser').className = "px-8 py-2 rounded-full font-semibold bg-gradient-to-r from-pink-500 to-blue-400 text-white shadow-md transition-all";
-        $('tabAdmin').className = "px-8 py-2 rounded-full font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all";
-    });
-    $('tabAdmin').addEventListener('click', () => {
-        $('userModeSection').style.display = 'none'; $('adminModeSection').style.display = 'block';
-        $('tabAdmin').className = "px-8 py-2 rounded-full font-semibold bg-gradient-to-r from-pink-500 to-blue-400 text-white shadow-md transition-all";
-        $('tabUser').className = "px-8 py-2 rounded-full font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all";
-    });
 </script>
 </body>
 </html>
