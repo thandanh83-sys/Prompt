@@ -31,6 +31,10 @@ ADMIN_SECRET_TOKEN = os.environ.get("ADMIN_SECRET_TOKEN")
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 
+# Lấy danh sách IP được phép (cách nhau bằng dấu phẩy)
+ADMIN_ALLOWED_IPS = os.environ.get("ADMIN_ALLOWED_IPS", "").split(",")
+ADMIN_ALLOWED_IPS = [ip.strip() for ip in ADMIN_ALLOWED_IPS if ip.strip()]
+
 if not ADMIN_PASSWORD or not ADMIN_SECRET_TOKEN or not GROQ_API_KEY:
     raise RuntimeError("LỖI BẢO MẬT: Thiếu biến môi trường bắt buộc trên Render.")
 
@@ -46,6 +50,19 @@ def get_client_ip(request: Request) -> str:
         return forwarded.split(",")[0].strip()
     return request.client.host if request.client else "unknown"
 
+# --- HÀM KIỂM TRA IP ADMIN ---
+def verify_admin_ip(request: Request):
+    client_ip = get_client_ip(request)
+    
+    # Nếu bạn có cấu hình danh sách IP (không rỗng), thì mới bắt đầu kiểm tra
+    if ADMIN_ALLOWED_IPS:
+        # Kiểm tra xem IP của client có nằm trong danh sách cho phép không
+        if client_ip not in ADMIN_ALLOWED_IPS:
+            logger.warning(f"TỪ CHỐI TRUY CẬP ADMIN: IP lạ {client_ip} cố gắng truy cập.")
+            raise HTTPException(status_code=403, detail="Truy cập bị từ chối. IP của bạn không nằm trong danh sách cho phép.")
+            
+    return client_ip
+
 limiter = Limiter(key_func=get_client_ip)
 app = FastAPI()
 app.state.limiter = limiter
@@ -57,7 +74,7 @@ async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
 app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS,
-    allow_origin_regex=r"https://.*\.vercel\.app", # Cấu hình Regex cho Vercel
+    allow_origin_regex=r"https://.*\.vercel\.app",
     allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["Content-Type", "X-Admin-Token"],
 )
@@ -171,15 +188,21 @@ def read_root():
 def health_check(): 
     return {"status": "ok"}
 
+# --- API MỚI: KIỂM TRA IP ĐỂ HIỆN/ẨN NÚT ADMIN ---
+@app.get("/check_admin_ip")
+def check_admin_ip(client_ip: str = Depends(verify_admin_ip)):
+    # Nếu IP hợp lệ, hàm verify_admin_ip không ném lỗi 403, code sẽ chạy xuống đây
+    return {"is_admin": True}
+
 @app.post("/login")
 @limiter.limit("5/minute")
-def admin_login(request: Request, req: LoginRequest):
+def admin_login(request: Request, req: LoginRequest, client_ip: str = Depends(verify_admin_ip)):
     if secrets.compare_digest(req.password, ADMIN_PASSWORD):
         return {"token": ADMIN_SECRET_TOKEN}
     raise HTTPException(status_code=401, detail="Sai mật khẩu")
 
 @app.get("/history")
-def get_history(token: str = Depends(api_key_header)):
+def get_history(token: str = Depends(api_key_header), client_ip: str = Depends(verify_admin_ip)):
     if not token or not secrets.compare_digest(token, ADMIN_SECRET_TOKEN):
         raise HTTPException(status_code=401, detail="Không có quyền truy cập")
     if not supabase:
