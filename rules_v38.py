@@ -91,18 +91,32 @@ def get_criteria_by_type(content_type):
     mapping = {
         TYPE_PROMPT: CRITERIA_PROMPT, TYPE_TEMPLATE: CRITERIA_TEMPLATE,
         TYPE_PROMPT_META: CRITERIA_PROMPT_META, TYPE_TABLE: CRITERIA_TABLE,
-        TYPE_STEM: CRITERIA_STEM
+        TYPE_STEM: CRITERIA_STEM,
+        TYPE_IMAGE: CRITERIA_PROMPT,
+        TYPE_EMPTY: {}
     }
-    return mapping.get(content_type, None)
+    return mapping.get(content_type, CRITERIA_PROMPT)
 
 def classify_prompt(prompt_text: str) -> str:
     text = prompt_text.strip()
     if not text: return TYPE_EMPTY
     lower_text = text.lower()
+    
+    # Nhận diện Template: Có nhiều dấu ngoặc vuông hoặc từ khóa điền
+    if any(kw in lower_text for kw in ["[điền", "[thay", "[chọn", "___", "{}"]):
+        return TYPE_TEMPLATE
+        
+    # Nếu có từ 3 dấu ngoặc vuông trở lên, chắc chắn là Template
+    if text.count('[') >= 3 and text.count(']') >= 3:
+        return TYPE_TEMPLATE
+
     stem_keywords = ["giải toán", "phương trình", "đạo hàm", "tích phân", "vật lý", "hóa học", "phản ứng", "tính vận tốc", "gia tốc", "nguyên tử"]
     if any(kw in lower_text for kw in stem_keywords): return TYPE_STEM
+    
     if any(kw in lower_text for kw in ["http", "jpg", "png", "vẽ ảnh", "tạo ảnh", "hình ảnh"]): return TYPE_IMAGE
-    if any(kw in lower_text for kw in ["[điền", "[thay", "[chọn", "___", "{}"]): return TYPE_TEMPLATE
+    
     if any(kw in lower_text for kw in ["tạo bảng", "lập bảng", "dạng bảng", "cột", "hàng"]): return TYPE_TABLE
+    
     if any(kw in lower_text for kw in ["đánh giá prompt", "viết prompt", "sửa prompt", "chấm điểm prompt", "tạo prompt"]): return TYPE_PROMPT_META
+    
     return TYPE_PROMPT
