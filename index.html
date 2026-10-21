@@ -35,12 +35,12 @@
         </button>
     </div>
 
-    <!-- Sử dụng pb-24 để tránh bị thanh Safari che khuất nút bấm -->
-    <div class="max-w-xl mx-auto pt-14 px-4 pb-24">
+    <!-- Đã tăng khoảng cách phía trên (pt-20) để không bị đè -->
+    <div class="max-w-xl mx-auto pt-20 px-4 pb-24">
         
-        <!-- HEADER: Gọn gàng, có icon nhận diện -->
-        <div class="text-center mb-6 px-4">
-            <h1 class="text-2xl md:text-3xl font-extrabold mb-2 flex items-center justify-center gap-2">
+        <!-- HEADER: Thêm px-8 để chữ tự động xuống dòng tránh nút bấm -->
+        <div class="text-center mb-6 px-8">
+            <h1 class="text-2xl md:text-3xl font-extrabold mb-2 flex flex-col md:flex-row items-center justify-center gap-1 md:gap-2 leading-tight">
                 <span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-blue-500">✨ Trợ lý tối ưu hoá Prompt</span>
             </h1>
             <p class="text-slate-500 dark:text-slate-400 text-sm font-medium leading-relaxed">Thích nghi mọi lĩnh vực. AI tự động nhận diện và tạo Prompt chuẩn chuyên gia.</p>
@@ -168,7 +168,7 @@
         </div>
     </div>
 
-<!-- POPUP HƯỚNG DẪN (Đã sửa lỗi gõ chữ) -->
+<!-- POPUP HƯỚNG DẪN -->
 <div id="instructionModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-opacity duration-300">
     <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-sm p-6 relative transform transition-transform duration-300 scale-100">
         <button id="closeModalBtn" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 bg-slate-100 dark:bg-slate-700 w-8 h-8 rounded-full flex items-center justify-center transition">✕</button>
@@ -185,7 +185,6 @@
             <div class="flex items-start gap-3">
                 <div class="w-6 h-6 rounded-full bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-400 font-bold flex items-center justify-center shrink-0 text-xs">3</div>
                 <div>
-                    <!-- Đã sửa lại chữ "Sử dụng" và thẻ <p> bị lỗi -->
                     <p class="font-bold text-sm text-slate-800 dark:text-slate-200">Copy & Sử dụng</p>
                     <p class="text-xs text-slate-500 mt-0.5">Dán Prompt vào ChatGPT/Claude</p>
                 </div>
@@ -206,8 +205,8 @@
         "A01": "Lỗi chính tả", "A02": "Thiếu dấu câu", "A03": "Lặp lại",
         "B01": "Thiếu thành phần cấu trúc", "B02": "Mục không logic", "B03": "Sai phân cấp", "B04": "Chưa quy định định dạng",
         "C01": "Đối tượng chưa rõ", "C02": "Thiếu bối cảnh", "C03": "Yêu cầu chung chung", "C04": "Thiếu ví dụ",
-        "D01": "Mâu thuẫn nội bộ", "D02": "Yêu cầu bất khả thi", "D03": "Vai trò không phù hợp",
-        "E01": "Trộn lĩnh vực", "E02": "Thuật ngữ không nhất quán", "E03": "Thiếu tính đặc thù"
+        "D01": "Mâu thuẫn nội bộ", "D02": "Yêu cầu bất khả thi", "D03": "Vai trò không ph').ù hợp",
+        "E01": "Trộstylen lĩnh vực", "E02": ".display === 'blockThuật ngữ không nhất quán", "E03": "Thiếu tính đặc thù"
     };
 
     // LOGIC FIX LỖI UX: Xử lý ô nhập liệu
@@ -224,7 +223,7 @@
         else btnClearInput.classList.add('hidden');
         
         // FIX BUG: Nếu người dùng thay đổi nội dung, ẩn kết quả cũ đi để tránh hiểu nhầm
-        if ($('resultArea').style.display === 'block') {
+        if ($('resultArea') {
             $('resultArea').style.display = 'none';
         }
     });
