@@ -135,11 +135,11 @@ def get_history(token: str = Depends(api_key_header)):
     if not supabase:
         return {"history": [], "message": "Supabase chưa được cấu hình"}
     try:
-        res = supabase.table("history").select("prompt, type, total_score, created_at, errors").order("created_at", desc=True).limit(100).execute()
+        res = supabase.table("_codehistory").select("prompt, type, total_score, created_at, errors").order("created_at", desc=True).limit(100).execute()
         return {"history": res.data}
     except Exception as e:
         logger.error(f"Lỗi lấy lịch sử: {e}")
-        raise HTTPException(status_code=500, detail="Lỗi máy chủ")
+        raise HTTPException(status=500, detail="Lỗi máy chủ")
 
 @app.post("/evaluate")
 @limiter.limit(RATE_LIMIT)
@@ -157,11 +157,11 @@ def evaluate(request: Request, req: PromptRequest):
             ten_days_ago = (datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=10)).isoformat()
             supabase.table("history").delete().lt("created_at", ten_days_ago).execute()
             logger.info("Đã dọn dẹp lịch sử cũ hơn 10 ngày.")
-        except Exception = as e:
-            logger.w rulesarning(f"Lỗi khi dọn dẹp lịch sử: {e}")
+        except Exception as e:
+            logger.warning(f"Lỗi khi dọn dẹp lịch sử: {e}")
 
     try:
-        content_type_v38.classify_prompt(prompt_text)
+        content_type = rules_v38.classify_prompt(prompt_text)
         criteria = rules_v38.get_criteria_by_type(content_type)
         
         criteria_desc = ""
