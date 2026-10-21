@@ -116,7 +116,6 @@ def get_history(token: str = Depends(api_key_header)):
     if not supabase:
         return {"history": [], "message": "Supabase chưa được cấu hình"}
     try:
-        # Đã thêm "errors" vào select
         res = supabase.table("history").select("prompt, type, total_score, created_at, errors").order("created_at", desc=True).limit(50).execute()
         return {"history": res.data}
     except Exception as e:
@@ -160,8 +159,28 @@ def evaluate(request: Request, req: PromptRequest):
         error_codes_desc = "\n".join([f"- {k}: {v}" for k, v in rules_v38.VALID_ERROR_CODES.items()])
         scores_example = ", ".join([f'"{k}": 8' for k in criteria.keys()])
 
+        # [CẬP NHẬT: PROMPT VẠN NĂNG + FORM 11 MỤC CHUYÊN SÂU]
         system_prompt = f"""
-Bạn là chuyên gia đánh giá prompt. BẠN PHẢI CHẤM ĐIỂM THEO ĐÚNG THANG ĐIỂM (RUBRIC) DƯỚI ĐÂY, KHÔNG ĐƯỢC CHẤM THEO CẢM TÍNH.
+Bạn là một Chuyên gia Prompt Engineering cấp cao. Nhiệm vụ của bạn là đánh giá và viết lại câu lệnh của người dùng. Bạn phải TỰ ĐỘNG TƯ DUY theo quy trình sau:
+
+BƯỚC 1: XÁC ĐỊNH LĨNH VỰC
+- Tự nhận diện lĩnh vực của prompt (VD: IT, Nấu ăn, Tâm lý, Kinh doanh, Học tập...).
+
+BƯỚC 2: HÓA THÂN THÀNH CHUYÊN GIA ĐẦU NGÀNH
+- Hãy suy nghĩ và hành xử như một chuyên gia có 10 năm kinh nghiệm trong lĩnh vực đó.
+
+BƯỚC 3: VIẾT LẠI PROMPT THEO ĐÚNG FORM 11 MỤC SAU (Sử dụng ký tự \\n để xuống dòng trong JSON):
+1. VAI TRÒ: [Vai trò chuyên môn, số năm kinh nghiệm, lĩnh vực, kỹ năng cốt lõi]
+2. BỐI CẢNH: Bắt buộc phải có các gạch đầu dòng sau: - Người dùng: ...\\n- Mục đích: ...\\n- Không gian: ...\\n- Thời gian: ...\\n- Cảm xúc: ...\\n- Văn hóa: ...\\n- Chuyên môn: ...\\n- Ràng buộc: ...\\n- Kỳ vọng: ...\\n- Đối thủ: ...\\n- Lịch sử: ...\\n- Tương lai: ...
+3. INPUT: [Người dùng cung cấp gì: ảnh, file, văn bản, dữ liệu, câu hỏi]
+4. MỤC TIÊU: [Kết quả cuối cùng cần đạt, đo lường được]
+5. YÊU CẦU: [Yêu cầu cụ thể, hành động rõ ràng, không mơ hồ]
+6. RÀNG BUỘC: Bắt buộc phải chia rõ thành 3 gạch đầu dòng: - PHẢI: ...\\n- KHÔNG ĐƯỢC: ...\\n- GIỚI HẠN: ...
+7. TASK: Bắt buộc phải chia rõ thành các bước đánh số: 1. ...\\n2. ...\\n3. ...
+8. ĐỊNH DẠNG ĐẦU RA: [Văn bản, bảng, code, ảnh, JSON, danh sách]
+9. NEVER DO: [Danh sách lỗi cần tránh]
+10. THỨ TỰ ƯU TIÊN: Bắt buộc phải chia rõ thành số thứ tự: 1. ...\\n2. ...\\n3. ...
+11. XỬ LÝ NỘI BỘ: [Quy trình tự kiểm tra logic, độ chính xác trước khi xuất kết quả]
 
 THANG ĐIỂM (RUBRIC) BẮT BUỘC:
 {criteria_desc}
@@ -178,10 +197,17 @@ CHỈ TRẢ VỀ CHUỖI JSON HỢP LỆ:
   "scores": {{ {scores_example} }},
   "errors": [ {{"code": "[Mã lỗi]", "evidence": "[Trích dẫn hoặc 'Toàn bộ']"}} ],
   "rewrite": {{ 
-    "1. VAI TRÒ": "...", "2. BỐI CẢNH": "...", "3. INPUT": "...", 
-    "4. MỤC TIÊU": "...", "5. YÊU CẦU": "...", "6. RÀNG BUỘC": "...", 
-    "7. TASK": "...", "8. ĐỊNH DẠNG ĐẦU RA": "...", "9. NEVER DO": "...", 
-    "10. THỨ TỰ ƯU TIÊN": "...", "11. XỬ LÝ NỘI BỘ": "..." 
+    "1. VAI TRÒ": "Chuyên gia [Lĩnh vực]...",
+    "2. BỐI CẢNH": "- Người dùng: ...\\n- Mục đích: ...",
+    "3. INPUT": "...",
+    "4. MỤC TIÊU": "...",
+    "5. YÊU CẦU": "...",
+    "6. RÀNG BUỘC": "- PHẢI: ...\\n- KHÔNG ĐƯỢC: ...\\n- GIỚI HẠN: ...",
+    "7. TASK": "1. ...\\n2. ...\\n3. ...",
+    "8. ĐỊNH DẠNG ĐẦU RA": "...",
+    "9. NEVER DO": "...",
+    "10. THỨ TỰ ƯU TIÊN": "1. ...\\n2. ...\\n3. ...",
+    "11. XỬ LÝ NỘI BỘ": "..."
   }}
 }}
 """
