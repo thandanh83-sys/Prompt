@@ -8,7 +8,6 @@ def validate_scores_only(ai_scores: dict, criteria: dict) -> bool:
     expected_ids = set(criteria.keys())
     received_ids = set(ai_scores.keys())
     
-    # Bỏ qua kiểm tra ID nếu AI trả về thừa (để Auto-Repair xử lý)
     if not expected_ids.issubset(received_ids):
         raise ValueError(f"ID điểm bị thiếu. Cần: {expected_ids - received_ids}")
         
@@ -18,12 +17,13 @@ def validate_scores_only(ai_scores: dict, criteria: dict) -> bool:
                 raise ValueError(f"Điểm {crit_id} phải là số nguyên 0-10.")
     return True
 
-def validate_full_report(ai_json: dict, criteria: dict, original_prompt: str) -> bool:
+def validate_full_report(ai_json: dict, main_criteria: dict, tech_criteria: dict, original_prompt: str) -> bool:
     if not isinstance(ai_json, dict): raise ValueError("Dữ liệu AI không phải JSON.")
     for k in ["scores", "errors", "rewrite"]:
         if k not in ai_json: raise ValueError(f"Thiếu trường '{k}'.")
 
-    validate_scores_only(ai_json["scores"], criteria)
+    all_criteria = {**main_criteria, **tech_criteria}
+    validate_scores_only(ai_json["scores"], all_criteria)
 
     errors = ai_json["errors"]
     if not isinstance(errors, list): raise ValueError("Trường 'errors' phải là list.")
@@ -46,8 +46,8 @@ def validate_full_report(ai_json: dict, criteria: dict, original_prompt: str) ->
         raise ValueError(f"Bản sửa thiếu mục: {expected_sections - received_sections}")
     return True
 
-def calculate_final_score(ai_scores: dict, criteria: dict) -> float:
-    validate_scores_only(ai_scores, criteria)
+def _calc_tier_score(ai_scores: dict, criteria: dict) -> Decimal:
+    if not criteria: return Decimal('0.0')
     
     total_weight = Decimal('0.0')
     weighted_score = Decimal('0.0')
@@ -55,14 +55,20 @@ def calculate_final_score(ai_scores: dict, criteria: dict) -> float:
     for crit_id, info in criteria.items():
         weight = Decimal(str(info["weight"]))
         total_weight += weight
-        
-        # Nếu AI không trả điểm mục này thì mặc định 0
         score = Decimal(str(ai_scores.get(crit_id, 0)))
         weighted_score += score * weight
         
-    if total_weight == 0:
-        return 0.0
+    if total_weight == 0: return Decimal('0.0')
+    
+    return (weighted_score / total_weight).quantize(Decimal('0.1'), rounding=ROUND_HALF_UP)
+
+def calculate_final_score(ai_scores: dict, main_criteria: dict, tech_criteria: dict) -> float:
+    s_main = _calc_tier_score(ai_scores, main_criteria)
+    
+    if tech_criteria:
+        s_tech = _calc_tier_score(ai_scores, tech_criteria)
+        final_score = (Decimal('0.6') * s_main) + (Decimal('0.4') * s_tech)
+    else:
+        final_score = s_main
         
-    # Chuẩn hóa về thang điểm 10
-    final_score = (weighted_score / total_weight) * Decimal('10.0')
     return float(final_score.quantize(Decimal('0.1'), rounding=ROUND_HALF_UP))
