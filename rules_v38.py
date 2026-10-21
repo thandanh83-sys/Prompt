@@ -1,6 +1,7 @@
 import hashlib
 import json
 
+# --- 1. ĐỊNH NGHĨA CÁC LOẠI (MAIN TASKS) ---
 TYPE_PROMPT = "PROMPT"
 TYPE_TEMPLATE = "TEMPLATE"
 TYPE_PROMPT_META = "PROMPT META"
@@ -8,6 +9,13 @@ TYPE_TABLE = "TABLE"
 TYPE_STEM = "STEM"
 TYPE_EMPTY = "EMPTY"
 TYPE_IMAGE = "IMAGE"
+
+# --- 2. ĐỊNH NGHĨA CÁC KỸ THUẬT (TECHNIQUES) ---
+TECH_ROLE_PLAY = "ROLE_PLAY"
+TECH_FEW_SHOT = "FEW_SHOT"
+TECH_COT = "CHAIN_OF_THOUGHT"
+TECH_FORMAT = "FORMATTED_OUTPUT"
+TECH_CREATIVE = "CREATIVE_GEN"
 
 VALID_ERROR_CODES = {
     "A01": "Lỗi chính tả", "A02": "Thiếu dấu câu", "A03": "Lặp lại",
@@ -17,6 +25,7 @@ VALID_ERROR_CODES = {
     "E01": "Trộn lĩnh vực", "E02": "Thuật ngữ không nhất quán", "E03": "Thiếu tính đặc thù lĩnh vực"
 }
 
+# --- 3. BỘ TIÊU CHÍ CƠ BẢN (Giữ nguyên của bạn) ---
 CRITERIA_PROMPT = {
     "P01": {"name": "Độ rõ nhiệm vụ", "weight": 1.2, "rubric": "0-2: Không có động từ hành động. 3-4: Động từ mơ hồ. 5-6: Rõ hành động. 7-10: Rõ hành động, rõ kết quả."},
     "P02": {"name": "Đối tượng tác động", "weight": 1.2, "rubric": "0-2: Không có đối tượng. 3-4: Đối tượng chung chung. 5-6: Đối tượng cụ thể. 7-10: Đối tượng rất chi tiết."},
@@ -30,7 +39,7 @@ CRITERIA_PROMPT = {
     "P10": {"name": "Chuyên môn có căn cứ", "weight": 0.5, "rubric": "0-2: Không có căn cứ. 3-4: Căn cứ yếu. 5-6: Có căn cứ. 7-10: Căn cứ vững chắc."},
     "P11": {"name": "Nhất quán lĩnh vực", "weight": 1.0, "rubric": "0-2: Trộn lẫn lĩnh vực. 3-4: Chưa nhất quán. 5-6: Khá nhất quán. 7-10: Rất nhất quán."},
     "P12": {"name": "Yêu cầu khả thi", "weight": 0.8, "rubric": "0-2: Bất khả thi. 3-4: Khó thực hiện. 5-6: Có thể thực hiện. 7-10: Rất khả thi."},
-    "P13": {"name": "Vai trò phù hợp", "weight": 0.8, "rubric": "0-2: Không có vai trò. 3-4: Vai trò mờ nhạt. 5-6: Vai trò rõ. 7-10: Vai trò rất phù hợp."},
+    "P13": {"name": "Vai trò phù hợp", "weight": 0 ".8,rubric": "0-2: Không có vai trò. 3-4: Vai trò mờ nhạt. 5-6: Vai trò rõ. 7-10: Vai trò rất phù hợp."},
     "P14": {"name": "Không mâu thuẫn", "weight": 0.2, "rubric": "0-2: Nhiều mâu thuẫn. 3-4: Có mâu thuẫn. 5-6: Ít mâu thuẫn. 7-10: Không mâu thuẫn."}
 }
 
@@ -81,42 +90,121 @@ CRITERIA_TABLE = {
     "TB09": {"name": "Mức độ chi tiết", "weight": 1.0, "rubric": "0-2: Quá sơ sài. 7-10: Rất chi tiết."}
 }
 
+# --- 4. BỘ TIÊU CHÍ KỸ THUẬT (Đã sửa theo góp ý của bạn) ---
+
+CRITERIA_ROLE_PLAY = {
+    "R01": {"name": "Sự phù hợp của vai trò", "weight": 1.5, "rubric": "0-2: Vai trò không liên quan. 3-4: Vai trò chung chung. 5-6: Vai trò phù hợp với nhiệm vụ. 7-10: Vai trò được chọn lọc, tối ưu cho nhiệm vụ."},
+    "R02": {"name": "Mục tiêu hội thoại", "weight": 1.2, "rubric": "0-2: Không có mục tiêu. 3-4: Mục tiêu mơ hồ. 5-6: Mục tiêu rõ ràng. 7-10: Mục tiêu cụ thể, có thể đo lường được."},
+    "R03": {"name": "Giới hạn hành vi", "weight": 0.8, "rubric": "0-2: Không có ràng buộc. 3-4: Ràng buộc chung. 5-6: Ràng buộc rõ ràng. 7-10: Ràng buộc chi tiết (được làm gì, không được làm gì)."}
+}
+
+CRITERIA_FEW_SHOT = {
+    "F01": {"name": "Tính liên quan của ví dụ", "weight": 1.5, "rubric": "0-2: Ví dụ không liên quan. 3-4: Ví dụ xa rời thực tế. 5-6: Ví dụ sát với yêu cầu. 7-10: Ví dụ hoàn hảo, trực tiếp giải quyết vấn đề."},
+    "F02": {"name": "Độ bao quát của ví dụ", "weight": 1.2, "rubric": "0-2: Chỉ có 1 ví dụ đơn giản. 3-4: 1-2 ví dụ, chưa bao quát. 5-6: 2-3 ví dụ bao quát các trường hợp phổ biến. 7-10: Ví dụ bao quát cả các trường hợp ngoại lệ/khó."},
+    "F03": {"name": "Cấu trúc Input-Output", "weight": 0.8, "rubric": "0-2: Không có cấu trúc. 3-4: Cấu trúc lỏng lẻo. 5-6: Cấu trúc rõ ràng, dễ hiểu. 7-10: Cấu trúc chuẩn hóa (delimiter rõ ràng, phân tách mạch lạc)."}
+}
+
+CRITERIA_COT = {
+    "C01": {"name": "Yêu cầu giải quyết có cấu trúc", "weight": 1.5, "rubric": "0-2: Không yêu cầu. 3-4: Yêu cầu chung chung. 5-6: Yêu cầu chia nhỏ vấn đề. 7-10: Yêu cầu quy trình giải quyết từng bước rõ ràng, có thể theo dõi."},
+    "C02": {"name": "Khả năng kiểm tra lập luận", "weight": 1.2, "rubric": "0-2: Không có. 3-4: Yêu cầu kiểm tra sơ sài. 5-6: Yêu cầu giải thích lý do. 7-10: Yêu cầu phép tính/lập luận phải được chứng minh và có bước kiểm tra chéo."},
+    "C03": {"name": "Kết luận rõ ràng", "weight": 0.8, "rubric": "0-2: Không yêu cầu. 3-4: Kết luận mơ hồ. 5-6: Yêu cầu đưa ra đáp án cuối cùng. 7-10: Yêu cầu tách biệt rõ ràng giữa quá trình suy luận và kết quả cuối cùng."}
+}
+
+CRITERIA_FORMATTED_OUTPUT = {
+    "FO01": {"name": "Schema và kiểu dữ liệu", "weight": 1.5, "rubric": "0-2: Không xác định định dạng. 3-4: Xác định chung (VD: JSON). 5-6: Xác định cấu trúc cơ bản. 7-10: Cung cấp schema chi tiết, quy định rõ kiểu dữ liệu (string, int, array...)."},
+    "FO02": {"name": "Trường bắt buộc", "weight": 1.0, "rubric": "0-2: Không có. 3-4: Có đề cập. 5-6: Liệt kê các trường. 7-10: Chỉ định rõ trường nào là bắt buộc, trường nào là tùy chọn."},
+    "FO03": {"name": "Quy tắc xử lý lỗi", "weight": 1.0, "rubric": "0-2: Không có. 3-4: Có đề cập. 5-6: Hướng dẫn chung. 7-10: Quy định rõ cách xử lý nếu AI không thể tạo ra định dạng đó (VD: trả về lỗi null)."}
+}
+
+CRITERIA_CREATIVE = {
+    "CG01": {"name": "Mục tiêu sáng tạo", "weight": 1.5, "rubric": "0-2: Không có mục tiêu. 3-4: Mục tiêu mơ hồ. 5-6: Mục tiêu rõ ràng. 7-10: Mục tiêu được định nghĩa sắc nét, có thể đo lường (VD: viết truyện cười, viết kịch bản 3 hồi)."},
+    "CG02": {"name": "Đối tượng độc giả", "weight": 1.2, "rubric": "0-2: Không có. 3-4: Đối tượng chung. 5-6: Đối tượng cụ thể. 7-10: Đối tượng chi tiết (độ tuổi, sở thích, trình độ)."},
+    "CG03": {"name": "Phong cách và ràng buộc", "weight": 0.8, "rubric": "0-2: Không có ràng buộc. 3-4: Ràng buộc lỏng lẻo. 5-6: Chỉ định phong cách (VD: hài hước). 7-10: Chỉ định rõ phong cách, tông giọng và các ràng buộc (số từ, vần điệu)."}
+}
+
 REQUIRED_REWRITE_SECTIONS = [
     "1. VAI TRÒ", "2. BỐI CẢNH", "3. INPUT", "4. MỤC TIÊU", "5. YÊU CẦU", 
     "6. RÀNG BUỘC", "7. TASK", "8. ĐỊNH DẠNG ĐẦU RA", "9. NEVER DO", 
     "10. THỨ TỰ ƯU TIÊN", "11. XỬ LÝ NỘI BỘ"
 ]
 
-def get_criteria_by_type(content_type):
+# --- 5. HÀM LẤY CRITERIA (GỘP ĐA CHIỀU) ---
+def get_criteria_by_type(classification: dict):
+    """
+    Nhận vào dict {"main_task": "...", "techniques": [...]}
+    Trả về dict gộp tất cả tiêu chí.
+    """
+    main_task = classification.get("main_task", TYPE_PROMPT)
+    techniques = classification.get("techniques", [])
+    
+    # Lấy tiêu chí cơ bản
     mapping = {
         TYPE_PROMPT: CRITERIA_PROMPT, TYPE_TEMPLATE: CRITERIA_TEMPLATE,
         TYPE_PROMPT_META: CRITERIA_PROMPT_META, TYPE_TABLE: CRITERIA_TABLE,
-        TYPE_STEM: CRITERIA_STEM,
-        TYPE_IMAGE: CRITERIA_PROMPT,
-        TYPE_EMPTY: {}
+        TYPE_STEM: CRITERIA_STEM, TYPE_IMAGE: CRITERIA_PROMPT, TYPE_EMPTY: {}
     }
-    return mapping.get(content_type, CRITERIA_PROMPT)
+    criteria = mapping.get(main_task, CRITERIA_PROMPT).copy()
 
-def classify_prompt(prompt_text: str) -> str:
+    # Gộp thêm tiêu chí kỹ thuật (nếu có)
+    if TECH_ROLE_PLAY in techniques: criteria.update(CRITERIA_ROLE_PLAY)
+    if TECH_FEW_SHOT in techniques: criteria.update(CRITERIA_FEW_SHOT)
+    if TECH_COT in techniques: criteria.update(CRITERIA_COT)
+    if TECH_FORMAT in techniques: criteria.update(CRITERIA_FORMATTED_OUTPUT)
+    if TECH_CREATIVE in techniques: criteria.update(CRITERIA_CREATIVE)
+
+    return criteria
+
+# --- 6. HÀM PHÂN LOẠI ĐA CHIỀU ---
+def classify_prompt(prompt_text: str) -> dict:
     text = prompt_text.strip()
-    if not text: return TYPE_EMPTY
-    lower_text = text.lower()
+    if not text: return {"main_task": TYPE_EMPTY, "techniques": []}
     
-    # Nhận diện Template: Có nhiều dấu ngoặc vuông hoặc từ khóa điền
-    if any(kw in lower_text for kw in ["[điền", "[thay", "[chọn", "___", "{}"]):
-        return TYPE_TEMPLATE
+    lower_text = text.lower()
+    techniques = []
+    
+    # Nhận diện Kỹ thuật
+    if any(kw in lower_text for kw in ["đóng vai", "bạn là", "hãy vào vai", "giả sử bạn là", "act as"]):
+        techniques.append(TECH_ROLE_PLAY)
+    
+    if any(kw in lower_text for kw in ["ví dụ 1:", "ví dụ mẫu", "input:", "output:", "dưới đây là ví dụ", "ví dụ như sau"]):
+        techniques.append(TECH_FEW_SHOT)
         
-    # Nếu có từ 3 dấu ngoặc vuông trở lên, chắc chắn là Template
+    if any(kw in lower_text for kw in ["từng bước", "suy luận", "giải thích từng bước", "chain of thought", "các bước sau", "quy trình"]):
+        techniques.append(TECH_COT)
+        
+    if any(kw in lower_text for kw in ["json", "xml", "định dạng bảng", "markdown", "trả về dạng", "cấu trúc dữ liệu"]):
+        techniques.append(TECH_FORMAT)
+        
+    if any(kw in lower_text for kw in ["viết truyện", "làm thơ", "sáng tác", "kịch bản", "viết quảng cáo", "brainstorm", "viết content"]):
+        techniques.append(TECH_CREATIVE)
+
+    # Nhận diện Nhiệm vụ chính (ưu tiên Template trước)
+    if any(kw in lower_text for kw in ["[điền", "[thay", "[chọn", "___", "{}"]):
+        return {"main_task": TYPE_TEMPLATE, "techniques": techniques}
     if text.count('[') >= 3 and text.count(']') >= 3:
-        return TYPE_TEMPLATE
+        return {"main_task": TYPE_TEMPLATE, "techniques": techniques}
 
     stem_keywords = ["giải toán", "phương trình", "đạo hàm", "tích phân", "vật lý", "hóa học", "phản ứng", "tính vận tốc", "gia tốc", "nguyên tử"]
-    if any(kw in lower_text for kw in stem_keywords): return TYPE_STEM
+    if any(kw in lower_text for kw in stem_keywords): return {"main_task": TYPE_STEM, "techniques": techniques}
     
-    if any(kw in lower_text for kw in ["http", "jpg", "png", "vẽ ảnh", "tạo ảnh", "hình ảnh"]): return TYPE_IMAGE
+    if any(kw in lower_text for kw in ["http", "jpg", "png", "vẽ ảnh", "tạo ảnh", "hình ảnh"]): return {"main_task": TYPE_IMAGE, "techniques": techniques}
     
-    if any(kw in lower_text for kw in ["tạo bảng", "lập bảng", "dạng bảng", "cột", "hàng"]): return TYPE_TABLE
+    if any(kw in lower_text for kw in ["tạo bảng", "lập bảng", "dạng bảng", "cột", "hàng"]): return {"main_task": TYPE_TABLE, "techniques": techniques}
     
-    if any(kw in lower_text for kw in ["đánh giá prompt", "viết prompt", "sửa prompt", "chấm điểm prompt", "tạo prompt"]): return TYPE_PROMPT_META
+    if any(kw in lower_text for kw in ["đánh giá prompt", "viết prompt", "sửa prompt", "chấm điểm prompt", "tạo prompt"]): return {"main_task": TYPE_PROMPT_META, "techniques": techniques}
     
-    return TYPE_PROMPT
+    return {"main_task": TYPE_PROMPT, "techniques": techniques}
+
+# --- 7. HÀM TÍNH ĐIỂM CHUẨN HÓA (FIX LỖI MẪU SỐ) ---
+def calculate_final_score(ai_scores: dict, criteria: dict) -> float:
+    total_weight = sum(info["weight"] for info in criteria.values())
+    if total_weight == 0: return 0.0
+    
+    weighted_score = 0.0
+    for crit_id, info in criteria.items():
+        score = ai_scores.get(crit_id, 0)
+        weighted_score += score * info["weight"]
+        
+    # Chuẩn hóa về thang điểm 10 bất kể có bao nhiêu tiêu chí
+    final_score = (weighted_score / total_weight) * 10.0
+    return round(final_score, 1)
