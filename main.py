@@ -83,7 +83,8 @@ def call_llm(system_prompt: str, user_prompt: str, max_retries: int = 3) -> str:
             )
             return resp.choices[0].message.content
         except Exception as e:
-            if "rate_limit" in str(e).lower() and attempt < max_retries - 1:
+            logger.warning(f"Lỗi gọi LLM (Lần {attempt+1}): {e}")
+            if attempt < max_retries - 1:
                 time.sleep(2 ** attempt)
                 continue
             raise
@@ -122,7 +123,7 @@ def evaluate(request: Request, req: PromptRequest):
     if not prompt_text:
         return JSONResponse(status_code=400, content={"error": "Prompt trống."})
     if len(prompt_text) > MAX_PROMPT_LENGTH:
-        return JSONResponse(status_code=400, content={"error": "Prompt vượt quá 5000 ký tự."})
+        return JSONResponse(status_code=400, content={"error": f"Prompt vượt quá {MAX_PROMPT_LENGTH} ký tự."})
 
     try:
         content_type = rules_v38.classify_prompt(prompt_text)
@@ -135,8 +136,10 @@ def evaluate(request: Request, req: PromptRequest):
         error_codes_desc = "\n".join([f"- {k}: {v}" for k, v in rules_v38.VALID_ERROR_CODES.items()])
         scores_example = ", ".join([f'"{k}": 8' for k in criteria.keys()])
 
+        # Cải thiện System Prompt để AI hiểu cả prompt dài
         system_prompt = f"""
-Bạn là Chuyên gia Prompt Engineering. Đánh giá và viết lại câu lệnh của người dùng theo form 11 mục.
+Bạn là Chuyên gia Prompt Engineering. Nhiệm vụ của bạn là đánh giá câu lệnh của người dùng và viết lại nó.
+LƯU Ý QUAN TRỌNG: Nếu người dùng dán vào một prompt đã có cấu trúc 11 mục, hãy đánh giá nó dựa trên cấu trúc đó, và tinh chỉnh lại cho hoàn hảo hơn. Đừng cố gắng tạo lại từ đầu nếu nó đã quá tốt.
 
 BƯỚC 1: XÁC ĐỊNH LĨNH VỰC & CHUYÊN GIA.
 BƯỚC 2: VIẾT LẠI PROMPT THEO ĐÚNG CẤU TRÚC JSON SAU (Sử dụng \\n để xuống dòng trong nội dung):
@@ -145,15 +148,15 @@ BƯỚC 2: VIẾT LẠI PROMPT THEO ĐÚNG CẤU TRÚC JSON SAU (Sử dụng \\n
   "errors": [ {{"code": "[Mã lỗi]", "evidence": "[Trích dẫn hoặc 'Toàn bộ']"}} ],
   "rewrite": {{ 
     "1. VAI TRÒ": "...",
-    "2. BỐI CẢNH": "- Người dùng: ...\\n- Mục đích: ...\\n- Không gian: ...\\n- Thời gian: ...\\n- Cảm xúc: ...\\n- Văn hóa: ...\\n- Chuyên môn: ...\\n- Ràng buộc: ...\\n- Kỳ vọng: ...\\n- Đối thủ: ...\\n- Lịch sử: ...\\n- Tương lai: ...",
+    "2. BỐI CẢNH": "...",
     "3. INPUT": "...",
     "4. MỤC TIÊU": "...",
     "5. YÊU CẦU": "...",
-    "6. RÀNG BUỘC": "- PHẢI: ...\\n- KHÔNG ĐƯỢC: ...\\n- GIỚI HẠN: ...",
-    "7. TASK": "1. ...\\n2. ...\\n3. ...",
+    "6. RÀNG BUỘC": "...",
+    "7. TASK": "...",
     "8. ĐỊNH DẠNG ĐẦU RA": "...",
     "9. NEVER DO": "...",
-    "10. THỨ TỰ ƯU TIÊN": "1. ...\\n2. ...\\n3. ...",
+    "10. THỨ TỰ ƯU TIÊN": "...",
     "11. XỬ LÝ NỘI BỘ": "..."
   }}
 }}
@@ -164,16 +167,19 @@ THANG ĐIỂM (RUBRIC):
 MÃ LỖI:
 {error_codes_desc}
 
-CHỈ TRẢ VỀ CHUỖI JSON HỢP LỆ.
+CHỈ TRẢ VỀ CHUỖI JSON HỢP LỆ. KHÔNG THÊM BẤT KỲ VĂN BẢN NÀO KHÁC.
 """
         raw_text = call_llm(system_prompt, prompt_text)
 
-        if raw_text.startswith("```json"):
-            raw_text = raw_text[7:-3].strip()
+        # LÀM SẠCH JSON (Sửa lỗi nếu AI trả về kèm ```json)
+        if "```json" in raw_text:
+            raw_text = raw_text.split("```json")[1].split("```")[0].strip()
+        elif "```" in raw_text:
+            raw_text = raw_text.replace("```", "").strip()
 
         ai_data = json.loads(raw_text)
 
-        # [AUTO-REPAIR]: Cố gắng validate, nếu lỗi thì sửa lại dữ liệu để không sập web
+        # [AUTO-REPAIR]: Tự động sửa lỗi nếu AI trả về thiếu mục
         try:
             validate_full_report(ai_data, content_type, prompt_text)
         except ValueError as ve:
@@ -213,9 +219,13 @@ CHỈ TRẢ VỀ CHUỖI JSON HỢP LỆ.
 
         return result
 
-    except Exception:
+    except json.JSONDecodeError:
+        logger.error("AI trả về JSON không hợp lệ.")
+        return JSONResponse(status_code=500, content={"error": "AI trả về dữ liệu lỗi. Vui lòng thử lại với prompt ngắn hơn."})
+    except Exception as e:
         logger.exception("Lỗi trong /evaluate")
-        return JSONResponse(status_code=500, content=GENERIC_ERROR)
+        # Trả về chi tiết lỗi để người dùng biết
+        return JSONResponse(status_code=500, content={"error": f"Lỗi xử lý: {str(e)[:100]}"})
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=int(os.environ.get("PORT", 8000)))
