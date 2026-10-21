@@ -17,24 +17,19 @@ from slowapi.errors import RateLimitExceeded
 import rules_v38
 from validator import validate_full_report, calculate_final_score
 
-# Cấu hình logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger("prompt-evaluator")
 
-# Hằng số
 MAX_PROMPT_LENGTH = 5000
 RATE_LIMIT = "20/minute"
 GENERIC_ERROR = {"error": "Hệ thống đang bận, vui lòng thử lại sau."}
 
-# ==========================================
-# [BẢO MẬT P0] BẮT BUỘC PHẢI CÓ BIẾN MÔI TRƯỜNG
-# ==========================================
 ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD")
 ADMIN_SECRET_TOKEN = os.environ.get("ADMIN_SECRET_TOKEN")
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
 
 if not ADMIN_PASSWORD or not ADMIN_SECRET_TOKEN:
-    raise RuntimeError("LỖI BẢO MẬT: Thiếu ADMIN_PASSWORD hoặc ADMIN_SECRET_TOKEN trong biến môi trường Render.")
+    raise RuntimeError("LỖI BẢO MẬT: Thiếu ADMIN_PASSWORD hoặc ADMIN_SECRET_TOKEN.")
 if not GROQ_API_KEY:
     raise RuntimeError("LỖI CẤU HÌNH: Thiếu GROQ_API_KEY.")
 
@@ -44,7 +39,6 @@ DEFAULT_ORIGINS = ["https://thandanh83-sys.github.io"]
 env_origins = os.environ.get("ALLOWED_ORIGINS", "")
 ALLOWED_ORIGINS = [o.strip() for o in env_origins.split(",") if o.strip()] or DEFAULT_ORIGINS
 
-# Hàm lấy IP (Chấp nhận rủi ro X-Forwarded-For cho app cá nhân)
 def get_client_ip(request: Request) -> str:
     forwarded = request.headers.get("x-forwarded-for")
     if forwarded:
@@ -78,9 +72,6 @@ supabase_url = os.environ.get("SUPABASE_URL", "")
 supabase_key = os.environ.get("SUPABASE_KEY", "")
 supabase: Client = create_client(supabase_url, supabase_key) if supabase_url and supabase_key else None
 
-# ==========================================
-# [BẢO MẬT P0] CHỐNG PROMPT INJECTION
-# ==========================================
 def call_llm(system_prompt: str, user_prompt: str, max_retries: int = 3) -> str:
     for attempt in range(max_retries):
         try:
@@ -88,7 +79,6 @@ def call_llm(system_prompt: str, user_prompt: str, max_retries: int = 3) -> str:
                 model="openai/gpt-oss-120b",
                 messages=[
                     {"role": "system", "content": system_prompt},
-                    # User prompt được tách biệt hoàn toàn, bọc trong thẻ XML an toàn
                     {"role": "user", "content": f"<prompt_can_cham>\n{user_prompt}\n</prompt_can_cham>"},
                 ],
                 response_format={"type": "json_object"},
@@ -104,11 +94,8 @@ def call_llm(system_prompt: str, user_prompt: str, max_retries: int = 3) -> str:
 @app.get("/")
 def read_root(): return {"status": "Backend đang chạy ổn định!"}
 
-# ==========================================
-# CÁC API XÁC THỰC & LỊCH SỬ
-# ==========================================
 @app.post("/login")
-@limiter.limit("5/minute") # Chống dò mật khẩu
+@limiter.limit("5/minute")
 def admin_login(request: Request, req: LoginRequest):
     if secrets.compare_digest(req.password, ADMIN_PASSWORD):
         return {"token": ADMIN_SECRET_TOKEN}
@@ -127,9 +114,6 @@ def get_history(token: str = Depends(api_key_header)):
         logger.error(f"Lỗi lấy lịch sử: {e}")
         raise HTTPException(status_code=500, detail="Lỗi máy chủ")
 
-# ==========================================
-# API ĐÁNH GIÁ PROMPT
-# ==========================================
 @app.post("/evaluate")
 @limiter.limit(RATE_LIMIT)
 def evaluate(request: Request, req: PromptRequest):
