@@ -135,11 +135,11 @@ def get_history(token: str = Depends(api_key_header)):
     if not supabase:
         return {"history": [], "message": "Supabase chưa được cấu hình"}
     try:
-        res = supabase.table("_codehistory").select("prompt, type, total_score, created_at, errors").order("created_at", desc=True).limit(100).execute()
+        res = supabase.table("history").select("prompt, type, total_score, created_at, errors").order("created_at", desc=True).limit(100).execute()
         return {"history": res.data}
     except Exception as e:
         logger.error(f"Lỗi lấy lịch sử: {e}")
-        raise HTTPException(status=500, detail="Lỗi máy chủ")
+        raise HTTPException(status_code=500, detail="Lỗi máy chủ")
 
 @app.post("/evaluate")
 @limiter.limit(RATE_LIMIT)
@@ -151,7 +151,7 @@ def evaluate(request: Request, req: PromptRequest):
     if len(prompt_text) > MAX_PROMPT_LENGTH:
         return JSONResponse(status_code=400, content={"error": f"Prompt vượt quá {MAX_PROMPT_LENGTH} ký tự."})
 
-    # TỰ ĐỘNG DỌN DẸP LỊCH SỬ CŨ HƠN 10 NGÀY
+    # Dọn dẹp lịch sử cũ hơn 10 ngày
     if supabase:
         try:
             ten_days_ago = (datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=10)).isoformat()
@@ -161,8 +161,13 @@ def evaluate(request: Request, req: PromptRequest):
             logger.warning(f"Lỗi khi dọn dẹp lịch sử: {e}")
 
     try:
-        content_type = rules_v38.classify_prompt(prompt_text)
-        criteria = rules_v38.get_criteria_by_type(content_type)
+        # 1. PHÂN LOẠI ĐA CHIỀU
+        classification = rules_v38.classify_prompt(prompt_text)
+        main_task = classification["main_task"]
+        techniques = classification["techniques"]
+        
+        # 2. LẤY CRITERIA GỘP (Main + Techniques)
+        criteria = rules_v38.get_criteria_by_type(classification)
         
         criteria_desc = ""
         for k, v in criteria.items():
@@ -204,7 +209,7 @@ CHỈ TRẢ VỀ CHUỖI JSON HỢP LỆ. KHÔNG THÊM BẤT KỲ VĂN BẢN NÀ
         ai_data = json.loads(raw_text)
 
         try:
-            validate_full_report(ai_data, content_type, prompt_text)
+            validate_full_report(ai_data, criteria, prompt_text)
         except ValueError as ve:
             logger.warning(f"Auto-Repair: {ve}")
             if "scores" not in ai_data or not isinstance(ai_data["scores"], dict): ai_data["scores"] = {}
@@ -220,19 +225,29 @@ CHỈ TRẢ VỀ CHUỖI JSON HỢP LỆ. KHÔNG THÊM BẤT KỲ VĂN BẢN NÀ
                         valid_errors.append(err)
             ai_data["errors"] = valid_errors
 
-        final_score = calculate_final_score(ai_data["scores"], content_type)
+        # 3. TÍNH ĐIỂM VỚI CRITERIA MỚI
+        final_score = calculate_final_score(ai_data["scores"], criteria)
 
+        # 4. TRẢ KẾT QUẢ (Kèm theo mảng techniques)
         result = {
-            "prompt": prompt_text, "type": content_type, "total": final_score,
-            "details": {criteria[k]["name"]: v for k, v in ai_data["scores"].items()},
-            "errors": ai_data.get("errors", []), "rewrite": ai_data["rewrite"],
+            "prompt": prompt_text, 
+            "type": main_task, 
+            "techniques": techniques, # Gửi mảng kỹ thuật về cho Frontend
+            "total": final_score,
+            "details": {criteria[k]["name"]: v for k, v in ai_data["scores"].items() if k in criteria},
+            "errors": ai_data.get("errors", []), 
+            "rewrite": ai_data["rewrite"],
         }
 
         if supabase:
             try:
                 supabase.table("history").insert({
-                    "prompt": prompt_text, "type": content_type, "total_score": final_score,
-                    "details": result["details"], "errors": result["errors"], "rewrite": result["rewrite"],
+                    "prompt": prompt_text, 
+                    "type": main_task, 
+                    "total_score": final_score,
+                    "details": result["details"], 
+                    "errors": result["errors"], 
+                    "rewrite": result["rewrite"],
                 }).execute()
             except Exception as e:
                 logger.error(f"Lỗi lưu Supabase: {e}")
