@@ -4,3 +4,4 @@ pydantic
 groq
 supabase
 slowapi
+google-generativeai
