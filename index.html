@@ -35,10 +35,9 @@
         </button>
     </div>
 
-    <!-- Đã tăng khoảng cách phía trên (pt-20) để không bị đè -->
     <div class="max-w-xl mx-auto pt-20 px-4 pb-24">
         
-        <!-- HEADER: Thêm px-8 để chữ tự động xuống dòng tránh nút bấm -->
+        <!-- HEADER -->
         <div class="text-center mb-6 px-8">
             <h1 class="text-2xl md:text-3xl font-extrabold mb-2 flex flex-col md:flex-row items-center justify-center gap-1 md:gap-2 leading-tight">
                 <span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-blue-500">✨ Trợ lý tối ưu hoá Prompt</span>
@@ -53,7 +52,6 @@
                 <div class="relative">
                     <textarea id="promptInput" maxlength="5000" class="w-full h-28 p-3 pb-8 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700/50 focus:outline-none focus:ring-1 focus:ring-pink-500 focus:border-pink-500 resize-none text-slate-800 dark:text-slate-100 placeholder-slate-400 text-sm transition-all" placeholder="Mô tả điều bạn muốn AI thực hiện..."></textarea>
                     
-                    <!-- Thanh công cụ nhỏ dưới ô nhập -->
                     <div class="absolute bottom-2 right-3 flex items-center gap-3">
                         <span id="charCount" class="text-[11px] font-medium text-slate-400">0/5000</span>
                         <button id="btnClearInput" class="hidden text-slate-400 hover:text-red-500 transition-colors" title="Xóa nội dung">
@@ -64,17 +62,15 @@
                 
                 <p id="errorMsg" class="text-red-500 text-xs mt-2 font-medium" style="display: none;">Vui lòng nhập prompt!</p>
                 
-                <!-- Nút Đánh giá -->
                 <button id="btnEvaluate" class="w-full mt-3 py-3 rounded-xl font-bold bg-gradient-to-r from-pink-500 to-blue-500 text-white shadow-md btn-glow disabled:opacity-50 disabled:shadow-none disabled:transform-none transition-all text-sm flex items-center justify-center gap-2">
                     <span id="btnText">Đánh giá & Viết lại</span>
                     <svg id="loadingSpinner" class="hidden animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                 </button>
             </div>
 
-            <!-- KHU VỰC KẾT QUẢ (Mặc định ẩn) -->
+            <!-- KHU VỰC KẾT QUẢ -->
             <div id="resultArea" class="mt-4 space-y-4" style="display: none;">
-                
-                <!-- 1. Thẻ Điểm tổng & Phân loại -->
+                <!-- 1. Điểm tổng -->
                 <div class="glass-card bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/50 shadow-sm rounded-2xl p-5 flex justify-between items-center relative overflow-hidden">
                     <div class="flex flex-col w-1/2">
                         <p class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1">Điểm tổng</p>
@@ -82,19 +78,17 @@
                             <span id="totalScore" class="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-blue-500">0.0</span>
                             <span class="text-sm font-bold text-slate-400 ml-1">/ 10</span>
                         </div>
-                        <!-- Thanh tiến trình mảnh -->
                         <div class="w-full bg-slate-100 dark:bg-slate-700 h-1.5 rounded-full mt-3">
                             <div id="scoreBar" class="h-1.5 rounded-full bg-gradient-to-r from-pink-500 to-blue-500 transition-all duration-1000" style="width: 0%"></div>
                         </div>
                     </div>
                     <div class="flex flex-col items-end justify-center w-1/2">
                         <p class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2">Phân loại</p>
-                        <!-- Nhãn phân loại đổi màu linh hoạt -->
                         <span id="promptType" class="px-4 py-1.5 rounded-full text-xs font-bold text-white shadow-sm bg-blue-500">PROMPT</span>
                     </div>
                 </div>
 
-                <!-- 2. Danh sách lỗi -->
+                <!-- 2. Lỗi -->
                 <div class="glass-card bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/50 shadow-sm rounded-2xl p-5">
                     <h3 class="font-bold text-sm mb-3 text-slate-800 dark:text-slate-200 flex items-center gap-2">
                         <span class="w-2 h-2 rounded-full bg-red-500"></span> Lỗi cần khắc phục
@@ -102,7 +96,7 @@
                     <ul id="userErrorList" class="space-y-3 text-sm text-slate-700 dark:text-slate-300"></ul>
                 </div>
 
-                <!-- 3. Điểm từng tiêu chí -->
+                <!-- 3. Chi tiết điểm -->
                 <div class="glass-card bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/50 shadow-sm rounded-2xl p-5">
                     <h3 class="font-bold text-sm mb-4 text-slate-800 dark:text-slate-200 flex items-center gap-2">
                         <span class="w-2 h-2 rounded-full bg-blue-500"></span> Chi tiết điểm
@@ -168,11 +162,14 @@
         </div>
     </div>
 
-<!-- POPUP HƯỚNG DẪN -->
-<div id="instructionModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-opacity duration-300">
-    <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-sm p-6 relative transform transition-transform duration-300 scale-100">
-        <button id="closeModalBtn" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 bg-slate-100 dark:bg-slate-700 w-8 h-8 rounded-full flex items-center justify-center transition">✕</button>
+<!-- POPUP HƯỚNG DẪN (Đã sửa lỗi đơ bằng cách dùng onclick trực tiếp) -->
+<div id="instructionModal" class="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-opacity duration-300">
+    <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-sm p-6 relative">
+        <!-- Nút X có onclick trực tiếp -->
+        <button type="button" onclick="closeModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 bg-slate-100 dark:bg-slate-700 w-8 h-8 rounded-full flex items-center justify-center transition">✕</button>
+        
         <h2 class="text-xl font-bold text-center mb-5 text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-blue-500">Hướng dẫn sử dụng</h2>
+        
         <div class="space-y-4 mb-6">
             <div class="flex items-start gap-3">
                 <div class="w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 font-bold flex items-center justify-center shrink-0 text-xs">1</div>
@@ -190,7 +187,9 @@
                 </div>
             </div>
         </div>
-        <button id="startAppBtn" class="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-pink-500 to-blue-500 text-white shadow-lg text-sm">Đã hiểu, Bắt đầu</button>
+        
+        <!-- Nút Bắt đầu có onclick trực tiếp -->
+        <button type="button" onclick="closeModal()" class="w-full py-3 rounded-xl font-bold bg-gradient-to-r from-pink-500 to-blue-500 text-white shadow-lg text-sm">Đã hiểu, Bắt đầu</button>
     </div>
 </div>
 
@@ -201,15 +200,25 @@
     let lastResult = null;
     let adminToken = null;
 
+    // HÀM ĐÓNG POPUP (Được gọi trực tiếp từ HTML)
+    function closeModal() {
+        const modal = $('instructionModal');
+        modal.style.opacity = '0';
+        modal.style.pointerEvents = 'none'; // Vô hiệu hóa click ngay lập tức để không bị đơ
+        setTimeout(() => { 
+            modal.style.display = 'none'; 
+        }, 300);
+    }
+
     const ERROR_NAMES = {
         "A01": "Lỗi chính tả", "A02": "Thiếu dấu câu", "A03": "Lặp lại",
         "B01": "Thiếu thành phần cấu trúc", "B02": "Mục không logic", "B03": "Sai phân cấp", "B04": "Chưa quy định định dạng",
         "C01": "Đối tượng chưa rõ", "C02": "Thiếu bối cảnh", "C03": "Yêu cầu chung chung", "C04": "Thiếu ví dụ",
-        "D01": "Mâu thuẫn nội bộ", "D02": "Yêu cầu bất khả thi", "D03": "Vai trò không ph').ù hợp",
-        "E01": "Trộstylen lĩnh vực", "E02": ".display === 'blockThuật ngữ không nhất quán", "E03": "Thiếu tính đặc thù"
+        "D01": "Mâu thuẫn nội bộ", "D02": "Yêu cầu bất khả thi", "D03": "Vai trò không phù hợp",
+        "E01": "Trộn lĩnh vực", "E02": "Thuật ngữ không nhất quán", "E03": "Thiếu tính đặc thù"
     };
 
-    // LOGIC FIX LỖI UX: Xử lý ô nhập liệu
+    // Xử lý ô nhập liệu
     const promptInput = $('promptInput');
     const charCount = $('charCount');
     const btnClearInput = $('btnClearInput');
@@ -218,12 +227,10 @@
         const len = promptInput.value.length;
         charCount.textContent = `${len}/5000`;
         
-        // Hiện/ẩn nút X xóa
         if (len > 0) btnClearInput.classList.remove('hidden');
         else btnClearInput.classList.add('hidden');
         
-        // FIX BUG: Nếu người dùng thay đổi nội dung, ẩn kết quả cũ đi để tránh hiểu nhầm
-        if ($('resultArea') {
+        if ($('resultArea').style.display === 'block') {
             $('resultArea').style.display = 'none';
         }
     });
@@ -235,15 +242,6 @@
         $('resultArea').style.display = 'none';
         promptInput.focus();
     });
-
-    // POPUP
-    const instructionModal = $('instructionModal');
-    function closeInstructionModal() {
-        instructionModal.style.opacity = '0';
-        setTimeout(() => { instructionModal.style.display = 'none'; }, 300);
-    }
-    $('closeModalBtn').addEventListener('click', closeInstructionModal);
-    $('startAppBtn').addEventListener('click', closeInstructionModal);
 
     // THEME
     function applyTheme(dark) {
@@ -284,7 +282,6 @@
     function render(r) {
         $('totalScore').textContent = r.total;
         
-        // Hiệu ứng thanh tiến trình chạy mượt
         setTimeout(() => {
             $('scoreBar').style.width = `${r.total * 10}%`;
         }, 100);
@@ -322,9 +319,8 @@
                 let evidenceText = "";
                 if (err.evidence && err.evidence !== "Toàn bộ" && err.evidence !== "Toàn bộ prompt") { evidenceText = `"${err.evidence}"`; }
                 
-                // Cải thiện gợi ý sửa lỗi
                 let suggestion = "Hãy bổ sung thêm thông tin chi tiết.";
-                let severity = "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"; // Mặc định Trung bình
+                let severity = "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400";
                 let severityText = "Trung bình";
 
                 if (errName.includes("bối cảnh")) { suggestion = "Thêm hoàn cảnh, mục đích sử dụng cụ thể."; severity = "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"; severityText = "Nghiêm trọng"; }
@@ -371,8 +367,6 @@
     // ĐÁNH GIÁ
     $('btnEvaluate').addEventListener('click', async () => {
         const prompt = $('promptInput').value.trim();
-        
-        // Ẩn kết quả cũ trước khi bắt đầu
         $('resultArea').style.display = 'none'; 
 
         if (!prompt) { 
@@ -399,7 +393,6 @@
         try {
             lastResult = await evaluatePrompt(prompt);
             render(lastResult);
-            // Cuộn nhẹ xuống phần kết quả
             setTimeout(() => {
                 $('resultArea').scrollIntoView({ behavior: 'smooth', block: 'start' });
             }, 100);
