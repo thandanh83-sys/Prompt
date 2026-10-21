@@ -6,6 +6,8 @@
     <title>Trợ lý tối ưu hoá Prompt</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><defs><linearGradient id=%22g%22 x1=%220%%22 y1=%220%%22 x2=%22100%%22 y2=%22100%%22><stop offset=%220%%22 stop-color=%22%23ec4899%22/><stop offset=%22100%%22 stop-color=%22%233b82f6%22/></linearGradient></defs><rect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22url(%23g)%22/><text x=%2250%22 y=%2272%22 font-size=%2260%22 font-family=%22Arial,sans-serif%22 font-weight=%22bold%22 fill=%22white%22 text-anchor=%22middle%22>P</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Thư viện Chart.js để vẽ biểu đồ -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script> tailwind.config = { darkMode: 'class' } </script>
     <style>
         body { -webkit-tap-highlight-color: transparent; overflow-x: hidden; }
@@ -18,15 +20,10 @@
         .btn-glow:hover { box-shadow: 0 6px 20px rgba(59, 130, 246, 0.5); transform: translateY(-1px); }
         
         .sticky-header {
-            position: sticky;
-            top: 0;
-            z-index: 50;
-            background-color: rgba(248, 250, 252, 0.8);
-            backdrop-filter: blur(8px);
+            position: sticky; top: 0; z-index: 50;
+            background-color: rgba(248, 250, 252, 0.8); backdrop-filter: blur(8px);
         }
-        .dark .sticky-header {
-            background-color: rgba(15, 23, 42, 0.8);
-        }
+        .dark .sticky-header { background-color: rgba(15, 23, 42, 0.8); }
     </style>
 </head>
 <body class="antialiased min-h-screen relative text-slate-800 dark:text-slate-100 transition-colors duration-300 bg-slate-50 dark:bg-slate-900 dark-glow flex flex-col">
@@ -41,10 +38,8 @@
         </button>
     </div>
 
-    <!-- NỘI DUNG CHÍNH -->
     <div class="content-wrapper max-w-xl w-full mx-auto px-5 pt-8 pb-32 flex-grow flex flex-col" id="mainContainer">
         
-        <!-- HEADER TITLE -->
         <div class="text-center mb-8">
             <h1 class="text-2xl md:text-3xl font-extrabold mb-3 leading-tight">
                 <span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-blue-500">✨ Trợ lý tối ưu hoá Prompt</span>
@@ -56,7 +51,6 @@
 
         <!-- USER MODE -->
         <div id="userModeSection">
-            <!-- Thẻ nhập liệu -->
             <div class="glass-card bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/50 shadow-sm rounded-3xl p-5">
                 <div class="relative">
                     <textarea id="promptInput" maxlength="5000" class="w-full h-36 p-4 pb-10 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700/50 focus:outline-none focus:ring-1 focus:ring-pink-500 focus:border-pink-500 resize-none text-slate-800 dark:text-slate-100 placeholder-slate-400 text-sm transition-all" placeholder="Mô tả điều bạn muốn AI thực hiện..."></textarea>
@@ -69,21 +63,17 @@
                     </div>
                 </div>
 
-                <!-- CẢNH BÁO DÀI -->
                 <p id="longPromptWarning" class="text-yellow-500 text-xs mt-2 font-medium" style="display: none;">⚠️ Prompt của bạn khá dài, AI có thể mất 30-60 giây để xử lý. Vui lòng đợi!</p>
-                
                 <p id="errorMsg" class="text-red-500 text-xs mt-2 font-medium" style="display: none;">Vui lòng nhập prompt!</p>
                 
-                <button id="btnEvaluate" class="w-full mt-4 py-3.5 rounded-2xl font-bold bg-gradient-to-r from-pink-500 to-blue-500 text-white shadow-md btn-glow disabled:opacity-50 disabled:shadow-none disabled:transform-none transition-all text-sm flex items-center justify-center gap-2">
+                <button id="btnEvaluate"042 class="w-full mt-4 py- 3.5 rounded-2xl font-bold1 bg-gradient-to.-r from135-pink-500 to-blue-500 text-white shadow-md btn-glow disabled:opacity-50 disabled:shadow-none disabled:transform-none transition-all text-sm flex items-center justify-center gap-2">
                     <span id="btnText">Đánh giá & Viết lại</span>
-                    <svg id="loadingSpinner" class="hidden animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                    <svg id="loadingSpinner" class="hidden animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3. 5.824 3 7.938l3-2.647z"></path></svg>
                 </button>
             </div>
 
-            <!-- KHU VỰC KẾT QUẢ -->
+            <!-- KẾT QUẢ ĐÁNH GIÁ -->
             <div id="resultArea" class="mt-8 space-y-5" style="display: none;">
-                
-                <!-- 1. Thẻ Điểm tổng -->
                 <div class="glass-card bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/50 shadow-sm rounded-3xl p-6 flex justify-between items-center relative overflow-hidden">
                     <div class="flex flex-col w-1/2">
                         <p class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1">Điểm tổng</p>
@@ -101,7 +91,6 @@
                     </div>
                 </div>
 
-                <!-- 2. ĐIỂM SÁNG -->
                 <div id="strengthsCard" class="glass-card bg-green-50/50 dark:bg-green-900/10 border border-green-200 dark:border-green-800/30 shadow-sm rounded-3xl p-6" style="display: none;">
                     <h3 class="font-bold text-sm mb-3 text-green-700 dark:text-green-400 flex items-center gap-2">
                         <span class="text-lg">🌟</span> Điểm sáng của bạn
@@ -109,7 +98,6 @@
                     <ul id="strengthsList" class="space-y-2 text-sm text-slate-700 dark:text-slate-300 list-disc pl-4"></ul>
                 </div>
 
-                <!-- 3. Lỗi & Gợi ý -->
                 <div class="glass-card bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/50 shadow-sm rounded-3xl p-6">
                     <h3 class="font-bold text-sm mb-4 text-slate-800 dark:text-slate-200 flex items-center gap-2">
                         <span class="w-2 h-2 rounded-full bg-red-500"></span> Điểm nên luyện thêm
@@ -117,7 +105,6 @@
                     <ul id="userErrorList" class="space-y-3 text-sm text-slate-700 dark:text-slate-300"></ul>
                 </div>
 
-                <!-- 4. Chi tiết điểm -->
                 <div class="glass-card bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/50 shadow-sm rounded-3xl p-6">
                     <h3 class="font-bold text-sm mb-5 text-slate-800 dark:text-slate-200 flex items-center gap-2">
                         <span class="w-2 h-2 rounded-full bg-blue-500"></span> Chi tiết điểm
@@ -125,7 +112,6 @@
                     <div id="criteriaList" class="grid grid-cols-2 gap-x-4 gap-y-4"></div>
                 </div>
 
-                <!-- 5. Bản sửa -->
                 <div class="glass-card bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/50 shadow-sm rounded-3xl overflow-hidden">
                     <div class="flex justify-between items-center px-5 py-3 border-b border-slate-200 dark:border-slate-700/50 bg-slate-50 dark:bg-slate-900/40">
                         <h3 class="font-bold text-sm text-slate-800 dark:text-slate-200 flex items-center gap-2">
@@ -157,10 +143,23 @@
                 <button id="btnAdminLogin" class="w-full py-3.5 rounded-xl font-bold bg-indigo-600 text-white shadow-sm hover:bg-indigo-700 transition text-sm">Đăng nhập</button>
             </div>
 
-            <div id="adminDashboard" class="glass-card bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/50 shadow-sm rounded-3xl p-5 space-y-4 mt-6" style="display: none;">
-                <h3 class="font-bold text-base border-b border-slate-200 dark:border-slate-700 pb-3 text-slate-800 dark:text-slate-200">🔧 Lịch sử hệ thống</h3>
+            <div id="adminDashboard" class="glass-card bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/50 shadow-sm rounded-3xl p-5 space-y-6 mt-6" style="display: none;">
+                <h3 class="font-bold text-base border-b border-slate-200 dark:border-slate-700 pb-3 text-slate-800 dark:text-slate-200">📊 DASHBOARD THỐNG KÊ</h3>
                 
-                <div class="overflow-x-auto">
+                <!-- KHU VỰC BIỂU ĐỒ -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-2xl border border-slate-200 dark:border-slate-700">
+                        <p class="text-xs font-bold text-slate-500 mb-2 text-center">Top Lỗi Phổ Biến</p>
+                        <div class="h-48 w-full flex justify-center"><canvas id="errorChart"></canvas></div>
+                    </div>
+                    <div class="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-2xl border border-slate-200 dark:border-slate-700">
+                        <p class="text-xs font-bold text-slate-500 mb-2 text-center">Phân Bố Điểm Số</p>
+                        <div class="h-48 w-full flex justify-center"><canvas id="scoreChart"></canvas></div>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto mt-4">
+                    <p class="text-xs text-slate-500 uppercase font-bold mb-2">Lịch sử chi tiết (50 gần nhất):</p>
                     <table class="w-full text-xs text-left">
                         <thead class="text-[10px] text-slate-400 uppercase bg-slate-50 dark:bg-slate-900/50">
                             <tr>
@@ -201,10 +200,7 @@
             </div>
             <div class="flex items-start gap-3">
                 <div class="w-6 h-6 rounded-full bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-400 font-bold flex items-center justify-center shrink-0 text-xs">3</div>
-                <div>
-                    <p class="font-bold text-sm text-slate-800 dark:text-slate-200">Copy & Sử dụng</p>
-                    <p class="text-xs text-slate-500 mt-0.5">Dán Prompt vào ChatGPT/Claude</p>
-                </div>
+                <div><p class="font-bold text-sm text-slate-800 dark:text-slate-200">Copy & Sử dụng</p><p class="text-xs text-slate-500 mt-0.5">Dán Prompt vào ChatGPT/Claude</p></div>
             </div>
         </div>
         
@@ -213,11 +209,14 @@
 </div>
 
 <script>
+    // LƯU Ý: Đảm bảo API_URL trỏ đúng đến link Render của bạn
     const API_URL = "https://prompt-tx2e.onrender.com"; 
     const SECTION_NAMES = ["1. VAI TRÒ", "2. BỐI CẢNH", "3. INPUT", "4. MỤC TIÊU", "5. YÊU CẦU", "6. RÀNG BUỘC", "7. TASK", "8. ĐỊNH DẠNG ĐẦU RA", "9. NEVER DO", "10. THỨ TỰ ƯU TIÊN", "11. XỬ LÝ NỘI BỘ"];
     const $ = id => document.getElementById(id);
     let lastResult = null;
     let adminToken = null;
+    let chart1 = null; // Biến lưu biểu đồ lỗi
+    let chart2 = null; // Biến lưu biểu đồ điểm
 
     function closeModal() {
         const modal = $('instructionModal');
@@ -228,10 +227,10 @@
 
     const ERROR_NAMES = {
         "A01": "Lỗi chính tả", "A02": "Thiếu dấu câu", "A03": "Lặp lại",
-        "B01": "Thiếu thành phần cấu trúc", "B02": "Mục không logic", "B03": "Sai phân cấp", "B04": "Chưa quy định định dạng",
-        "C01": "Đối tượng chưa rõ", "C02": "Thiếu bối cảnh", "C03": "Yêu cầu chung chung", "C04": "Thiếu ví dụ",
-        "D01": "Mâu thuẫn nội bộ", "D02": "Yêu cầu bất khả thi", "D03": "Vai trò không phù hợp",
-        "E01": "Trộn lĩnh vực", "E02": "Thuật ngữ không nhất quán", "E03": "Thiếu tính đặc thù"
+        "B01": "Thiếu cấu trúc", "B02": "Mục không logic", "B03": "Sai phân cấp", "B04": "Chưa định dạng",
+        "C01": "Đối tượng chưa rõ", "C02": "Thiếu bối cảnh", "C03": "Chung chung", "C04": "Thiếu ví dụ",
+        "D01": "Mâu thuẫn", "D02": "Bất khả thi", "D03": "Vai trò sai",
+        "E01": "Trộn lĩnh vực", "E02": "Thuật ngữ lộn xộn", "E03": "Thiếu đặc thù"
     };
 
     const promptInput = $('promptInput');
@@ -242,35 +241,24 @@
     promptInput.addEventListener('input', () => {
         const len = promptInput.value.length;
         charCount.textContent = `${len}/5000`;
-        
-        if (len > 0) btnClearInput.classList.remove('hidden');
-        else btnClearInput.classList.add('hidden');
-
-        // Cảnh báo nếu prompt quá dài
-        if (len > 2000) {
-            longPromptWarning.style.display = 'block';
-        } else {
-            longPromptWarning.style.display = 'none';
-        }
-
-        if ($('resultArea').style.display === 'block') { 
-            $('resultArea').style.display = 'none'; 
-        }
+        if (len > 0) btnClearInput.classList.remove('hidden'); else btnClearInput.classList.add('hidden');
+        if (len > 2000) longPromptWarning.style.display = 'block'; else longPromptWarning.style.display = 'none';
+        if ($('resultArea').style.display === 'block') { $('resultArea').style.display = 'none'; }
     });
 
     btnClearInput.addEventListener('click', () => {
-        promptInput.value = '';
-        charCount.textContent = '0/5000';
-        btnClearInput.classList.add('hidden');
-        longPromptWarning.style.display = 'none';
-        $('resultArea').style.display = 'none';
-        promptInput.focus();
+        promptInput.value = ''; charCount.textContent = '0/5000'; btnClearInput.classList.add('hidden');
+        longPromptWarning.style.display = 'none'; $('resultArea').style.display = 'none'; promptInput.focus();
     });
 
     function applyTheme(dark) {
         document.documentElement.classList.toggle('dark', dark);
         $('themeToggle').textContent = dark ? '☀️' : '🌙';
         try { localStorage.setItem('theme', dark ? 'dark' : 'light'); } catch (e) {}
+        // Nếu đang ở màn admin, vẽ lại biểu đồ để đổi màu chữ
+        if ($('adminDashboard').style.display === 'block' && chart1 && chart2) {
+            updateChartsTheme(dark);
+        }
     }
     (function initTheme() {
         let saved = null; try { saved = localStorage.getItem('theme'); } catch (e) {}
@@ -283,10 +271,8 @@
         const timeoutId = setTimeout(() => controller.abort(), 180000); 
         try {
             const response = await fetch(`${API_URL}/evaluate`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ prompt: prompt }),
-                signal: controller.signal
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ prompt: prompt }), signal: controller.signal
             });
             clearTimeout(timeoutId);
             const data = await response.json();
@@ -312,68 +298,37 @@
         pType.textContent = mappedType;
         pType.className = `px-4 py-1.5 rounded-full text-xs font-bold text-white shadow-sm ${typeColors[mappedType] || 'bg-slate-500'}`;
 
-        const strengthsCard = $('strengthsCard');
-        const strengthsList = $('strengthsList');
-        strengthsList.replaceChildren();
-        let hasStrength = false;
-        
+        const strengthsCard = $('strengthsCard'); const strengthsList = $('strengthsList');
+        strengthsList.replaceChildren(); let hasStrength = false;
         Object.entries(r.details).forEach(([name, score]) => {
             if (score >= 7) { 
                 hasStrength = true;
-                const li = document.createElement('li');
-                li.innerHTML = `Bạn đã làm rất tốt tiêu chí <strong>${name}</strong> (đạt ${score}/10).`;
+                const li = document.createElement('li'); li.innerHTML = `Bạn đã làm rất tốt tiêu chí <strong>${name}</strong> (đạt ${score}/10).`;
                 strengthsList.appendChild(li);
             }
         });
-        
-        if (hasStrength) { strengthsCard.style.display = 'block'; } 
-        else { strengthsCard.style.display = 'none'; }
+        if (hasStrength) { strengthsCard.style.display = 'block'; } else { strengthsCard.style.display = 'none'; }
 
-        const list = $('criteriaList'); 
-        list.replaceChildren();
+        const list = $('criteriaList'); list.replaceChildren();
         Object.entries(r.details).forEach(([name, score]) => {
             const row = document.createElement('div');
-            const headerDiv = document.createElement('div'); 
-            headerDiv.className = 'flex justify-between items-start mb-1.5';
-            
-            const spanName = document.createElement('span'); 
-            spanName.className = 'text-[10px] font-semibold text-slate-600 dark:text-slate-400 leading-tight pr-1 line-clamp-2'; 
-            spanName.title = name; 
-            spanName.textContent = name;
-            
-            const spanScore = document.createElement('span'); 
-            spanScore.className = 'text-xs font-bold text-slate-800 dark:text-slate-200 whitespace-nowrap'; 
-            spanScore.textContent = `${score}`;
-            
-            headerDiv.appendChild(spanName); 
-            headerDiv.appendChild(spanScore);
-            
-            const barBg = document.createElement('div'); 
-            barBg.className = 'w-full bg-slate-100 dark:bg-slate-700/50 rounded-full h-1.5';
-            const barFill = document.createElement('div'); 
-            barFill.className = `h-1.5 rounded-full bg-gradient-to-r from-pink-500 to-blue-500`; 
-            barFill.style.width = `${score * 10}%`;
-            
-            barBg.appendChild(barFill); 
-            row.appendChild(headerDiv); 
-            row.appendChild(barBg); 
-            list.appendChild(row);
+            const headerDiv = document.createElement('div'); headerDiv.className = 'flex justify-between items-start mb-1.5';
+            const spanName = document.createElement('span'); spanName.className = 'text-[10px] font-semibold text-slate-600 dark:text-slate-400 leading-tight pr-1 line-clamp-2'; spanName.title = name; spanName.textContent = name;
+            const spanScore = document.createElement('span'); spanScore.className = 'text-xs font-bold text-slate-800 dark:text-slate-200 whitespace-nowrap'; spanScore.textContent = `${score}`;
+            headerDiv.appendChild(spanName); headerDiv.appendChild(spanScore);
+            const barBg = document.createElement('div'); barBg.className = 'w-full bg-slate-100 dark:bg-slate-700/50 rounded-full h-1.5';
+            const barFill = document.createElement('div'); barFill.className = `h-1.5 rounded-full bg-gradient-to-r from-pink-500 to-blue-500`; barFill.style.width = `${score * 10}%`;
+            barBg.appendChild(barFill); row.appendChild(headerDiv); row.appendChild(barBg); list.appendChild(row);
         });
 
-        const userErrList = $('userErrorList');
-        userErrList.replaceChildren();
+        const userErrList = $('userErrorList'); userErrList.replaceChildren();
         if (r.errors && r.errors.length > 0) {
             r.errors.forEach(err => {
                 const errName = ERROR_NAMES[err.code] || "Lỗi không xác định";
                 let evidenceText = "";
-                if (err.evidence && err.evidence !== "Toàn bộ" && err.evidence !== "Toàn bộ prompt" && err.evidence !== errName) { 
-                    evidenceText = `"${err.evidence}"`; 
-                }
-                
+                if (err.evidence && err.evidence !== "Toàn bộ" && err.evidence !== "Toàn bộ prompt" && err.evidence !== errName) { evidenceText = `"${err.evidence}"`; }
                 let suggestion = "Hãy bổ sung thêm thông tin chi tiết.";
-                let severity = "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400";
-                let severityText = "Trung bình";
-
+                let severity = "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"; let severityText = "Trung bình";
                 if (errName.includes("bối cảnh")) { suggestion = "Bạn đã nêu rõ hoàn cảnh, mục đích sử dụng chưa?"; severity = "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"; severityText = "Nghiêm trọng"; }
                 else if (errName.includes("đối tượng")) { suggestion = "Người, vật hoặc dữ liệu đầu vào đã được chỉ định rõ ràng chưa?"; severity = "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"; severityText = "Nghiêm trọng"; }
                 else if (errName.includes("chính tả") || errName.includes("dấu câu")) { suggestion = "Bạn hãy kiểm tra lại lỗi gõ phím, ngữ pháp xem sao."; severity = "bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300"; severityText = "Thấp"; }
@@ -385,7 +340,6 @@
                 const pName = document.createElement('p'); pName.className = 'text-slate-800 dark:text-slate-200 font-bold text-xs'; pName.textContent = errName;
                 const spanSev = document.createElement('span'); spanSev.className = `text-[10px] px-2 py-0.5 rounded-md font-bold ${severity}`; spanSev.textContent = severityText;
                 headerDiv.appendChild(pName); headerDiv.appendChild(spanSev);
-
                 const pDetail = document.createElement('p'); pDetail.className = 'text-[11px] text-slate-500 dark:text-slate-400 mt-1.5 leading-relaxed';
                 if (evidenceText) {
                     pDetail.appendChild(document.createTextNode('Trích dẫn: '));
@@ -393,78 +347,44 @@
                     pDetail.appendChild(italic); pDetail.appendChild(document.createElement('br'));
                 }
                 const suggestionSpan = document.createElement('span'); suggestionSpan.className = 'text-blue-600 dark:text-blue-400 font-medium inline-block mt-1.5'; suggestionSpan.textContent = `💡 Gợi ý tư duy: ${suggestion}`;
-                pDetail.appendChild(suggestionSpan);
-                
-                li.appendChild(headerDiv); li.appendChild(pDetail); userErrList.appendChild(li);
+                pDetail.appendChild(suggestionSpan); li.appendChild(headerDiv); li.appendChild(pDetail); userErrList.appendChild(li);
             });
         } else {
             const li = document.createElement('li'); li.className = 'text-green-600 dark:text-green-400 text-xs font-semibold p-3.5 bg-green-50 dark:bg-green-900/20 rounded-xl'; li.textContent = 'Tuyệt vời! Không phát hiện lỗi nào.'; userErrList.appendChild(li);
         }
 
-        const rw = $('rewriteList'); 
-        rw.replaceChildren();
+        const rw = $('rewriteList'); rw.replaceChildren();
         SECTION_NAMES.forEach(sec => {
-            const item = document.createElement('div');
-            item.className = 'mb-4 last:mb-0'; 
-            const pTitle = document.createElement('p'); 
-            pTitle.className = 'font-bold text-pink-500 mb-1 text-[11px] uppercase tracking-wider'; 
-            pTitle.textContent = sec;
-            const pContent = document.createElement('p'); 
-            pContent.className = 'text-slate-700 dark:text-slate-300 break-words pre-wrap text-sm leading-relaxed';
-            pContent.textContent = r.rewrite[sec] || '';
+            const item = document.createElement('div'); item.className = 'mb-4 last:mb-0'; 
+            const pTitle = document.createElement('p'); pTitle.className = 'font-bold text-pink-500 mb-1 text-[11px] uppercase tracking-wider'; pTitle.textContent = sec;
+            const pContent = document.createElement('p'); pContent.className = 'text-slate-700 dark:text-slate-300 break-words pre-wrap text-sm leading-relaxed'; pContent.textContent = r.rewrite[sec] || '';
             item.appendChild(pTitle); item.appendChild(pContent); rw.appendChild(item);
         });
-        
         $('resultArea').style.display = 'block';
     }
 
     $('btnEvaluate').addEventListener('click', async () => {
         const prompt = $('promptInput').value.trim();
         $('resultArea').style.display = 'none'; 
-
-        if (!prompt) { 
-            $('errorMsg').style.display = 'block'; 
-            $('promptInput').focus();
-            return; 
-        }
+        if (!prompt) { $('errorMsg').style.display = 'block'; $('promptInput').focus(); return; }
         $('errorMsg').style.display = 'none';
-        
-        const btn = $('btnEvaluate'); 
-        const btnText = $('btnText');
-        const spinner = $('loadingSpinner');
-        
-        btn.disabled = true; 
-        spinner.classList.remove('hidden');
-        
-        let seconds = 0; 
-        btnText.textContent = 'Đang kết nối (0s)...';
+        const btn = $('btnEvaluate'); const btnText = $('btnText'); const spinner = $('loadingSpinner');
+        btn.disabled = true; spinner.classList.remove('hidden');
+        let seconds = 0; btnText.textContent = 'Đang kết nối (0s)...';
         const timer = setInterval(() => {
             seconds++;
-            // Nếu prompt dài, báo AI đang đọc
-            if (seconds < 15) {
-                btnText.textContent = `Đang đợi Server (${seconds}s)...`;
-            } else if (prompt.length > 2000) {
-                btnText.textContent = `AI đang đọc prompt dài (${seconds}s)...`;
-            } else {
-                btnText.textContent = `AI đang xử lý (${seconds}s)...`;
-            }
+            if (seconds < 15) btnText.textContent = `Đang đợi Server (${seconds}s)...`;
+            else if (prompt.length > 2000) btnText.textContent = `AI đang đọc prompt dài (${seconds}s)...`;
+            else btnText.textContent = `AI đang xử lý (${seconds}s)...`;
         }, 1000);
-        
         try {
             lastResult = await evaluatePrompt(prompt);
             render(lastResult);
-            
-            setTimeout(() => {
-                $('resultArea').scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }, 100);
+            setTimeout(() => { $('resultArea').scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 100);
         } catch (e) {
-            $('errorMsg').textContent = e.message || "Đã xảy ra lỗi. Vui lòng thử lại!"; 
-            $('errorMsg').style.display = 'block';
+            $('errorMsg').textContent = e.message || "Đã xảy ra lỗi. Vui lòng thử lại!"; $('errorMsg').style.display = 'block';
         } finally {
-            clearInterval(timer); 
-            btn.disabled = false; 
-            spinner.classList.add('hidden');
-            btnText.textContent = 'Đánh giá & Viết lại';
+            clearInterval(timer); btn.disabled = false; spinner.classList.add('hidden'); btnText.textContent = 'Đánh giá & Viết lại';
         }
     });
 
@@ -487,20 +407,14 @@
     });
 
     $('adminToggleBtn').addEventListener('click', () => {
-        $('userModeSection').style.display = 'none'; 
-        $('adminModeSection').style.display = 'block';
+        $('userModeSection').style.display = 'none'; $('adminModeSection').style.display = 'block';
         $('adminToggleBtn').style.display = 'none'; 
     });
 
     function backToUserMode() {
-        $('userModeSection').style.display = 'block'; 
-        $('adminModeSection').style.display = 'none';
-        $('adminToggleBtn').style.display = 'flex'; 
-        $('adminLoginBox').style.display = 'block'; 
-        $('adminDashboard').style.display = 'none'; 
-        $('adminPassword').value = ''; 
-        $('adminError').style.display = 'none';
-        adminToken = null;
+        $('userModeSection').style.display = 'block'; $('adminModeSection').style.display = 'none';
+        $('adminToggleBtn').style.display = 'flex'; $('adminLoginBox').style.display = 'block'; $('adminDashboard').style.display = 'none'; 
+        $('adminPassword').value = ''; $('adminError').style.display = 'none'; adminToken = null;
     }
 
     $('btnBackToUser').addEventListener('click', backToUserMode);
@@ -512,50 +426,111 @@
     });
 
     $('btnAdminLogin').addEventListener('click', async () => {
-        const pwd = $('adminPassword').value.trim();
-        if (!pwd) return;
+        const pwd = $('adminPassword').value.trim(); if (!pwd) return;
         try {
-            const response = await fetch(`${API_URL}/login`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ password: pwd })
-            });
+            const response = await fetch(`${API_URL}/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: pwd }) });
             const data = await response.json();
             if (response.ok && data.token) {
-                adminToken = data.token;
-                $('adminLoginBox').style.display = 'none'; 
-                $('adminDashboard').style.display = 'block';
-                fetchHistory(); 
+                adminToken = data.token; $('adminLoginBox').style.display = 'none'; $('adminDashboard').style.display = 'block'; fetchHistory(); 
             } else {
-                $('adminError').style.display = 'block'; 
-                $('adminError').textContent = data.detail || data.error || "Sai mật khẩu.";
+                $('adminError').style.display = 'block'; $('adminError').textContent = data.detail || data.error || "Sai mật khẩu.";
             }
         } catch (e) {
-            $('adminError').style.display = 'block'; $('adminError').textContent = "Lỗi kết nối Server (Not Found).";
+            $('adminError').style.display = 'block'; $('adminError').textContent = "Lỗi kết nối Server.";
         }
     });
 
+    // HÀM VẼ LẠI BIỂU ĐỒ KHI ĐỔI THEME SÁNG/TỐI
+    function updateChartsTheme(isDark) {
+        const textColor = isDark ? '#94a3b8' : '#64748b';
+        [chart1, chart2].forEach(chart => {
+            if (chart) {
+                chart.options.plugins.legend.labels.color = textColor;
+                chart.options.scales.x.ticks.color = textColor;
+                chart.options.scales.y.ticks.color = textColor;
+                chart.update();
+            }
+        });
+    }
+
     async function fetchHistory() {
-        const tbody = $('adminHistoryList'); tbody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-slate-500 text-xs">Đang tải...</td></tr>';
+        const tbody = $('adminHistoryList'); 
+        tbody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-slate-500 text-xs">Đang tải...</td></tr>';
         try {
-            const response = await fetch(`${API_URL}/history`, {
-                method: 'GET',
-                headers: { 'X-Admin-Token': adminToken }
-            });
+            const response = await fetch(`${API_URL}/history`, { method: 'GET', headers: { 'X-Admin-Token': adminToken } });
             const data = await response.json();
             
             if (response.ok && data.history) {
                 tbody.replaceChildren();
-                if (data.history.length === 0) { tbody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-slate-500 text-xs">Trống.</td></tr>'; return; }
+                if (data.history.length === 0) { 
+                    tbody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-slate-500 text-xs">Trống.</td></tr>'; 
+                    return; 
+                }
                 
+                // XỬ LÝ DỮ LIỆU CHO BIỂU ĐỒ
+                let errorCounts = {};
+                let scoreDist = { '0-3': 0, '4-6': 0, '7-8': 0, '9-10': 0 };
+
                 data.history.forEach(item => {
-                    const tr = document.createElement('tr'); 
-                    tr.className = "border-b border-slate-100 dark:border-slate-700/50";
-                    
+                    if (item.errors && item.errors.length > 0) {
+                        item.errors.forEach(e => { errorCounts[e.code] = (errorCounts[e.code] || 0) + 1; });
+                    }
+                    let s = item.total_score;
+                    if (s <= 3) scoreDist['0-3']++; else if (s <= 6) scoreDist['4-6']++; else if (s <= 8) scoreDist['7-8']++; else scoreDist['9-10']++;
+                });
+
+                // VẼ BIỂU ĐỒ LỖI (Doughnut)
+                const errorLabels = Object.keys(errorCounts).map(code => ERROR_NAMES[code] || code);
+                const errorData = Object.values(errorCounts);
+                
+                if (chart1) chart1.destroy();
+                const ctx1 = $('errorChart').getContext('2d');
+                chart1 = new Chart(ctx1, {
+                    type: 'doughnut',
+                    data: {
+                        labels: errorLabels.length ? errorLabels : ['Không có lỗi'],
+                        datasets: [{
+                            data: errorData.length ? errorData : [1],
+                            backgroundColor: errorData.length ? ['#ef4444', '#f97316', '#eab308', '#3b82f6', '#8b5cf6'] : ['#22c55e'],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        plugins: { legend: { position: 'right', labels: { color: document.documentElement.classList.contains('dark') ? '#94a3b8' : '#64748b', font: {size: 10} } } }
+                    }
+                });
+
+                // VẼ BIỂU ĐỒ ĐIỂM (Bar)
+                if (chart2) chart2.destroy();
+                const ctx2 = $('scoreChart').getContext('2d');
+                chart2 = new Chart(ctx2, {
+                    type: 'bar',
+                    data: {
+                        labels: Object.keys(scoreDist),
+                        datasets: [{
+                            label: 'Số lượng',
+                            data: Object.values(scoreDist),
+                            backgroundColor: '#ec4899',
+                            borderRadius: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            x: { ticks: { color: document.documentElement.classList.contains('dark') ? '#94a3b8' : '#64748b', font: {size: 10} }, grid: {display: false} },
+                            y: { ticks: { color: document.documentElement.classList.contains('dark') ? '#94a3b8' : '#64748b', stepSize: 1 }, grid: {color: document.documentElement.classList.contains('dark') ? '#334155' : '#e2e8f0'} }
+                        }
+                    }
+                });
+
+                // ĐỔ DỮ LIỆU VÀO BẢNG
+                data.history.forEach(item => {
+                    const tr = document.createElement('tr'); tr.className = "border-b border-slate-100 dark:border-slate-700/50";
                     const tdTime = document.createElement('td'); tdTime.className = "px-2 py-2 whitespace-nowrap text-[10px] text-slate-500"; tdTime.textContent = new Date(item.created_at).toLocaleString('vi-VN', {hour: '2-digit', minute:'2-digit', day: '2-digit', month: '2-digit'});
                     const tdPrompt = document.createElement('td'); tdPrompt.className = "px-2 py-2 truncate max-w-[100px] text-slate-700 dark:text-slate-300 font-medium"; tdPrompt.title = item.prompt; tdPrompt.textContent = item.prompt;
                     const tdScore = document.createElement('td'); tdScore.className = "px-2 py-2 font-bold text-pink-500"; tdScore.textContent = item.total_score;
-                    
                     const tdErrors = document.createElement('td'); tdErrors.className = "px-2 py-2 font-semibold text-red-500";
                     if (item.errors && item.errors.length > 0) {
                         tdErrors.textContent = item.errors.map(e => e.code).join(', ');
@@ -563,9 +538,7 @@
                         tdErrors.textContent = "Sạch";
                         tdErrors.className = "px-2 py-2 font-semibold text-green-500";
                     }
-                    
-                    tr.appendChild(tdTime); tr.appendChild(tdPrompt); tr.appendChild(tdScore); tr.appendChild(tdErrors); 
-                    tbody.appendChild(tr);
+                    tr.appendChild(tdTime); tr.appendChild(tdPrompt); tr.appendChild(tdScore); tr.appendChild(tdErrors); tbody.appendChild(tr);
                 });
             }
         } catch (e) { tbody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-red-500 text-xs">Lỗi tải.</td></tr>'; }
