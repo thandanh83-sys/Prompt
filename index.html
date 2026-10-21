@@ -12,19 +12,22 @@
         body { -webkit-tap-highlight-color: transparent; overflow-x: hidden; }
         .glass-card { transition: all 0.3s ease; }
         .pre-wrap { white-space: pre-wrap; }
-        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
         .dark-glow { background: radial-gradient(circle at 50% 0%, rgba(236,72,153,0.15) 0%, transparent 60%); }
         .btn-glow { box-shadow: 0 4px 15px rgba(236, 72, 153, 0.3); }
         .btn-glow:hover { box-shadow: 0 6px 20px rgba(59, 130, 246, 0.5); transform: translateY(-1px); }
+        .stat-card { background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.01) 100%); border: 1px solid rgba(255,255,255,0.1); }
+        .dark .stat-card { background: linear-gradient(135deg, rgba(30,41,59,0.8) 0%, rgba(15,23,42,0.8) 100%); border: 1px solid rgba(51,65,85,0.5); }
     </style>
 </head>
 <body class="antialiased min-h-screen relative text-slate-800 dark:text-slate-100 transition-colors duration-300 bg-slate-50 dark:bg-slate-900 dark-glow flex flex-col">
 
-    <div class="fixed top-4 right-4 flex flex-col gap-2 z-[100]">
-        <!-- Nút Admin có ID để JS có thể ẩn/hiện -->
+    <!-- KHU VỰC NÚT NỔI -->
+    <div id="floatingButtons" class="fixed top-4 right-4 flex flex-col gap-2 z-50">
         <button id="adminToggleBtn" class="w-10 h-10 flex items-center justify-center rounded-full bg-white dark:bg-slate-800 shadow-md border border-slate-200 dark:border-slate-700 text-lg hover:scale-105 transition-transform" title="Quản trị viên" style="display: none;">
-            🙎‍♂️
+            🔐
         </button>
         <button id="themeToggle" class="w-10 h-10 flex items-center justify-center rounded-full bg-white dark:bg-slate-800 shadow-md border border-slate-200 dark:border-slate-700 text-lg hover:scale-105 transition-transform">
             🌙
@@ -66,7 +69,6 @@
             </div>
 
             <div id="resultArea" class="mt-8 space-y-5" style="display: none;">
-                
                 <div class="glass-card bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/50 shadow-sm rounded-3xl p-6 flex justify-between items-start relative overflow-hidden">
                     <div class="flex flex-col w-1/2 pt-1">
                         <p class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1">Điểm tổng</p>
@@ -123,7 +125,7 @@
             </div>
         </div>
 
-        <!-- ADMIN MODE -->
+        <!-- ADMIN MODE (ĐÃ ĐƯỢC NÂNG CẤP UI/UX) -->
         <div id="adminModeSection" style="display: none;">
             <div id="adminLoginBox" class="glass-card bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/50 shadow-sm rounded-3xl p-6 max-w-sm mx-auto text-center relative mt-4">
                 <button id="btnBackToUser" class="absolute top-5 left-5 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition text-xs font-semibold flex items-center gap-1">
@@ -138,51 +140,74 @@
                 <button id="btnAdminLogin" class="w-full py-3.5 rounded-xl font-bold bg-indigo-600 text-white shadow-sm hover:bg-indigo-700 transition text-sm">Đăng nhập</button>
             </div>
 
-            <div id="adminDashboard" class="glass-card bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/50 shadow-sm rounded-3xl p-5 space-y-6 mt-6" style="display: none;">
-                <h3 class="font-bold text-base border-b border-slate-200 dark:border-slate-700 pb-3 text-slate-800 dark:text-slate-200">📊 DASHBOARD THỐNG KÊ</h3>
+            <!-- DASHBOARD NÂNG CẤP -->
+            <div id="adminDashboard" class="space-y-5 mt-6" style="display: none;">
                 
+                <!-- Header Dashboard -->
+                <div class="flex justify-between items-end mb-2">
+                    <h3 class="font-bold text-xl text-slate-800 dark:text-slate-200">Tổng quan Hệ thống</h3>
+                    <button id="btnAdminLogout" class="text-xs font-semibold text-slate-500 hover:text-red-500 transition">Đăng xuất</button>
+                </div>
+
+                <!-- 3 Thẻ Thống kê (Stat Cards) -->
+                <div class="grid grid-cols-3 gap-3">
+                    <div class="stat-card rounded-2xl p-4 flex flex-col justify-center items-center text-center">
+                        <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Lượt đánh giá</p>
+                        <p id="statTotal" class="text-2xl font-extrabold text-blue-500">0</p>
+                    </div>
+                    <div class="stat-card rounded-2xl p-4 flex flex-col justify-center items-center text-center">
+                        <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Điểm TB</p>
+                        <p id="statAvg" class="text-2xl font-extrabold text-pink-500">0.0</p>
+                    </div>
+                    <div class="stat-card rounded-2xl p-4 flex flex-col justify-center items-center text-center">
+                        <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Prompt Sạch</p>
+                        <p id="statClean" class="text-2xl font-extrabold text-green-500">0%</p>
+                    </div>
+                </div>
+
+                <!-- Biểu đồ -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-2xl border border-slate-200 dark:border-slate-700">
-                        <p class="text-xs font-bold text-slate-500 mb-2 text-center">Top Lỗi Phổ Biến</p>
+                    <div class="stat-card rounded-2xl p-5">
+                        <p class="text-xs font-bold text-slate-500 mb-2 uppercase tracking-wide text-center">Top Lỗi Phổ Biến</p>
                         <div class="h-48 w-full flex justify-center"><canvas id="errorChart"></canvas></div>
                     </div>
-                    <div class="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-2xl border border-slate-200 dark:border-slate-700">
-                        <p class="text-xs font-bold text-slate-500 mb-2 text-center">Phân Bố Điểm Số</p>
+                    <div class="stat-card rounded-2xl p-5">
+                        <p class="text-xs font-bold text-slate-500 mb-2 uppercase tracking-wide text-center">Phân Bố Điểm Số</p>
                         <div class="h-48 w-full flex justify-center"><canvas id="scoreChart"></canvas></div>
                     </div>
                 </div>
 
-                <div class="overflow-x-auto mt-4">
-                    <p class="text-xs text-slate-500 uppercase font-bold mb-2">Lịch sử chi tiết:</p>
-                    <table class="w-full text-xs text-left">
-                        <thead class="text-[10px] text-slate-400 uppercase bg-slate-50 dark:bg-slate-900/50">
-                            <tr>
-                                <th class="px-2 py-2 rounded-l-lg font-semibold">Thời gian</th>
-                                <th class="px-2 py-2 font-semibold">Prompt</th>
-                                <th class="px-2 py-2 font-semibold">Điểm</th>
-                                <th class="px-2 py-2 rounded-r-lg font-semibold">Lỗi</th>
-                            </tr>
-                        </thead>
-                        <tbody id="adminHistoryList">
-                            <tr><td colspan="4" class="text-center py-4 text-slate-500">Đang tải...</td></tr>
-                        </tbody>
-                    </table>
+                <!-- Bảng Dữ liệu -->
+                <div class="stat-card rounded-2xl overflow-hidden">
+                    <div class="px-5 py-4 border-b border-slate-200 dark:border-slate-700/50 bg-slate-50/50 dark:bg-slate-800/30 flex justify-between items-center">
+                        <p class="text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wide">Lịch sử gần đây</p>
+                    </div>
+                    <div class="overflow-x-auto max-h-[400px] overflow-y-auto">
+                        <table class="w-full text-xs text-left relative">
+                            <thead class="text-[10px] text-slate-400 uppercase bg-slate-100 dark:bg-slate-900/80 sticky top-0 z-10 backdrop-blur-sm">
+                                <tr>
+                                    <th class="px-4 py-3 font-semibold">Thời gian</th>
+                                    <th class="px-4 py-3 font-semibold">Prompt</th>
+                                    <th class="px-4 py-3 font-semibold">Điểm</th>
+                                    <th class="px-4 py-3 font-semibold">Mã lỗi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminHistoryList">
+                                <tr><td colspan="4" class="text-center py-6 text-slate-500">Đang tải dữ liệu...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
 
-                <div class="pt-2">
-                    <button id="btnAdminLogout" class="w-full py-3 rounded-xl font-bold bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 transition text-sm text-slate-700 dark:text-slate-300">Đăng xuất</button>
-                </div>
             </div>
         </div>
     </div>
 
 <!-- POPUP HƯỚNG DẪN -->
-<div id="instructionModal" class="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-opacity duration-300">
+<div id="instructionModal" class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-opacity duration-300">
     <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-sm p-6 relative">
         <button type="button" onclick="closeModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 bg-slate-100 dark:bg-slate-700 w-8 h-8 rounded-full flex items-center justify-center transition">✕</button>
-        
-        <h2 class="text-xl font-bold text-center mb-6 text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-blue-500">Hướng dẫn sử dụng</h2>
-        
+        <h2 class="text-xl font-bold text-center mb-6 px-4 text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-blue-500">Hướng dẫn sử dụng</h2>
         <div class="space-y-5 mb-8">
             <div class="flex items-start gap-3">
                 <div class="w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 font-bold flex items-center justify-center shrink-0 text-xs">1</div>
@@ -197,7 +222,6 @@
                 <div><p class="font-bold text-sm text-slate-800 dark:text-slate-200">Copy & Sử dụng</p><p class="text-xs text-slate-500 mt-0.5">Dán Prompt vào ChatGPT/Claude</p></div>
             </div>
         </div>
-        
         <button type="button" onclick="closeModal()" class="w-full py-3.5 rounded-xl font-bold bg-gradient-to-r from-pink-500 to-blue-500 text-white shadow-lg text-sm">Đã hiểu, Bắt đầu</button>
     </div>
 </div>
@@ -211,15 +235,23 @@
     let chart1 = null;
     let chart2 = null;
 
-    // --- KIỂM TRA IP ĐỂ HIỆN NÚT ADMIN KHI TẢI TRANG ---
+    function closeModal() {
+        const modal = $('instructionModal');
+        modal.style.opacity = '0'; modal.style.pointerEvents = 'none';
+        $('floatingButtons').style.display = 'flex';
+        setTimeout(() => { modal.style.display = 'none'; }, 300);
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        $('floatingButtons').style.display = 'none';
+    });
+
     async function checkAdminAccess() {
         try {
             const res = await fetch(`${API_URL}/check_admin_ip`);
             if (res.ok) {
-                // Nếu Server trả về 200 OK -> IP hợp lệ -> Hiện nút
                 $('adminToggleBtn').style.display = 'flex';
             } else {
-                // Nếu bị chặn (403) -> Ẩn nút
                 $('adminToggleBtn').style.display = 'none';
             }
         } catch (e) {
@@ -228,12 +260,6 @@
         }
     }
     checkAdminAccess();
-
-    function closeModal() {
-        const modal = $('instructionModal');
-        modal.style.opacity = '0'; modal.style.pointerEvents = 'none';
-        setTimeout(() => { modal.style.display = 'none'; }, 300);
-    }
 
     const ERROR_NAMES = {
         "A01": "Lỗi chính tả", "A02": "Thiếu dấu câu", "A03": "Lặp lại",
@@ -278,12 +304,10 @@
         try {
             const response = await fetch(`${API_URL}/evaluate`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt: prompt }), signal: controller.signal });
             clearTimeout(timeoutId); 
-            
             if (!response.ok) {
                 const data = await response.json();
                 throw new Error(data.error || data.detail || `Lỗi HTTP: ${response.status}`);
             }
-            
             const data = await response.json();
             return data;
         } catch (error) {
@@ -302,8 +326,7 @@
         pType.textContent = mappedType;
         pType.className = `px-3 py-1 rounded-full text-[11px] font-bold text-white shadow-sm ${typeColors[mappedType] || 'bg-slate-500'}`;
 
-        const techContainer = $('techniqueBadges');
-        techContainer.replaceChildren();
+        const techContainer = $('techniqueBadges'); techContainer.replaceChildren();
         if (r.techniques && r.techniques.length > 0) {
             r.techniques.forEach(tech => {
                 const span = document.createElement('span');
@@ -414,15 +437,45 @@
         [chart1, chart2].forEach(chart => { if (chart) { chart.options.plugins.legend.labels.color = textColor; chart.options.scales.x.ticks.color = textColor; chart.options.scales.y.ticks.color = textColor; chart.update(); } });
     }
 
+    // Hàm format số liệu cho Thẻ Thống kê
+    function updateStats(history) {
+        if (!history || history.length === 0) return;
+        
+        // 1. Tổng lượt đánh giá
+        $('statTotal').textContent = history.length;
+        
+        // 2. Điểm trung bình
+        let totalScore = 0;
+        let cleanCount = 0;
+        
+        history.forEach(item => {
+            totalScore += item.total_score;
+            if (!item.errors || item.errors.length === 0) {
+                cleanCount++;
+            }
+        });
+        
+        const avg = (totalScore / history.length).toFixed(1);
+        $('statAvg').textContent = avg;
+        
+        // 3. Tỉ lệ Prompt sạch
+        const cleanPercent = Math.round((cleanCount / history.length) * 100);
+        $('statClean').textContent = `${cleanPercent}%`;
+    }
+
     async function fetchHistory() {
-        const tbody = $('adminHistoryList'); tbody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-slate-500 text-xs">Đang tải...</td></tr>';
+        const tbody = $('adminHistoryList'); tbody.innerHTML = '<tr><td colspan="4" class="text-center py-6 text-slate-500 text-xs">Đang tải dữ liệu...</td></tr>';
         try {
             const response = await fetch(`${API_URL}/history`, { method: 'GET', headers: { 'X-Admin-Token': adminToken } });
             const data = await response.json();
             
             if (response.ok && data.history) {
                 tbody.replaceChildren();
-                if (data.history.length === 0) { tbody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-slate-500 text-xs">Trống.</td></tr>'; return; }
+                
+                // Cập nhật các thẻ thống kê
+                updateStats(data.history);
+
+                if (data.history.length === 0) { tbody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-slate-500 text-xs">Chưa có dữ liệu.</td></tr>'; return; }
                 
                 let errorCounts = {}; let scoreDist = { '0-3': 0, '4-6': 0, '7-8': 0, '9-10': 0 };
                 data.history.forEach(item => {
@@ -447,18 +500,40 @@
                     options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { ticks: { color: document.documentElement.classList.contains('dark') ? '#94a3b8' : '#64748b', font: {size: 10} }, grid: {display: false} }, y: { ticks: { color: document.documentElement.classList.contains('dark') ? '#94a3b8' : '#64748b', stepSize: 1 }, grid: {color: document.documentElement.classList.contains('dark') ? '#334155' : '#e2e8f0'} } } }
                 });
 
+                // Render Bảng với Badge xịn xò
                 data.history.forEach(item => {
-                    const tr = document.createElement('tr'); tr.className = "border-b border-slate-100 dark:border-slate-700/50";
-                    const tdTime = document.createElement('td'); tdTime.className = "px-2 py-2 whitespace-nowrap text-[10px] text-slate-500"; tdTime.textContent = new Date(item.created_at).toLocaleString('vi-VN', {hour: '2-digit', minute:'2-digit', day: '2-digit', month: '2-digit'});
-                    const tdPrompt = document.createElement('td'); tdPrompt.className = "px-2 py-2 truncate max-w-[100px] text-slate-700 dark:text-slate-300 font-medium"; tdPrompt.title = item.prompt; tdPrompt.textContent = item.prompt;
-                    const tdScore = document.createElement('td'); tdScore.className = "px-2 py-2 font-bold text-pink-500"; tdScore.textContent = item.total_score;
-                    const tdErrors = document.createElement('td'); tdErrors.className = "px-2 py-2 font-semibold text-red-500";
-                    if (item.errors && item.errors.length > 0) { tdErrors.textContent = item.errors.map(e => e.code).join(', '); } 
-                    else { tdErrors.textContent = "Sạch"; tdErrors.className = "px-2 py-2 font-semibold text-green-500"; }
+                    const tr = document.createElement('tr'); 
+                    tr.className = "border-b border-slate-100 dark:border-slate-700/50 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors";
+                    
+                    const tdTime = document.createElement('td'); tdTime.className = "px-4 py-3 whitespace-nowrap text-[10px] text-slate-500"; 
+                    tdTime.textContent = new Date(item.created_at).toLocaleString('vi-VN', {hour: '2-digit', minute:'2-digit', day: '2-digit', month: '2-digit'});
+                    
+                    const tdPrompt = document.createElement('td'); tdPrompt.className = "px-4 py-3 truncate max-w-[120px] text-slate-700 dark:text-slate-300 font-medium"; 
+                    tdPrompt.title = item.prompt; tdPrompt.textContent = item.prompt;
+                    
+                    const tdScore = document.createElement('td'); 
+                    const scoreColor = item.total_score >= 7 ? 'text-green-500' : (item.total_score >= 5 ? 'text-yellow-500' : 'text-red-500');
+                    tdScore.className = `px-4 py-3 font-bold ${scoreColor}`; 
+                    tdScore.textContent = item.total_score;
+                    
+                    const tdErrors = document.createElement('td'); tdErrors.className = "px-4 py-3";
+                    if (item.errors && item.errors.length > 0) {
+                        // Hiển thị tối đa 3 badge để không bị tràn
+                        const displayErrors = item.errors.slice(0, 3);
+                        let badgesHTML = displayErrors.map(e => {
+                            return `<span class="inline-block bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400 px-1.5 py-0.5 rounded text-[10px] font-semibold mr-1 mb-1 border border-red-200 dark:border-red-800/50">${e.code}</span>`;
+                        }).join('');
+                        if (item.errors.length > 3) {
+                            badgesHTML += `<span class="inline-block text-slate-400 text-[10px]">+${item.errors.length - 3}</span>`;
+                        }
+                        tdErrors.innerHTML = badgesHTML;
+                    } else {
+                        tdErrors.innerHTML = `<span class="inline-block bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400 px-2 py-0.5 rounded text-[10px] font-semibold border border-green-200 dark:border-green-800/50">Sạch</span>`;
+                    }
                     tr.appendChild(tdTime); tr.appendChild(tdPrompt); tr.appendChild(tdScore); tr.appendChild(tdErrors); tbody.appendChild(tr);
                 });
             }
-        } catch (e) { tbody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-red-500 text-xs">Lỗi tải.</td></tr>'; }
+        } catch (e) { tbody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-red-500 text-xs">Lỗi tải dữ liệu.</td></tr>'; }
     }
 </script>
 </body>
