@@ -37,8 +37,7 @@
 
     <div class="max-w-xl w-full mx-auto px-5 pt-20 pb-32 flex-grow flex flex-col" id="mainContainer">
         
-        <div class="text-center mb-8 px-6">
-            <!-- Click vào tiêu đề để quay về Landing Page -->
+        <div class="text-center mb-6 px-6">
             <h1 class="text-2xl md:text-3xl font-extrabold mb-3 leading-tight cursor-pointer hover:scale-105 transition-transform" onclick="window.location.href='./landing.html'" title="Quay về trang chủ">
                 <span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-blue-500">✨ Trợ lý tối ưu hoá Prompt</span>
             </h1>
@@ -47,7 +46,15 @@
             </p>
         </div>
 
-        <!-- USER MODE -->
+        <!-- THANH CHUYỂN TAB -->
+        <div class="flex justify-center mb-6">
+            <div class="flex bg-white dark:bg-slate-800/80 rounded-full p-1 border border-slate-200 dark:border-slate-700/50 shadow-sm">
+                <button id="tabEvaluate" class="px-6 py-2 rounded-full font-bold text-sm bg-indigo-500 text-white shadow-md transition-all">Đánh giá</button>
+                <button id="tabLibrary" class="px-6 py-2 rounded-full font-bold text-sm text-slate-500 hover:text-slate-800 dark:hover:text-white transition-all">Thư viện mẫu</button>
+            </div>
+        </div>
+
+        <!-- USER MODE (TAB ĐÁNH GIÁ) -->
         <div id="userModeSection">
             <div class="glass-card bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/50 shadow-sm rounded-3xl p-5">
                 <div class="relative">
@@ -70,8 +77,8 @@
                 </button>
             </div>
 
+            <!-- KẾT QUẢ ĐÁNH GIÁ -->
             <div id="resultArea" class="mt-8 space-y-5" style="display: none;">
-                
                 <div class="glass-card bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/50 shadow-sm rounded-3xl p-6 flex justify-between items-start relative overflow-hidden">
                     <div class="flex flex-col w-1/2 pt-1">
                         <p class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1">Điểm tổng</p>
@@ -128,6 +135,19 @@
             </div>
         </div>
 
+        <!-- LIBRARY MODE (TAB THƯ VIỆN MẪU) -->
+        <div id="libraryModeSection" style="display: none;">
+            <div class="glass-card bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/50 shadow-sm rounded-3xl p-6">
+                <h2 class="text-lg font-bold text-slate-800 dark:text-slate-200 mb-4 flex items-center gap-2">
+                    <span>📚</span> Thư viện Prompt Xuất sắc
+                </h2>
+                <p class="text-sm text-slate-500 dark:text-slate-400 mb-6">Những câu lệnh đạt điểm 8.0 trở lên từ cộng đồng. Bấm "Dùng thử" để xem chi tiết hoặc học hỏi cách viết.</p>
+                
+                <div id="libraryLoading" class="text-center py-10 text-slate-500 text-sm animate-pulse">Đang tải dữ liệu...</div>
+                <div id="libraryList" class="space-y-4"></div>
+            </div>
+        </div>
+
         <!-- ADMIN MODE -->
         <div id="adminModeSection" style="display: none;">
             <div id="adminLoginBox" class="glass-card bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/50 shadow-sm rounded-3xl p-6 max-w-sm mx-auto text-center relative mt-4">
@@ -143,15 +163,12 @@
                 <button id="btnAdminLogin" class="w-full py-3.5 rounded-xl font-bold bg-indigo-600 text-white shadow-sm hover:bg-indigo-700 transition text-sm">Đăng nhập</button>
             </div>
 
-            <!-- DASHBOARD NÂNG CẤP -->
             <div id="adminDashboard" class="space-y-5 mt-6" style="display: none;">
-                
                 <div class="flex justify-between items-end mb-2">
                     <h3 class="font-bold text-xl text-slate-800 dark:text-slate-200">Tổng quan Hệ thống</h3>
                     <button id="btnAdminLogout" class="text-xs font-semibold text-slate-500 hover:text-red-500 transition">Đăng xuất</button>
                 </div>
 
-                <!-- 3 Thẻ Thống kê -->
                 <div class="grid grid-cols-3 gap-3">
                     <div class="stat-card rounded-2xl p-4 flex flex-col justify-center items-center text-center">
                         <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Lượt đánh giá</p>
@@ -167,7 +184,6 @@
                     </div>
                 </div>
 
-                <!-- Biểu đồ -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="stat-card rounded-2xl p-5">
                         <p class="text-xs font-bold text-slate-500 mb-2 uppercase tracking-wide text-center">Top Lỗi Phổ Biến</p>
@@ -179,7 +195,6 @@
                     </div>
                 </div>
 
-                <!-- Bảng Dữ liệu -->
                 <div class="stat-card rounded-2xl overflow-hidden">
                     <div class="px-5 py-4 border-b border-slate-200 dark:border-slate-700/50 bg-slate-50/50 dark:bg-slate-800/30 flex justify-between items-center">
                         <p class="text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wide">Lịch sử gần đây</p>
@@ -200,15 +215,14 @@
                         </table>
                     </div>
                 </div>
-
             </div>
         </div>
     </div>
 
-<!-- POPUP HƯỚNG DẪN -->
+<!-- POPUP HƯỚNG DẪN (Đã fix lỗi đơ) -->
 <div id="instructionModal" class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-opacity duration-300">
     <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-sm p-6 relative">
-        <button type="button" onclick="closeModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 bg-slate-100 dark:bg-slate-700 w-8 h-8 rounded-full flex items-center justify-center transition">✕</button>
+        <button type="button" id="btnCloseModalX" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 bg-slate-100 dark:bg-slate-700 w-8 h-8 rounded-full flex items-center justify-center transition">✕</button>
         <h2 class="text-xl font-bold text-center mb-6 px-4 text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-blue-500">Hướng dẫn sử dụng</h2>
         <div class="space-y-5 mb-8">
             <div class="flex items-start gap-3">
@@ -224,7 +238,7 @@
                 <div><p class="font-bold text-sm text-slate-800 dark:text-slate-200">Copy & Sử dụng</p><p class="text-xs text-slate-500 mt-0.5">Dán Prompt vào ChatGPT/Claude</p></div>
             </div>
         </div>
-        <button type="button" onclick="closeModal()" class="w-full py-3.5 rounded-xl font-bold bg-gradient-to-r from-pink-500 to-blue-500 text-white shadow-lg text-sm">Đã hiểu, Bắt đầu</button>
+        <button type="button" id="btnCloseModalStart" class="w-full py-3.5 rounded-xl font-bold bg-gradient-to-r from-pink-500 to-blue-500 text-white shadow-lg text-sm">Đã hiểu, Bắt đầu</button>
     </div>
 </div>
 
@@ -236,17 +250,24 @@
     let adminToken = null;
     let chart1 = null;
     let chart2 = null;
+    let isLibraryLoaded = false;
 
+    // --- SỬA LỖI ĐƠ POPUP ---
     function closeModal() {
         const modal = $('instructionModal');
-        modal.style.opacity = '0'; modal.style.pointerEvents = 'none';
-        $('floatingButtons').style.display = 'flex';
-        setTimeout(() => { modal.style.display = 'none'; }, 300);
+        if (modal) {
+            modal.style.opacity = '0'; 
+            modal.style.pointerEvents = 'none';
+            const floatBtns = $('floatingButtons');
+            if (floatBtns) floatBtns.style.display = 'flex';
+            setTimeout(() => { modal.style.display = 'none'; }, 300);
+        }
     }
-
-    document.addEventListener("DOMContentLoaded", () => {
-        $('floatingButtons').style.display = 'none';
-    });
+    $('btnCloseModalX').addEventListener('click', closeModal);
+    $('btnCloseModalStart').addEventListener('click', closeModal);
+    
+    // Ẩn nút nổi ngay khi trang vừa tải (vì popup đang hiện)
+    $('floatingButtons').style.display = 'none';
 
     async function checkAdminAccess() {
         try {
@@ -278,6 +299,77 @@
         "FORMATTED_OUTPUT": "Định dạng",
         "CREATIVE_GEN": "Sáng tạo"
     };
+
+    const typeMap = { "PROMPT": "PROMPT", "TEMPLATE": "TEMPLATE", "PROMPT META": "META", "TABLE": "TABLE", "STEM": "STEM", "IMAGE": "IMAGE" };
+    const typeColors = { "PROMPT": "bg-blue-500", "TEMPLATE": "bg-purple-500", "META": "bg-orange-500", "TABLE": "bg-teal-500", "STEM": "bg-green-500", "IMAGE": "bg-pink-500" };
+
+    // --- CHUYỂN TAB ---
+    $('tabEvaluate').addEventListener('click', () => {
+        $('tabEvaluate').className = 'px-6 py-2 rounded-full font-bold text-sm bg-indigo-500 text-white shadow-md transition-all';
+        $('tabLibrary').className = 'px-6 py-2 rounded-full font-bold text-sm text-slate-500 hover:text-slate-800 dark:hover:text-white transition-all';
+        $('userModeSection').style.display = 'block';
+        $('libraryModeSection').style.display = 'none';
+    });
+
+    $('tabLibrary').addEventListener('click', () => {
+        $('tabLibrary').className = 'px-6 py-2 rounded-full font-bold text-sm bg-indigo-500 text-white shadow-md transition-all';
+        $('tabEvaluate').className = 'px-6 py-2 rounded-full font-bold text-sm text-slate-500 hover:text-slate-800 dark:hover:text-white transition-all';
+        $('userModeSection').style.display = 'none';
+        $('libraryModeSection').style.display = 'block';
+        
+        if (!isLibraryLoaded) { fetchLibrary(); }
+    });
+
+    // --- TẢI THƯ VIỆN ---
+    async function fetchLibrary() {
+        const list = $('libraryList'); const loading = $('libraryLoading');
+        list.innerHTML = ''; loading.style.display = 'block';
+        
+        try {
+            const res = await fetch(`${API_URL}/top_prompts`);
+            const data = await res.json();
+            
+            if (data.prompts && data.prompts.length > 0) {
+                data.prompts.forEach(item => {
+                    const mappedType = typeMap[item.type] || item.type;
+                    const colorClass = typeColors[mappedType] || 'bg-slate-500';
+                    
+                    const card = document.createElement('div');
+                    card.className = 'border border-slate-200 dark:border-slate-700/60 rounded-2xl p-4 bg-slate-50/50 dark:bg-slate-900/30 flex flex-col gap-3';
+                    card.innerHTML = `
+                        <div class="flex justify-between items-start">
+                            <div class="flex items-center gap-2">
+                                <span class="px-2 py-1 rounded text-[10px] font-bold text-white ${colorClass}">${mappedType}</span>
+                                <span class="text-xs text-slate-500">${new Date(item.created_at).toLocaleDateString('vi-VN')}</span>
+                            </div>
+                            <span class="text-lg font-extrabold text-green-500">${item.total_score} <span class="text-xs text-slate-400">điểm</span></span>
+                        </div>
+                        <p class="text-sm text-slate-700 dark:text-slate-300 italic">"${item.prompt}"</p>
+                        <button class="self-end text-xs font-bold text-indigo-500 hover:text-indigo-700 transition flex items-center gap-1" onclick="usePrompt('${item.prompt.replace(/'/g, "\\'")}')">
+                            Dùng thử ngay <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
+                        </button>
+                    `;
+                    list.appendChild(card);
+                });
+            } else {
+                list.innerHTML = '<p class="text-center text-slate-500 text-sm py-4">Chưa có Prompt nào đạt 8 điểm. Hãy là người đầu tiên!</p>';
+            }
+        } catch (e) {
+            list.innerHTML = '<p class="text-center text-red-500 text-sm py-4">Lỗi tải dữ liệu thư viện.</p>';
+        } finally {
+            loading.style.display = 'none';
+            isLibraryLoaded = true;
+        }
+    }
+
+    // --- HÀM DÙNG THỬ PROMPT TỪ THƯ VIỆN ---
+    window.usePrompt = function(promptText) {
+        $('tabEvaluate').click();
+        $('promptInput').value = promptText;
+        $('charCount').textContent = `${promptText.length}/5000`;
+        $('btnClearInput').classList.remove('hidden');
+        $('mainContainer').scrollIntoView({ behavior: 'smooth' });
+    }
 
     const promptInput = $('promptInput'); const charCount = $('charCount'); const btnClearInput = $('btnClearInput'); const longPromptWarning = $('longPromptWarning');
     
@@ -322,8 +414,6 @@
     function render(r) {
         $('totalScore').textContent = r.total; setTimeout(() => { $('scoreBar').style.width = `${r.total * 10}%`; }, 100);
         
-        const typeMap = { "PROMPT": "PROMPT", "TEMPLATE": "TEMPLATE", "PROMPT META": "META", "TABLE": "TABLE", "STEM": "STEM", "IMAGE": "IMAGE" };
-        const typeColors = { "PROMPT": "bg-blue-500", "TEMPLATE": "bg-purple-500", "META": "bg-orange-500", "TABLE": "bg-teal-500", "STEM": "bg-green-500", "IMAGE": "bg-pink-500" };
         const pType = $('promptType'); const mappedType = typeMap[r.type] || r.type; 
         pType.textContent = mappedType;
         pType.className = `px-3 py-1 rounded-full text-[11px] font-bold text-white shadow-sm ${typeColors[mappedType] || 'bg-slate-500'}`;
@@ -401,6 +491,7 @@
         }, 1000);
         try {
             lastResult = await evaluatePrompt(prompt); render(lastResult);
+            isLibraryLoaded = false; // Reset để thư viện tự cập nhật nếu có bài mới
             setTimeout(() => { $('resultArea').scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 100);
         } catch (e) {
             $('errorMsg').textContent = e.message || "Đã xảy ra lỗi."; $('errorMsg').style.display = 'block';
@@ -466,10 +557,10 @@
                 let errorCounts = {}; let scoreDist = { '0-3': 0, '4-6': 0, '7-8': 0, '9-10': 0 };
                 data.history.forEach(item => {
                     if (item.errors && item.errors.length > 0) { item.errors.forEach(e => { errorCounts[e.code] = (errorCounts[e.code] || 0) + 1; }); }
-                    let s = item.total_score; if (s <= 3) scoreDist['0-3']++; else if (s <= 6) scoreDist['4-6']++; else if (s <= 8) scoreDist['7-8']++; else scoreDist['9-10ổ']++;
+                    let s = item.total_score; if (s <= 3) scoreDist['0-3']++; else if (s <= 6) scoreDist['4-6']++; else if (s <= 8) scoreDist['7-8']++; else scoreDist['9-10']++;
                 });
 
-                const errorLabelsn = Object.keys(errorCounts định).map(code => ERROR_NAMES[code nhất] || code); const errorData = Object.values(errorCounts);
+                const errorLabels = Object.keys(errorCounts).map(code => ERROR_NAMES[code] || code); const errorData = Object.values(errorCounts);
                 if (chart1) chart1.destroy();
                 const ctx1 = $('errorChart').getContext('2d');
                 chart1 = new Chart(ctx1, {
