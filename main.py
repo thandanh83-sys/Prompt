@@ -1,18 +1,72 @@
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-import uvicorn
 import os
 import json
 import time
+import logging
+
+import uvicorn
+from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel
 from groq import Groq
 from supabase import create_client, Client
+from slowapi import Limiter
+from slowapi.errors import RateLimitExceeded
 
 import rules_v38
 from validator import validate_full_report, calculate_final_score
 
+# ---------------------------------------------------------------------------
+# Logging: mọi thứ in ra đây sẽ hiện trong tab "Logs" của Render
+# ---------------------------------------------------------------------------
+logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
+logger = logging.getLogger("prompt-evaluator")
+
+# ---------------------------------------------------------------------------
+# Hằng số cấu hình
+# ---------------------------------------------------------------------------
+MAX_PROMPT_LENGTH = 5000
+RATE_LIMIT = "20/minute"
+GENERIC_ERROR = {"error": "Hệ thống đang bận, vui lòng thử lại sau."}
+
+# ---------------------------------------------------------------------------
+# CORS (Lỗi P2)
+# HƯỚNG DẪN ĐIỀN:
+#   - Nếu GitHub Pages của bạn là  https://tenban.github.io/ten-repo/
+#     thì origin chỉ là             https://tenban.github.io
+# ---------------------------------------------------------------------------
+DEFAULT_ORIGINS = [
+    "https://thandanh83-sys.github.io", # <-- ĐÃ ĐIỀN LINK CỦA BẠN VÀO ĐÂY
+    # "http://localhost:5500",
+    # "http://127.0.0.1:5500",
+]
+env_origins = os.environ.get("ALLOWED_ORIGINS", "")
+ALLOWED_ORIGINS = [o.strip() for o in env_origins.split(",") if o.strip()] or DEFAULT_ORIGINS
+
+
+def get_client_ip(request: Request) -> str:
+    forwarded = request.headers.get("x-forwarded-for")
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+    return request.client.host if request.client else "unknown"
+
+limiter = Limiter(key_func=get_client_ip)
 app = FastAPI()
-app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
+app.state.limiter = limiter
+
+@app.exception_handler(RateLimitExceeded)
+async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
+    return JSONResponse(
+        status_code=429,
+        content={"error": "Bạn đã đạt giới hạn sử dụng, vui lòng thử lại sau 1 phút."},
+    )
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=ALLOWED_ORIGINS,
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["Content-Type"],
+)
 
 class PromptRequest(BaseModel):
     prompt: str
@@ -24,17 +78,25 @@ supabase_url = os.environ.get("SUPABASE_URL", "")
 supabase_key = os.environ.get("SUPABASE_KEY", "")
 supabase: Client = create_client(supabase_url, supabase_key) if supabase_url and supabase_key else None
 
+
 @app.get("/")
-def read_root(): return {"status": "Backend đang chạy ổn định!"}
+def read_root():
+    return {"status": "Backend đang chạy ổn định!"}
 
 @app.get("/health")
-def health_check(): return {"status": "ok"}
+def health_check():
+    return {"status": "ok"}
 
 @app.post("/evaluate")
-async def evaluate(req: PromptRequest):
+@limiter.limit(RATE_LIMIT)
+def evaluate(request: Request, req: PromptRequest):
     prompt_text = req.prompt.strip()
-    if not prompt_text: return {"error": "Prompt trống."}
-    
+
+    if not prompt_text:
+        return JSONResponse(status_code=400, content={"error": "Prompt trống."})
+    if len(prompt_text) > MAX_PROMPT_LENGTH:
+        return JSONResponse(status_code=400, content={"error": "Prompt vượt quá 5000 ký tự."})
+
     if supabase:
         try:
             response_db = supabase.table("history").select("*").eq("prompt", prompt_text).execute()
@@ -43,22 +105,25 @@ async def evaluate(req: PromptRequest):
                 return {
                     "prompt": cached_data["prompt"], "type": cached_data["type"],
                     "total": cached_data["total_score"], "details": cached_data["details"],
-                    "errors": cached_data["errors"], "rewrite": cached_data["rewrite"]
+                    "errors": cached_data["errors"], "rewrite": cached_data["rewrite"],
                 }
-        except Exception as e: print(f"Lỗi đọc Supabase: {e}")
+        except Exception as e:
+            logger.error(f"Lỗi đọc Supabase: {e}")
 
     try:
         content_type = rules_v38.classify_prompt(prompt_text)
         criteria = rules_v38.get_criteria_by_type(content_type)
-        if not criteria: return {"error": "Không xác định được loại tiêu chí."}
-        
+        if not criteria:
+            logger.error(f"Không xác định được tiêu chí cho content_type={content_type!r}")
+            return JSONResponse(status_code=500, content=GENERIC_ERROR)
+
         criteria_desc = ""
         for k, v in criteria.items():
             criteria_desc += f"- ID {k} ({v['name']}): {v['rubric']}\n"
-            
+
         error_codes_desc = "\n".join([f"- {k}: {v}" for k, v in rules_v38.VALID_ERROR_CODES.items()])
         scores_example = ", ".join([f'"{k}": 8' for k in criteria.keys()])
-        
+
         system_prompt = f"""
 Bạn là chuyên gia đánh giá prompt. BẠN PHẢI CHẤM ĐIỂM THEO ĐÚNG THANG ĐIỂM (RUBRIC) DƯỚI ĐÂY, KHÔNG ĐƯỢC CHẤM THEO CẢM TÍNH.
 
@@ -90,47 +155,55 @@ Prompt gốc: {prompt_text}
         for attempt in range(max_retries):
             try:
                 response = client.chat.completions.create(
-                    model="openai/gpt-oss-120b", 
+                    model="openai/gpt-oss-120b",
                     messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": prompt_text}],
-                    response_format={"type": "json_object"}, temperature=0.0, top_p=0.1 
+                    response_format={"type": "json_object"}, temperature=0.0, top_p=0.1,
                 )
                 break
             except Exception as e:
                 if "429" in str(e) or "rate_limit" in str(e):
-                    if attempt < max_retries - 1: time.sleep(3); continue
-                    else: return {"error": "Hệ thống AI quá tải."}
-                raise e
-        
+                    logger.warning(f"Groq rate limit (lần thử {attempt + 1}/{max_retries})")
+                    if attempt < max_retries - 1:
+                        time.sleep(3)
+                        continue
+                    return JSONResponse(status_code=503, content={"error": "Hệ thống AI quá tải, vui lòng thử lại sau."})
+                raise
+
         raw_text = response.choices[0].message.content.strip()
-        if raw_text.startswith("```json"): raw_text = raw_text[7:-3].strip()
-        
+        if raw_text.startswith("```json"):
+            raw_text = raw_text[7:-3].strip()
+
         ai_data = json.loads(raw_text)
 
-        # Tự động sửa nếu AI trả về bằng chứng sai
         if "errors" in ai_data and isinstance(ai_data["errors"], list):
             for err in ai_data["errors"]:
                 evidence = str(err.get("evidence", "")).strip()
                 if evidence and evidence.lower() not in ["toàn bộ", "toàn bộ prompt"] and evidence not in prompt_text:
-                    err["evidence"] = "Toàn bộ"
+                    logger.warning(f"[P6] Evidence không có trong prompt | code={err.get('code')!r} | evidence={evidence!r}")
 
         validate_full_report(ai_data, content_type, prompt_text)
         final_score = calculate_final_score(ai_data["scores"], content_type)
-        
+
         result = {
             "prompt": prompt_text, "type": content_type, "total": final_score,
             "details": {criteria[k]["name"]: v for k, v in ai_data["scores"].items()},
-            "errors": ai_data["errors"], "rewrite": ai_data["rewrite"]
+            "errors": ai_data["errors"], "rewrite": ai_data["rewrite"],
         }
 
         if supabase:
             try:
                 supabase.table("history").insert({
                     "prompt": prompt_text, "type": content_type, "total_score": final_score,
-                    "details": result["details"], "errors": result["errors"], "rewrite": result["rewrite"]
+                    "details": result["details"], "errors": result["errors"], "rewrite": result["rewrite"],
                 }).execute()
-            except Exception as e: print(f"Lỗi lưu Supabase: {e}")
+            except Exception as e:
+                logger.error(f"Lỗi lưu Supabase: {e}")
 
         return result
-    except Exception as e: return {"error": str(e)}
 
-if __name__ == "__main__": uvicorn.run(app, host="0.0.0.0", port=8000)
+    except Exception:
+        logger.exception("Lỗi không mong muốn trong /evaluate")
+        return JSONResponse(status_code=500, content=GENERIC_ERROR)
+
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=int(os.environ.get("PORT", 8000)))
