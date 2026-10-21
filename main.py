@@ -156,9 +156,8 @@ def evaluate(request: Request, req: PromptRequest):
         try:
             ten_days_ago = (datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=10)).isoformat()
             supabase.table("history").delete().lt("created_at", ten_days_ago).execute()
-            logger.info("Đã dọn dẹp lịch sử cũ hơn 10 ngày.")
         except Exception as e:
-            logger.warning(f"Lỗi khi dọn dẹp lịch sử: {e}")
+            logger.warning(f"Lỗi dọn dẹp: {e}")
 
     try:
         # 1. PHÂN LOẠI ĐA CHIỀU
@@ -166,15 +165,20 @@ def evaluate(request: Request, req: PromptRequest):
         main_task = classification["main_task"]
         techniques = classification["techniques"]
         
-        # 2. LẤY CRITERIA GỘP (Main + Techniques)
-        criteria = rules_v38.get_criteria_by_type(classification)
+        # 2. LẤY CRITERIA 2 TẦNG
+        criteria_pack = rules_v38.get_criteria_by_type(classification)
+        main_criteria = criteria_pack["main"]
+        tech_criteria = criteria_pack["tech"]
+        
+        # Gộp lại để lấy danh sách ID cho AI điền
+        all_criteria = {**main_criteria, **tech_criteria}
         
         criteria_desc = ""
-        for k, v in criteria.items():
+        for k, v in all_criteria.items():
             criteria_desc += f"- ID {k} ({v['name']}): {v['rubric']}\n"
 
         error_codes_desc = "\n".join([f"- {k}: {v}" for k, v in rules_v38.VALID_ERROR_CODES.items()])
-        scores_example = ", ".join([f'"{k}": 8' for k in criteria.keys()])
+        scores_example = ", ".join([f'"{k}": 8' for k in all_criteria.keys()])
 
         system_prompt = f"""
 Bạn là Chuyên gia Prompt Engineering. Đánh giá và viết lại câu lệnh của người dùng theo form 11 mục.
@@ -209,11 +213,11 @@ CHỈ TRẢ VỀ CHUỖI JSON HỢP LỆ. KHÔNG THÊM BẤT KỲ VĂN BẢN NÀ
         ai_data = json.loads(raw_text)
 
         try:
-            validate_full_report(ai_data, criteria, prompt_text)
+            validate_full_report(ai_data, main_criteria, tech_criteria, prompt_text)
         except ValueError as ve:
             logger.warning(f"Auto-Repair: {ve}")
             if "scores" not in ai_data or not isinstance(ai_data["scores"], dict): ai_data["scores"] = {}
-            for k in criteria.keys():
+            for k in all_criteria.keys():
                 if k not in ai_data["scores"]: ai_data["scores"][k] = 0
             if "rewrite" not in ai_data or not isinstance(ai_data["rewrite"], dict): ai_data["rewrite"] = {}
             for sec in rules_v38.REQUIRED_REWRITE_SECTIONS:
@@ -225,16 +229,18 @@ CHỈ TRẢ VỀ CHUỖI JSON HỢP LỆ. KHÔNG THÊM BẤT KỲ VĂN BẢN NÀ
                         valid_errors.append(err)
             ai_data["errors"] = valid_errors
 
-        # 3. TÍNH ĐIỂM VỚI CRITERIA MỚI
-        final_score = calculate_final_score(ai_data["scores"], criteria)
+        # 3. TÍNH ĐIỂM 2 TẦNG
+        final_score = calculate_final_score(ai_data["scores"], main_criteria, tech_criteria)
 
-        # 4. TRẢ KẾT QUẢ (Kèm theo mảng techniques)
+        # 4. TRẢ KẾT QUẢ
+        display_details = {all_criteria[k]["name"]: v for k, v in ai_data["scores"].items() if k in all_criteria}
+        
         result = {
             "prompt": prompt_text, 
             "type": main_task, 
-            "techniques": techniques, # Gửi mảng kỹ thuật về cho Frontend
+            "techniques": techniques, 
             "total": final_score,
-            "details": {criteria[k]["name"]: v for k, v in ai_data["scores"].items() if k in criteria},
+            "details": display_details,
             "errors": ai_data.get("errors", []), 
             "rewrite": ai_data["rewrite"],
         }
