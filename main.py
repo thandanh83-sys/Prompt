@@ -29,7 +29,7 @@ ADMIN_SECRET_TOKEN = os.environ.get("ADMIN_SECRET_TOKEN")
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
 
 if not ADMIN_PASSWORD or not ADMIN_SECRET_TOKEN or not GROQ_API_KEY:
-    raise RuntimeError("LỖI BẢO MẬT: Thiếu biến môi trường bắt buộc.")
+    raise RuntimeError("LỖI BẢO MẬT: Thiếu biến môi trường bắt buộc trên Render.")
 
 api_key_header = APIKeyHeader(name="X-Admin-Token", auto_error=False)
 
@@ -69,9 +69,6 @@ supabase_url = os.environ.get("SUPABASE_URL", "")
 supabase_key = os.environ.get("SUPABASE_KEY", "")
 supabase: Client = create_client(supabase_url, supabase_key) if supabase_url and supabase_key else None
 
-# Danh sách 11 mục bắt buộc
-REQUIRED_KEYS = ["1. VAI TRÒ", "2. BỐI CẢNH", "3. INPUT", "4. MỤC TIÊU", "5. YÊU CẦU", "6. RÀNG BUỘC", "7. TASK", "8. ĐỊNH DẠNG ĐẦU RA", "9. NEVER DO", "10. THỨ TỰ ƯU TIÊN", "11. XỬ LÝ NỘI BỘ"]
-
 def call_llm(system_prompt: str, user_prompt: str, max_retries: int = 3) -> str:
     for attempt in range(max_retries):
         try:
@@ -106,7 +103,6 @@ def admin_login(request: Request, req: LoginRequest):
 
 @app.get("/history")
 def get_history(token: str = Depends(api_key_header)):
-    # [VÁ LỖI]: Dùng secrets.compare_digest chống timing attack
     if not token or not secrets.compare_digest(token, ADMIN_SECRET_TOKEN):
         raise HTTPException(status_code=401, detail="Không có quyền truy cập")
     if not supabase:
@@ -128,9 +124,6 @@ def evaluate(request: Request, req: PromptRequest):
     if len(prompt_text) > MAX_PROMPT_LENGTH:
         return JSONResponse(status_code=400, content={"error": "Prompt vượt quá 5000 ký tự."})
 
-    # [VÁ LỖI CACHE]: Tạm thời vô hiệu hóa cache đọc để đảm bảo AI luôn chấm bằng Rubric mới nhất.
-    # Nếu muốn bật lại, hãy thêm điều kiện kiểm tra phiên bản (VD: version == 'v3').
-
     try:
         content_type = rules_v38.classify_prompt(prompt_text)
         criteria = rules_v38.get_criteria_by_type(content_type)
@@ -146,7 +139,7 @@ def evaluate(request: Request, req: PromptRequest):
 Bạn là Chuyên gia Prompt Engineering. Đánh giá và viết lại câu lệnh của người dùng theo form 11 mục.
 
 BƯỚC 1: XÁC ĐỊNH LĨNH VỰC & CHUYÊN GIA.
-BƯỚC 2: VIẾT LẠI PROMPT THEO ĐÚNG CẤU TRÚC JSON SAU (Sử dụng \\n để xuống dòng):
+BƯỚC 2: VIẾT LẠI PROMPT THEO ĐÚNG CẤU TRÚC JSON SAU (Sử dụng \\n để xuống dòng trong nội dung):
 {{
   "scores": {{ {scores_example} }},
   "errors": [ {{"code": "[Mã lỗi]", "evidence": "[Trích dẫn hoặc 'Toàn bộ']"}} ],
@@ -180,28 +173,33 @@ CHỈ TRẢ VỀ CHUỖI JSON HỢP LỆ.
 
         ai_data = json.loads(raw_text)
 
-        # [VÁ LỖI]: Tự kiểm tra cứng xem AI có trả đủ 11 mục không
-        rewrite_data = ai_data.get("rewrite", {})
-        for key in REQUIRED_KEYS:
-            if key not in rewrite_data:
-                logger.warning(f"AI thiếu mục {key}. Tự động điền rỗng.")
-                rewrite_data[key] = "(AI chưa tạo được mục này, vui lòng thử lại)"
+        # [AUTO-REPAIR]: Cố gắng validate, nếu lỗi thì sửa lại dữ liệu để không sập web
+        try:
+            validate_full_report(ai_data, content_type, prompt_text)
+        except ValueError as ve:
+            logger.warning(f"AI trả về sai cấu trúc: {ve}. Đang tự động sửa (Auto-Repair)...")
+            
+            if "scores" not in ai_data or not isinstance(ai_data["scores"], dict): ai_data["scores"] = {}
+            for k in criteria.keys():
+                if k not in ai_data["scores"]: ai_data["scores"][k] = 0
 
-        # [VÁ LỖI]: Kiểm tra bằng chứng (chỉ ghi log)
-        if "errors" in ai_data and isinstance(ai_data["errors"], list):
-            for err in ai_data["errors"]:
-                evidence = str(err.get("evidence", "")).strip()
-                if evidence and evidence.lower() not in ["toàn bộ", "toàn bộ prompt"] and evidence not in prompt_text:
-                    logger.warning(f"[P6] Evidence không có trong prompt | code={err.get('code')!r}")
+            if "rewrite" not in ai_data or not isinstance(ai_data["rewrite"], dict): ai_data["rewrite"] = {}
+            for sec in rules_v38.REQUIRED_REWRITE_SECTIONS:
+                if sec not in ai_data["rewrite"]: ai_data["rewrite"][sec] = "[AI chưa tạo được mục này]"
 
-        # Validate và tính điểm (sử dụng file validator.py)
-        validate_full_report(ai_data, content_type, prompt_text)
+            valid_errors = []
+            if "errors" in ai_data and isinstance(ai_data["errors"], list):
+                for err in ai_data["errors"]:
+                    if isinstance(err, dict) and err.get("code") in rules_v38.VALID_ERROR_CODES:
+                        valid_errors.append(err)
+            ai_data["errors"] = valid_errors
+
         final_score = calculate_final_score(ai_data["scores"], content_type)
 
         result = {
             "prompt": prompt_text, "type": content_type, "total": final_score,
             "details": {criteria[k]["name"]: v for k, v in ai_data["scores"].items()},
-            "errors": ai_data.get("errors", []), "rewrite": rewrite_data,
+            "errors": ai_data.get("errors", []), "rewrite": ai_data["rewrite"],
         }
 
         if supabase:
