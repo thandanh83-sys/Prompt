@@ -16,23 +16,36 @@
         .dark-glow { background: radial-gradient(circle at 50% 0%, rgba(236,72,153,0.15) 0%, transparent 60%); }
         .btn-glow { box-shadow: 0 4px 15px rgba(236, 72, 153, 0.3); }
         .btn-glow:hover { box-shadow: 0 6px 20px rgba(59, 130, 246, 0.5); transform: translateY(-1px); }
+        
+        /* CSS cho thanh Header dính trên cùng */
+        .sticky-header {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            background-color: rgba(248, 250, 252, 0.8);
+            backdrop-filter: blur(8px);
+        }
+        .dark .sticky-header {
+            background-color: rgba(15, 23, 42, 0.8);
+        }
     </style>
 </head>
-<body class="antialiased min-h-screen relative text-slate-800 dark:text-slate-100 transition-colors duration-300 bg-slate-50 dark:bg-slate-900 dark-glow">
+<body class="antialiased min-h-screen relative text-slate-800 dark:text-slate-100 transition-colors duration-300 bg-slate-50 dark:bg-slate-900 dark-glow flex flex-col">
 
-    <!-- NÚT NỔI GÓC DƯỚI BÊN PHẢI (Không đè lên tiêu đề nữa) -->
-    <div class="fixed bottom-6 right-5 flex flex-col gap-3 z-[100]">
-        <button id="adminToggleBtn" class="w-12 h-12 flex items-center justify-center rounded-full bg-white dark:bg-slate-800 shadow-xl border border-slate-200 dark:border-slate-700 text-xl hover:scale-105 transition-transform" title="Quản trị viên">
+    <!-- THANH HEADER DÍNH TRÊN CÙNG (Chứa 2 nút chức năng) -->
+    <div class="sticky-header w-full border-b border-slate-200 dark:border-slate-800 px-4 py-3 flex justify-end gap-2">
+        <button id="adminToggleBtn" class="w-9 h-9 flex items-center justify-center rounded-full bg-white dark:bg-slate-800 shadow-sm border border-slate-200 dark:border-slate-700 text-sm hover:scale-105 transition-transform" title="Quản trị viên">
             🔐
         </button>
-        <button id="themeToggle" class="w-12 h-12 flex items-center justify-center rounded-full bg-white dark:bg-slate-800 shadow-xl border border-slate-200 dark:border-slate-700 text-xl hover:scale-105 transition-transform">
+        <button id="themeToggle" class="w-9 h-9 flex items-center justify-center rounded-full bg-white dark:bg-slate-800 shadow-sm border border-slate-200 dark:border-slate-700 text-sm hover:scale-105 transition-transform">
             🌙
         </button>
     </div>
 
-    <div class="max-w-xl mx-auto px-5 pt-12 pb-32">
+    <!-- NỘI DUNG CHÍNH -->
+    <div class="content-wrapper max-w-xl w-full mx-auto px-5 pt-8 pb-32 flex-grow flex flex-col" id="mainContainer">
         
-        <!-- HEADER: Rộng rãi, thoáng đãng -->
+        <!-- HEADER TITLE -->
         <div class="text-center mb-8">
             <h1 class="text-2xl md:text-3xl font-extrabold mb-3 leading-tight">
                 <span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-blue-500">✨ Trợ lý tối ưu hoá Prompt</span>
@@ -66,7 +79,7 @@
             </div>
 
             <!-- KHU VỰC KẾT QUẢ -->
-            <div id="resultArea" class="mt-6 space-y-5" style="display: none;">
+            <div id="resultArea" class="mt-8 space-y-5" style="display: none;">
                 
                 <!-- 1. Thẻ Điểm tổng -->
                 <div class="glass-card bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/50 shadow-sm rounded-3xl p-6 flex justify-between items-center relative overflow-hidden">
@@ -86,8 +99,8 @@
                     </div>
                 </div>
 
-                <!-- 2. ĐIỂM SÁNG -->
-                <div class="glass-card bg-green-50/50 dark:bg-green-900/10 border border-green-200 dark:border-green-800/30 shadow-sm rounded-3xl p-6">
+                <!-- 2. ĐIỂM SÁNG (Sẽ tự động ẩn nếu không có điểm >= 7) -->
+                <div id="strengthsCard" class="glass-card bg-green-50/50 dark:bg-green-900/10 border border-green-200 dark:border-green-800/30 shadow-sm rounded-3xl p-6" style="display: none;">
                     <h3 class="font-bold text-sm mb-3 text-green-700 dark:text-green-400 flex items-center gap-2">
                         <span class="text-lg">🌟</span> Điểm sáng của bạn
                     </h3>
@@ -102,12 +115,13 @@
                     <ul id="userErrorList" class="space-y-3 text-sm text-slate-700 dark:text-slate-300"></ul>
                 </div>
 
-                <!-- 4. Chi tiết điểm -->
+                <!-- 4. Chi tiết điểm (CHIA LÀM 2 CỘT) -->
                 <div class="glass-card bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/50 shadow-sm rounded-3xl p-6">
                     <h3 class="font-bold text-sm mb-5 text-slate-800 dark:text-slate-200 flex items-center gap-2">
                         <span class="w-2 h-2 rounded-full bg-blue-500"></span> Chi tiết điểm
                     </h3>
-                    <div id="criteriaList" class="grid grid-cols-1 gap-y-4"></div>
+                    <!-- Đã đổi thành grid-cols-2 để chia 2 cột trên điện thoại -->
+                    <div id="criteriaList" class="grid grid-cols-2 gap-x-4 gap-y-4"></div>
                 </div>
 
                 <!-- 5. Bản sửa -->
@@ -128,7 +142,7 @@
 
         <!-- ADMIN MODE -->
         <div id="adminModeSection" style="display: none;">
-            <div id="adminLoginBox" class="glass-card bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/50 shadow-sm rounded-3xl p-6 max-w-sm mx-auto text-center relative mt-10">
+            <div id="adminLoginBox" class="glass-card bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/50 shadow-sm rounded-3xl p-6 max-w-sm mx-auto text-center relative mt-4">
                 <button id="btnBackToUser" class="absolute top-5 left-5 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition text-xs font-semibold flex items-center gap-1">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
                     Quay lại
@@ -222,13 +236,16 @@
     const promptInput = $('promptInput');
     const charCount = $('charCount');
     const btnClearInput = $('btnClearInput');
+    const mainContainer = $('mainContainer');
     
     promptInput.addEventListener('input', () => {
         const len = promptInput.value.length;
         charCount.textContent = `${len}/5000`;
         if (len > 0) btnClearInput.classList.remove('hidden');
         else btnClearInput.classList.add('hidden');
-        if ($('resultArea').style.display === 'block') { $('resultArea').style.display = 'none'; }
+        if ($('resultArea').style.display === 'block') { 
+            $('resultArea').style.display = 'none'; 
+        }
     });
 
     btnClearInput.addEventListener('click', () => {
@@ -284,13 +301,14 @@
         pType.textContent = mappedType;
         pType.className = `px-4 py-1.5 rounded-full text-xs font-bold text-white shadow-sm ${typeColors[mappedType] || 'bg-slate-500'}`;
 
-        // Điểm sáng
+        // --- XỬ LÝ ĐIỂM SÁNG (Nếu có >=7 mới hiện) ---
+        const strengthsCard = $('strengthsCard');
         const strengthsList = $('strengthsList');
         strengthsList.replaceChildren();
         let hasStrength = false;
         
         Object.entries(r.details).forEach(([name, score]) => {
-            if (score >= 7) {
+            if (score >= 7) { 
                 hasStrength = true;
                 const li = document.createElement('li');
                 li.innerHTML = `Bạn đã làm rất tốt tiêu chí <strong>${name}</strong> (đạt ${score}/10).`;
@@ -298,38 +316,57 @@
             }
         });
         
-        if (!hasStrength) {
-            const li = document.createElement('li');
-            li.textContent = 'Chưa có tiêu chí nào đạt điểm cao (>=7). Hãy cố gắng thêm nhé!';
-            strengthsList.appendChild(li);
+        if (hasStrength) {
+            strengthsCard.style.display = 'block';
+        } else {
+            strengthsCard.style.display = 'none'; // Ẩn đi nếu điểm quá thấp
         }
 
-        // Chi tiết điểm
+        // --- CHI TIẾT ĐIỂM (2 CỘT) ---
         const list = $('criteriaList'); 
         list.replaceChildren();
         Object.entries(r.details).forEach(([name, score]) => {
             const row = document.createElement('div');
-            const flexDiv = document.createElement('div'); flexDiv.className = 'flex justify-between text-xs font-semibold mb-1.5';
-            const spanName = document.createElement('span'); spanName.className = 'truncate pr-2 text-slate-600 dark:text-slate-400'; spanName.title = name; spanName.textContent = name;
-            const spanScore = document.createElement('span'); spanScore.className = 'text-slate-800 dark:text-slate-200'; spanScore.textContent = `${score}/10`;
-            flexDiv.appendChild(spanName); flexDiv.appendChild(spanScore);
             
-            const barBg = document.createElement('div'); barBg.className = 'w-full bg-slate-100 dark:bg-slate-700/50 rounded-full h-1.5';
+            // Dùng flex-col cho từng ô để phù hợp không gian hẹp của 2 cột
+            const headerDiv = document.createElement('div'); 
+            headerDiv.className = 'flex justify-between items-start mb-1.5';
+            
+            const spanName = document.createElement('span'); 
+            spanName.className = 'text-[10px] font-semibold text-slate-600 dark:text-slate-400 leading-tight pr-1 line-clamp-2'; 
+            spanName.title = name; 
+            spanName.textContent = name;
+            
+            const spanScore = document.createElement('span'); 
+            spanScore.className = 'text-xs font-bold text-slate-800 dark:text-slate-200 whitespace-nowrap'; 
+            spanScore.textContent = `${score}`;
+            
+            headerDiv.appendChild(spanName); 
+            headerDiv.appendChild(spanScore);
+            
+            const barBg = document.createElement('div'); 
+            barBg.className = 'w-full bg-slate-100 dark:bg-slate-700/50 rounded-full h-1.5';
             const barFill = document.createElement('div'); 
             barFill.className = `h-1.5 rounded-full bg-gradient-to-r from-pink-500 to-blue-500`; 
             barFill.style.width = `${score * 10}%`;
             
-            barBg.appendChild(barFill); row.appendChild(flexDiv); row.appendChild(barBg); list.appendChild(row);
+            barBg.appendChild(barFill); 
+            row.appendChild(headerDiv); 
+            row.appendChild(barBg); 
+            list.appendChild(row);
         });
 
-        // Lỗi
+        // --- LỖI & GỢI Ý ---
         const userErrList = $('userErrorList');
         userErrList.replaceChildren();
         if (r.errors && r.errors.length > 0) {
             r.errors.forEach(err => {
                 const errName = ERROR_NAMES[err.code] || "Lỗi không xác định";
                 let evidenceText = "";
-                if (err.evidence && err.evidence !== "Toàn bộ" && err.evidence !== "Toàn bộ prompt") { evidenceText = `"${err.evidence}"`; }
+                // Nếu evidence trùng với tên lỗi thì bỏ qua
+                if (err.evidence && err.evidence !== "Toàn bộ" && err.evidence !== "Toàn bộ prompt" && err.evidence !== errName) { 
+                    evidenceText = `"${err.evidence}"`; 
+                }
                 
                 let suggestion = "Hãy bổ sung thêm thông tin chi tiết.";
                 let severity = "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400";
@@ -362,7 +399,7 @@
             const li = document.createElement('li'); li.className = 'text-green-600 dark:text-green-400 text-xs font-semibold p-3.5 bg-green-50 dark:bg-green-900/20 rounded-xl'; li.textContent = 'Tuyệt vời! Không phát hiện lỗi nào.'; userErrList.appendChild(li);
         }
 
-        // Bản sửa (Thiết kế gộp khối)
+        // --- BẢN SỬA ---
         const rw = $('rewriteList'); 
         rw.replaceChildren();
         SECTION_NAMES.forEach(sec => {
@@ -408,6 +445,7 @@
         try {
             lastResult = await evaluatePrompt(prompt);
             render(lastResult);
+            
             setTimeout(() => {
                 $('resultArea').scrollIntoView({ behavior: 'smooth', block: 'start' });
             }, 100);
