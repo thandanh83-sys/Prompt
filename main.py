@@ -17,19 +17,22 @@ from slowapi.errors import RateLimitExceeded
 import rules_v38
 from validator import validate_full_report, calculate_final_score
 
+# Cấu hình logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger("prompt-evaluator")
 
+# Hằng số
 MAX_PROMPT_LENGTH = 5000
 RATE_LIMIT = "20/minute"
 GENERIC_ERROR = {"error": "Hệ thống đang bận, vui lòng thử lại sau."}
 
+# [BẢO MẬT] Bắt buộc phải có biến môi trường
 ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD")
 ADMIN_SECRET_TOKEN = os.environ.get("ADMIN_SECRET_TOKEN")
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
 
 if not ADMIN_PASSWORD or not ADMIN_SECRET_TOKEN:
-    raise RuntimeError("LỖI BẢO MẬT: Thiếu ADMIN_PASSWORD hoặc ADMIN_SECRET_TOKEN.")
+    raise RuntimeError("LỖI BẢO MẬT: Thiếu ADMIN_PASSWORD hoặc ADMIN_SECRET_TOKEN trong biến môi trường Render.")
 if not GROQ_API_KEY:
     raise RuntimeError("LỖI CẤU HÌNH: Thiếu GROQ_API_KEY.")
 
@@ -39,6 +42,7 @@ DEFAULT_ORIGINS = ["https://thandanh83-sys.github.io"]
 env_origins = os.environ.get("ALLOWED_ORIGINS", "")
 ALLOWED_ORIGINS = [o.strip() for o in env_origins.split(",") if o.strip()] or DEFAULT_ORIGINS
 
+# Lấy IP
 def get_client_ip(request: Request) -> str:
     forwarded = request.headers.get("x-forwarded-for")
     if forwarded:
@@ -72,6 +76,7 @@ supabase_url = os.environ.get("SUPABASE_URL", "")
 supabase_key = os.environ.get("SUPABASE_KEY", "")
 supabase: Client = create_client(supabase_url, supabase_key) if supabase_url and supabase_key else None
 
+# Hàm gọi AI chống Prompt Injection
 def call_llm(system_prompt: str, user_prompt: str, max_retries: int = 3) -> str:
     for attempt in range(max_retries):
         try:
@@ -111,7 +116,8 @@ def get_history(token: str = Depends(api_key_header)):
     if not supabase:
         return {"history": [], "message": "Supabase chưa được cấu hình"}
     try:
-        res = supabase.table("history").select("prompt, type, total_score, created_at").order("created_at", desc=True).limit(50).execute()
+        # Đã thêm "errors" vào select
+        res = supabase.table("history").select("prompt, type, total_score, created_at, errors").order("created_at", desc=True).limit(50).execute()
         return {"history": res.data}
     except Exception as e:
         logger.error(f"Lỗi lấy lịch sử: {e}")
