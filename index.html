@@ -141,7 +141,7 @@
                 <h2 class="text-lg font-bold text-slate-800 dark:text-slate-200 mb-4 flex items-center gap-2">
                     <span>📚</span> Thư viện Prompt Xuất sắc
                 </h2>
-                <p class="text-sm text-slate-500 dark:text-slate-400 mb-6">Những câu lệnh đạt điểm 8.0 trở lên từ cộng đồng. Bấm "Dùng thử" để xem chi tiết hoặc học hỏi cách viết.</p>
+                <p class="text-sm text-slate-500 dark:text-slate-400 mb-6">Những câu lệnh đạt điểm 8.0 trở lên từ cộng đồng. Bấm "Copy" để sử dụng ngay.</p>
                 
                 <div id="libraryLoading" class="text-center py-10 text-slate-500 text-sm animate-pulse">Đang tải dữ liệu...</div>
                 <div id="libraryList" class="space-y-4"></div>
@@ -334,7 +334,7 @@
                     
                     const card = document.createElement('div');
                     card.className = 'border border-slate-200 dark:border-slate-700/60 rounded-2xl p-4 bg-slate-50/50 dark:bg-slate-900/30 flex flex-col gap-3';
-                    // Cập nhật onclick để truyền thêm "this" (chính cái nút) để đổi text
+                    // Cập nhật text nút thành "Copy" và truyền "this" để đổi text
                     card.innerHTML = `
                         <div class="flex justify-between items-start">
                             <div class="flex items-center gap-2">
@@ -345,8 +345,8 @@
                         </div>
                         <p class="text-sm text-slate-700 dark:text-slate-300 italic">"${item.prompt}"</p>
                         <button class="self-end text-xs font-bold text-indigo-500 hover:text-indigo-700 transition flex items-center gap-1" onclick="usePrompt('${item.prompt.replace(/'/g, "\\'")}', this)">
-                            <span>Dùng thử ngay</span>
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+                            <span>Copy</span>
                         </button>
                     `;
                     list.appendChild(card);
@@ -362,12 +362,10 @@
         }
     }
 
-    // --- HÀM DÙNG THỬ PROMPT TỪ THƯ VIỆN ---
+    // --- HÀM COPY TỪ THƯ VIỆN (KHÔNG CHUYỂN TAB) ---
     window.usePrompt = async function(promptText, btnElement) {
-        // 1. Tự động Copy vào Clipboard
         try {
             await navigator.clipboard.writeText(promptText);
-            // Đổi text của nút để thông báo đã copy thành công
             if (btnElement) {
                 const originalHTML = btnElement.innerHTML;
                 btnElement.innerHTML = '<span class="text-green-500">Đã copy!</span>';
@@ -377,13 +375,6 @@
             console.error('Lỗi copy: ', err);
             alert("Trình duyệt không cho phép tự động copy. Bạn hãy bôi đen và copy thủ công nhé.");
         }
-
-        // 2. Chuyển tab và điền vào ô nhập liệu
-        $('tabEvaluate').click();
-        $('promptInput').value = promptText;
-        $('charCount').textContent = `${promptText.length}/5000`;
-        $('btnClearInput').classList.remove('hidden');
-        $('mainContainer').scrollIntoView({ behavior: 'smooth' });
     }
 
     const promptInput = $('promptInput'); const charCount = $('charCount'); const btnClearInput = $('btnClearInput'); const longPromptWarning = $('longPromptWarning');
