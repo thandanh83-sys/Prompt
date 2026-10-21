@@ -21,14 +21,13 @@
     <style>
         body { overflow-x: hidden; transition: background-color 0.3s, color 0.3s; }
         
-        /* Tinh chỉnh Glassmorphism cho cả Sáng và Tối */
         .glass { 
             background: rgba(255, 255, 255, 0.7); 
             backdrop-filter: blur(10px); 
             border: 1px solid rgba(0, 0, 0, 0.05); 
         }
         .dark .glass { 
-            background: rgba(15, 23, 42, 0.65); /* Màu tối hơn, sang hơn */
+            background: rgba(15, 23, 42, 0.65);
             border: 1px solid rgba(255, 255, 255, 0.08); 
         }
         
@@ -42,9 +41,8 @@
         .glow-btn::before { content: ''; position: absolute; inset: -2px; background: linear-gradient(45deg, #ec4899, #3b82f6); border-radius: inherit; z-index: -1; filter: blur(8px); opacity: 0.7; transition: opacity 0.3s; }
         .glow-btn:hover::before { opacity: 1; }
         
-        /* Background Orbs Tinh Chỉnh */
         .orb { position: absolute; border-radius: 50%; filter: blur(80px); z-index: -2; opacity: 0.15; }
-        .dark .orb { opacity: 0.15; } /* Giảm độ chói trong dark mode */
+        .dark .orb { opacity: 0.15; }
         .dark .orb-pink { background: #ec4899; opacity: 0.2; }
         .dark .orb-blue { background: #3b82f6; opacity: 0.15; }
         .dark .orb-purple { background: #9333ea; opacity: 0.15; }
@@ -73,12 +71,29 @@
                     <span class="text-lg md:text-xl font-bold text-slate-900 dark:text-white tracking-wide">Trợ lý AI</span>
                 </div>
 
-                <!-- Menu Xổ Xuống -->
-                <div id="menuDropdownLanding" class="absolute top-14 left-0 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-2xl shadow-xl w-48 overflow-hidden hidden opacity-0 scale-95 transition-all duration-200">
+                <!-- MENU XỔ XUỐNG (ĐÃ ĐỒNG BỘ VỚI TRANG INDEX) -->
+                <div id="menuDropdownLanding" class="absolute top-14 left-0 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-2xl shadow-xl w-56 overflow-hidden hidden opacity-0 scale-95 transition-all duration-200 z-50">
                     <div class="flex flex-col py-2">
-                        <a href="#features" class="menu-item flex items-center gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-white/5 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors">Tính năng</a>
-                        <a href="#how-it-works" class="menu-item flex items-center gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-white/5 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors">Cách hoạt động</a>
-                        <a href="#about" class="menu-item flex items-center gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-white/5 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors">Về dự án</a>
+                        <!-- Link Trang Chủ -->
+                        <a href="./index.html" class="menu-item flex items-center gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-white/5 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-brand-pink" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
+                            Trang chủ
+                        </a>
+                        <!-- Link Đánh giá -->
+                        <a href="./evaluate.html" class="menu-item flex items-center gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-white/5 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-brand-blue" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg>
+                            Đánh giá
+                        </a>
+                        <!-- Link Thư viện -->
+                        <a href="./library.html" class="menu-item flex items-center gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-white/5 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
+                            Thư viện
+                        </a>
+                        <!-- Link Admin -->
+                        <a href="./admin.html" class="menu-item flex items-center gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-white/5 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors border-t border-slate-100 dark:border-white/5 mt-1 pt-3">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                            Quản trị (Admin)
+                        </a>
                     </div>
                 </div>
             </div>
@@ -278,10 +293,8 @@
             }
         }
 
-        // Khởi tạo trạng thái ban đầu cho Icon
         updateThemeUI(document.documentElement.classList.contains('dark'));
 
-        // Sự kiện click đổi theme
         themeToggle.addEventListener('click', () => {
             const isDark = !document.documentElement.classList.contains('dark');
             updateThemeUI(isDark);
