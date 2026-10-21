@@ -17,24 +17,19 @@ from slowapi.errors import RateLimitExceeded
 import rules_v38
 from validator import validate_full_report, calculate_final_score
 
-# Cấu hình logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger("prompt-evaluator")
 
-# Hằng số
 MAX_PROMPT_LENGTH = 5000
 RATE_LIMIT = "20/minute"
 GENERIC_ERROR = {"error": "Hệ thống đang bận, vui lòng thử lại sau."}
 
-# [BẢO MẬT] Bắt buộc phải có biến môi trường
 ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD")
 ADMIN_SECRET_TOKEN = os.environ.get("ADMIN_SECRET_TOKEN")
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
 
-if not ADMIN_PASSWORD or not ADMIN_SECRET_TOKEN:
-    raise RuntimeError("LỖI BẢO MẬT: Thiếu ADMIN_PASSWORD hoặc ADMIN_SECRET_TOKEN trong biến môi trường Render.")
-if not GROQ_API_KEY:
-    raise RuntimeError("LỖI CẤU HÌNH: Thiếu GROQ_API_KEY.")
+if not ADMIN_PASSWORD or not ADMIN_SECRET_TOKEN or not GROQ_API_KEY:
+    raise RuntimeError("LỖI BẢO MẬT: Thiếu biến môi trường bắt buộc.")
 
 api_key_header = APIKeyHeader(name="X-Admin-Token", auto_error=False)
 
@@ -42,7 +37,6 @@ DEFAULT_ORIGINS = ["https://thandanh83-sys.github.io"]
 env_origins = os.environ.get("ALLOWED_ORIGINS", "")
 ALLOWED_ORIGINS = [o.strip() for o in env_origins.split(",") if o.strip()] or DEFAULT_ORIGINS
 
-# Lấy IP
 def get_client_ip(request: Request) -> str:
     forwarded = request.headers.get("x-forwarded-for")
     if forwarded:
@@ -71,12 +65,13 @@ class LoginRequest(BaseModel):
     password: str
 
 client = Groq(api_key=GROQ_API_KEY)
-
 supabase_url = os.environ.get("SUPABASE_URL", "")
 supabase_key = os.environ.get("SUPABASE_KEY", "")
 supabase: Client = create_client(supabase_url, supabase_key) if supabase_url and supabase_key else None
 
-# Hàm gọi AI chống Prompt Injection
+# Danh sách 11 mục bắt buộc
+REQUIRED_KEYS = ["1. VAI TRÒ", "2. BỐI CẢNH", "3. INPUT", "4. MỤC TIÊU", "5. YÊU CẦU", "6. RÀNG BUỘC", "7. TASK", "8. ĐỊNH DẠNG ĐẦU RA", "9. NEVER DO", "10. THỨ TỰ ƯU TIÊN", "11. XỬ LÝ NỘI BỘ"]
+
 def call_llm(system_prompt: str, user_prompt: str, max_retries: int = 3) -> str:
     for attempt in range(max_retries):
         try:
@@ -111,7 +106,8 @@ def admin_login(request: Request, req: LoginRequest):
 
 @app.get("/history")
 def get_history(token: str = Depends(api_key_header)):
-    if token != ADMIN_SECRET_TOKEN:
+    # [VÁ LỖI]: Dùng secrets.compare_digest chống timing attack
+    if not token or not secrets.compare_digest(token, ADMIN_SECRET_TOKEN):
         raise HTTPException(status_code=401, detail="Không có quyền truy cập")
     if not supabase:
         return {"history": [], "message": "Supabase chưa được cấu hình"}
@@ -132,26 +128,13 @@ def evaluate(request: Request, req: PromptRequest):
     if len(prompt_text) > MAX_PROMPT_LENGTH:
         return JSONResponse(status_code=400, content={"error": "Prompt vượt quá 5000 ký tự."})
 
-    if supabase:
-        try:
-            response_db = supabase.table("history").select("prompt, type, total_score, details, errors, rewrite").eq("prompt", prompt_text).execute()
-            if response_db.data:
-                cached_data = response_db.data[0]
-                return {
-                    "prompt": cached_data["prompt"], "type": cached_data["type"],
-                    "total": cached_data["total_score"], "details": cached_data["details"],
-                    "errors": cached_data["errors"], "rewrite": cached_data["rewrite"],
-                }
-        except Exception as e:
-            logger.error(f"Lỗi đọc Supabase: {e}")
+    # [VÁ LỖI CACHE]: Tạm thời vô hiệu hóa cache đọc để đảm bảo AI luôn chấm bằng Rubric mới nhất.
+    # Nếu muốn bật lại, hãy thêm điều kiện kiểm tra phiên bản (VD: version == 'v3').
 
     try:
         content_type = rules_v38.classify_prompt(prompt_text)
         criteria = rules_v38.get_criteria_by_type(content_type)
-        if not criteria:
-            logger.error(f"Không xác định được tiêu chí cho content_type={content_type!r}")
-            return JSONResponse(status_code=500, content=GENERIC_ERROR)
-
+        
         criteria_desc = ""
         for k, v in criteria.items():
             criteria_desc += f"- ID {k} ({v['name']}): {v['rubric']}\n"
@@ -159,46 +142,17 @@ def evaluate(request: Request, req: PromptRequest):
         error_codes_desc = "\n".join([f"- {k}: {v}" for k, v in rules_v38.VALID_ERROR_CODES.items()])
         scores_example = ", ".join([f'"{k}": 8' for k in criteria.keys()])
 
-        # [CẬP NHẬT: PROMPT VẠN NĂNG + FORM 11 MỤC CHUYÊN SÂU]
         system_prompt = f"""
-Bạn là một Chuyên gia Prompt Engineering cấp cao. Nhiệm vụ của bạn là đánh giá và viết lại câu lệnh của người dùng. Bạn phải TỰ ĐỘNG TƯ DUY theo quy trình sau:
+Bạn là Chuyên gia Prompt Engineering. Đánh giá và viết lại câu lệnh của người dùng theo form 11 mục.
 
-BƯỚC 1: XÁC ĐỊNH LĨNH VỰC
-- Tự nhận diện lĩnh vực của prompt (VD: IT, Nấu ăn, Tâm lý, Kinh doanh, Học tập...).
-
-BƯỚC 2: HÓA THÂN THÀNH CHUYÊN GIA ĐẦU NGÀNH
-- Hãy suy nghĩ và hành xử như một chuyên gia có 10 năm kinh nghiệm trong lĩnh vực đó.
-
-BƯỚC 3: VIẾT LẠI PROMPT THEO ĐÚNG FORM 11 MỤC SAU (Sử dụng ký tự \\n để xuống dòng trong JSON):
-1. VAI TRÒ: [Vai trò chuyên môn, số năm kinh nghiệm, lĩnh vực, kỹ năng cốt lõi]
-2. BỐI CẢNH: Bắt buộc phải có các gạch đầu dòng sau: - Người dùng: ...\\n- Mục đích: ...\\n- Không gian: ...\\n- Thời gian: ...\\n- Cảm xúc: ...\\n- Văn hóa: ...\\n- Chuyên môn: ...\\n- Ràng buộc: ...\\n- Kỳ vọng: ...\\n- Đối thủ: ...\\n- Lịch sử: ...\\n- Tương lai: ...
-3. INPUT: [Người dùng cung cấp gì: ảnh, file, văn bản, dữ liệu, câu hỏi]
-4. MỤC TIÊU: [Kết quả cuối cùng cần đạt, đo lường được]
-5. YÊU CẦU: [Yêu cầu cụ thể, hành động rõ ràng, không mơ hồ]
-6. RÀNG BUỘC: Bắt buộc phải chia rõ thành 3 gạch đầu dòng: - PHẢI: ...\\n- KHÔNG ĐƯỢC: ...\\n- GIỚI HẠN: ...
-7. TASK: Bắt buộc phải chia rõ thành các bước đánh số: 1. ...\\n2. ...\\n3. ...
-8. ĐỊNH DẠNG ĐẦU RA: [Văn bản, bảng, code, ảnh, JSON, danh sách]
-9. NEVER DO: [Danh sách lỗi cần tránh]
-10. THỨ TỰ ƯU TIÊN: Bắt buộc phải chia rõ thành số thứ tự: 1. ...\\n2. ...\\n3. ...
-11. XỬ LÝ NỘI BỘ: [Quy trình tự kiểm tra logic, độ chính xác trước khi xuất kết quả]
-
-THANG ĐIỂM (RUBRIC) BẮT BUỘC:
-{criteria_desc}
-
-MÃ LỖI BẮT BUỘC:
-{error_codes_desc}
-
-QUY TẮC CHỌN LỖI:
-1. CHỈ CHỌN TỐI ĐA 3 LỖI NGHIÊM TRỌNG NHẤT.
-2. Bằng chứng (evidence) phải trích dẫn chính xác từ Prompt gốc của người dùng.
-
-CHỈ TRẢ VỀ CHUỖI JSON HỢP LỆ:
+BƯỚC 1: XÁC ĐỊNH LĨNH VỰC & CHUYÊN GIA.
+BƯỚC 2: VIẾT LẠI PROMPT THEO ĐÚNG CẤU TRÚC JSON SAU (Sử dụng \\n để xuống dòng):
 {{
   "scores": {{ {scores_example} }},
   "errors": [ {{"code": "[Mã lỗi]", "evidence": "[Trích dẫn hoặc 'Toàn bộ']"}} ],
   "rewrite": {{ 
-    "1. VAI TRÒ": "Chuyên gia [Lĩnh vực]...",
-    "2. BỐI CẢNH": "- Người dùng: ...\\n- Mục đích: ...",
+    "1. VAI TRÒ": "...",
+    "2. BỐI CẢNH": "- Người dùng: ...\\n- Mục đích: ...\\n- Không gian: ...\\n- Thời gian: ...\\n- Cảm xúc: ...\\n- Văn hóa: ...\\n- Chuyên môn: ...\\n- Ràng buộc: ...\\n- Kỳ vọng: ...\\n- Đối thủ: ...\\n- Lịch sử: ...\\n- Tương lai: ...",
     "3. INPUT": "...",
     "4. MỤC TIÊU": "...",
     "5. YÊU CẦU": "...",
@@ -210,6 +164,14 @@ CHỈ TRẢ VỀ CHUỖI JSON HỢP LỆ:
     "11. XỬ LÝ NỘI BỘ": "..."
   }}
 }}
+
+THANG ĐIỂM (RUBRIC):
+{criteria_desc}
+
+MÃ LỖI:
+{error_codes_desc}
+
+CHỈ TRẢ VỀ CHUỖI JSON HỢP LỆ.
 """
         raw_text = call_llm(system_prompt, prompt_text)
 
@@ -218,19 +180,28 @@ CHỈ TRẢ VỀ CHUỖI JSON HỢP LỆ:
 
         ai_data = json.loads(raw_text)
 
+        # [VÁ LỖI]: Tự kiểm tra cứng xem AI có trả đủ 11 mục không
+        rewrite_data = ai_data.get("rewrite", {})
+        for key in REQUIRED_KEYS:
+            if key not in rewrite_data:
+                logger.warning(f"AI thiếu mục {key}. Tự động điền rỗng.")
+                rewrite_data[key] = "(AI chưa tạo được mục này, vui lòng thử lại)"
+
+        # [VÁ LỖI]: Kiểm tra bằng chứng (chỉ ghi log)
         if "errors" in ai_data and isinstance(ai_data["errors"], list):
             for err in ai_data["errors"]:
                 evidence = str(err.get("evidence", "")).strip()
                 if evidence and evidence.lower() not in ["toàn bộ", "toàn bộ prompt"] and evidence not in prompt_text:
-                    logger.warning(f"[P6] Evidence không có trong prompt | code={err.get('code')!r} | evidence={evidence!r}")
+                    logger.warning(f"[P6] Evidence không có trong prompt | code={err.get('code')!r}")
 
+        # Validate và tính điểm (sử dụng file validator.py)
         validate_full_report(ai_data, content_type, prompt_text)
         final_score = calculate_final_score(ai_data["scores"], content_type)
 
         result = {
             "prompt": prompt_text, "type": content_type, "total": final_score,
             "details": {criteria[k]["name"]: v for k, v in ai_data["scores"].items()},
-            "errors": ai_data["errors"], "rewrite": ai_data["rewrite"],
+            "errors": ai_data.get("errors", []), "rewrite": rewrite_data,
         }
 
         if supabase:
@@ -245,7 +216,7 @@ CHỈ TRẢ VỀ CHUỖI JSON HỢP LỆ:
         return result
 
     except Exception:
-        logger.exception("Lỗi không mong muốn trong /evaluate")
+        logger.exception("Lỗi trong /evaluate")
         return JSONResponse(status_code=500, content=GENERIC_ERROR)
 
 if __name__ == "__main__":
