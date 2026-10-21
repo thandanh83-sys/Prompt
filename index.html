@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hệ thống Đánh giá Prompt</title>
+    <title>Trợ lý Tối ưu hóa Prompt</title>
     
     <!-- Icon SVG -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><defs><linearGradient id=%22g%22 x1=%220%%22 y1=%220%%22 x2=%22100%%22 y2=%22100%%22><stop offset=%220%%22 stop-color=%22%23ec4899%22/><stop offset=%22100%%22 stop-color=%22%233b82f6%22/></linearGradient></defs><rect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22url(%23g)%22/><text x=%2250%22 y=%2272%22 font-size=%2260%22 font-family=%22Arial,sans-serif%22 font-weight=%22bold%22 fill=%22white%22 text-anchor=%22middle%22>P</text></svg>">
@@ -11,7 +11,6 @@
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        // [CẤU HÌNH DARK MODE]: Bắt buộc phải đặt ở đây để Tailwind nhận diện class 'dark'
         tailwind.config = { darkMode: 'class' }
     </script>
     
@@ -22,15 +21,25 @@
         .dark ::-webkit-scrollbar-thumb { background: #475569; }
     </style>
 </head>
-<body>
+<body class="antialiased">
 
 <div class="min-h-screen bg-gradient-to-br from-slate-50 to-blue-100 text-slate-800 dark:from-slate-900 dark:to-slate-800 dark:text-slate-100 transition-colors duration-300">
     
     <button id="themeToggle" class="fixed top-4 right-4 w-12 h-12 flex items-center justify-center rounded-full bg-white/50 dark:bg-slate-800/60 backdrop-blur-md shadow-lg border border-white/50 dark:border-slate-700/60 text-2xl z-50 hover:scale-105 transition-transform">🌙</button>
 
     <div class="max-w-4xl mx-auto pt-10 px-4 pb-20">
-        <h1 class="text-3xl font-bold text-center mb-6 text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-blue-400">Hệ thống Đánh giá Prompt</h1>
         
+        <!-- TIÊU ĐỀ MỚI -->
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-extrabold mb-3 text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-blue-400">
+                Trợ lý Tối ưu hóa Prompt
+            </h1>
+            <p class="text-slate-600 dark:text-slate-300 text-sm md:text-base font-medium max-w-2xl mx-auto">
+                Biến câu lệnh thô của bạn thành Prompt chuẩn chuyên gia. <br>AI sẽ chấm điểm và viết lại cho bạn.
+            </p>
+        </div>
+
+        <!-- THANH CHUYỂN TAB -->
         <div class="flex justify-center mb-8">
             <div class="flex bg-white/40 dark:bg-slate-800/60 backdrop-blur-md rounded-full p-1 border border-white/50 dark:border-slate-700/60 shadow-sm">
                 <button id="tabUser" class="px-8 py-2 rounded-full font-semibold bg-gradient-to-r from-pink-500 to-blue-400 text-white shadow-md transition-all">User</button>
@@ -40,13 +49,38 @@
 
         <!-- KHU VỰC USER MODE -->
         <div id="userModeSection">
-            <div class="glass-card bg-white/40 dark:bg-slate-800/60 backdrop-blur-lg border border-white/60 dark:border-slate-700/60 shadow-xl rounded-3xl p-6">
-                <textarea id="promptInput" class="w-full h-32 p-4 rounded-2xl bg-white/60 dark:bg-slate-900/60 border border-white/80 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-pink-400 resize-none text-slate-800 dark:text-slate-100" placeholder="Nhập prompt cần đánh giá..."></textarea>
-                <p id="errorMsg" class="text-red-500 text-sm mt-2 font-semibold" style="display: none;">Vui lòng nhập prompt!</p>
-                <button id="btnEvaluate" class="w-full mt-4 py-3 rounded-full font-bold bg-gradient-to-r from-pink-500 to-blue-400 text-white shadow-lg hover:opacity-90 disabled:opacity-60 transition">Đánh giá</button>
+            
+            <!-- HƯỚNG DẪN 3 BƯỚC -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div class="bg-white/40 dark:bg-slate-800/60 backdrop-blur-md p-4 rounded-2xl border border-white/60 dark:border-slate-700 text-center shadow-sm">
+                    <div class="text-2xl mb-2">1️⃣</div>
+                    <p class="font-bold text-sm">Nhập ý tưởng thô</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">VD: "viết bài văn tả mẹ"</p>
+                </div>
+                <div class="bg-white/40 dark:bg-slate-800/60 backdrop-blur-md p-4 rounded-2xl border border-white/60 dark:border-slate-700 text-center shadow-sm">
+                    <div class="text-2xl mb-2">2️⃣</div>
+                    <p class="font-bold text-sm">AI chấm điểm</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Chỉ ra điểm yếu cần khắc phục</p>
+                </div>
+                <div class="bg-white/40 dark:bg-slate-800/60 backdrop-blur-md p-4 rounded-2xl border border-white/60 dark:border-slate-700 text-center shadow-sm">
+                    <div class="text-2xl mb-2">3️⃣</div>
+                    <p class="font-bold text-sm">Copy & Sử dụng</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Dán Prompt vào ChatGPT/Claude</p>
+                </div>
             </div>
 
+            <!-- KHUNG NHẬP LIỆU -->
+            <div class="glass-card bg-white/40 dark:bg-slate-800/60 backdrop-blur-lg border border-white/60 dark:border-slate-700/60 shadow-xl rounded-3xl p-6">
+                <textarea id="promptInput" class="w-full h-32 p-4 rounded-2xl bg-white/60 dark:bg-slate-900/60 border border-white/80 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-pink-400 resize-none text-slate-800 dark:text-slate-100" placeholder="Nhập câu lệnh thô của bạn vào đây..."></textarea>
+                <p id="errorMsg" class="text-red-500 text-sm mt-2 font-semibold" style="display: none;">Vui lòng nhập prompt!</p>
+                <button id="btnEvaluate" class="w-full mt-4 py-3 rounded-full font-bold bg-gradient-to-r from-pink-500 to-blue-400 text-white shadow-lg hover:opacity-90 disabled:opacity-60 transition text-lg">
+                    Đánh giá & Viết lại
+                </button>
+            </div>
+
+            <!-- KẾT QUẢ -->
             <div id="resultArea" class="mt-6 space-y-6" style="display: none;">
+                
                 <!-- Điểm tổng -->
                 <div class="glass-card bg-white/40 dark:bg-slate-800/60 backdrop-blur-lg border border-white/60 dark:border-slate-700/60 shadow-xl rounded-3xl p-6 flex justify-between items-stretch">
                     <div class="flex flex-col justify-center">
@@ -76,7 +110,7 @@
                     <div id="criteriaList" class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5"></div>
                 </div>
 
-                <!-- Bản sửa -->
+                <!-- Bản sửa 11 mục -->
                 <div class="glass-card bg-white/40 dark:bg-slate-800/60 backdrop-blur-lg border border-white/60 dark:border-slate-700/60 shadow-xl rounded-3xl p-6 relative">
                     <button id="btnCopyAll" class="absolute top-4 right-4 flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300 bg-white/60 dark:bg-slate-900/60 rounded-md border border-slate-200 dark:border-slate-700 shadow-sm hover:bg-white dark:hover:bg-slate-800 transition">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -84,7 +118,7 @@
                         </svg>
                         <span id="copyBtnText">Sao chép</span>
                     </button>
-                    <h3 class="font-bold text-lg mb-4">Bản sửa (11 mục)</h3>
+                    <h3 class="font-bold text-lg mb-4">Sửa</h3>
                     <div id="rewriteList" class="space-y-3 text-sm pt-2"></div>
                 </div>
             </div>
@@ -166,7 +200,6 @@
     let lastResult = null;
     let historyData = [];
 
-    // [TỪ ĐIỂN MÃ LỖI]
     const ERROR_NAMES = {
         "A01": "Lỗi chính tả", "A02": "Thiếu dấu câu", "A03": "Lặp lại",
         "B01": "Thiếu thành phần cấu trúc", "B02": "Mục không logic", "B03": "Sai phân cấp", "B04": "Chưa quy định định dạng đầu ra",
@@ -225,7 +258,7 @@
         const typeMap = { "PROMPT": "PROMPT", "TEMPLATE": "TEMPLATE", "PROMPT META": "PROMPT META", "TABLE": "TABLE", "STEM": "TOÁN/LÝ/HÓA" };
         $('promptType').textContent = typeMap[r.type] || r.type;
 
-        // 1. Render Điểm tiêu chí
+        // Render Điểm tiêu chí
         const list = $('criteriaList'); 
         list.replaceChildren();
         Object.entries(r.details).forEach(([name, score]) => {
@@ -241,7 +274,7 @@
             list.append(row);
         });
 
-        // 2. Render Lỗi (User Mode)
+        // Render Lỗi (User Mode)
         const userErrList = $('userErrorList');
         userErrList.innerHTML = '';
         if (r.errors && r.errors.length > 0) {
@@ -275,7 +308,7 @@
             userErrList.innerHTML = `<li class="text-green-600 dark:text-green-400 font-semibold p-3 bg-green-50 dark:bg-green-900/20 rounded-xl">Tuyệt vời! Không phát hiện lỗi nào.</li>`;
         }
 
-        // 3. Render Lỗi (Admin Mode)
+        // Render Lỗi (Admin Mode)
         const adminErrorList = $('adminErrorList');
         adminErrorList.innerHTML = '';
         if (r.errors && r.errors.length > 0) {
@@ -292,7 +325,7 @@
             adminErrorList.innerHTML = `<li class="text-green-500 font-semibold text-sm">Không có lỗi.</li>`;
         }
 
-        // 4. Render Bản sửa
+        // Render Bản sửa
         const rw = $('rewriteList'); 
         rw.replaceChildren();
         SECTION_NAMES.forEach(sec => {
@@ -370,7 +403,7 @@
         } finally {
             clearInterval(timer);
             btn.disabled = false; 
-            btn.textContent = 'Đánh giá';
+            btn.textContent = 'Đánh giá & Viết lại';
         }
     });
 
