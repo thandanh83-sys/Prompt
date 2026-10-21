@@ -5,37 +5,65 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Trợ lý AI - Tối ưu hoá Prompt</title>
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23ec4899'/%3E%3Cstop offset='100%25' stop-color='%233b82f6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' rx='20' fill='url(%23g)'/%3E%3Ctext x='50' y='72' font-size='60' font-family='Arial,sans-serif' font-weight='bold' fill='white' text-anchor='middle'%3EP%3C/text%3E%3C/svg%3E">
+    
+    <!-- SCRIPT CHỐNG NHÁY TRẮNG (FOUC) KHI LOAD TRANG -->
+    <script>
+        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    </script>
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script> tailwind.config = { darkMode: 'class', theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'] }, colors: { brand: { pink: '#ec4899', blue: '#3b82f6' } }, animation: { 'float': 'float 6s ease-in-out infinite', 'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite' }, keyframes: { float: { '0%, 100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-15px)' } } } } } } </script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         body { overflow-x: hidden; transition: background-color 0.3s, color 0.3s; }
-        .glass { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(8px); border: 1px solid rgba(0, 0, 0, 0.05); }
-        .dark .glass { background: rgba(30, 41, 59, 0.6); border: 1px solid rgba(255, 255, 255, 0.1); }
+        
+        /* Tinh chỉnh Glassmorphism cho cả Sáng và Tối */
+        .glass { 
+            background: rgba(255, 255, 255, 0.7); 
+            backdrop-filter: blur(10px); 
+            border: 1px solid rgba(0, 0, 0, 0.05); 
+        }
+        .dark .glass { 
+            background: rgba(15, 23, 42, 0.65); /* Màu tối hơn, sang hơn */
+            border: 1px solid rgba(255, 255, 255, 0.08); 
+        }
+        
         .glass-card { transition: all 0.3s ease; }
         .glass-card:hover { border-color: rgba(236, 72, 153, 0.5); box-shadow: 0 0 30px rgba(236, 72, 153, 0.15); transform: translateY(-5px); }
+        .dark .glass-card:hover { box-shadow: 0 0 30px rgba(59, 130, 246, 0.15); border-color: rgba(59, 130, 246, 0.4); }
+        
         .text-gradient { background: linear-gradient(to right, #ec4899, #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        
         .glow-btn { position: relative; }
         .glow-btn::before { content: ''; position: absolute; inset: -2px; background: linear-gradient(45deg, #ec4899, #3b82f6); border-radius: inherit; z-index: -1; filter: blur(8px); opacity: 0.7; transition: opacity 0.3s; }
         .glow-btn:hover::before { opacity: 1; }
-        .orb { position: absolute; border-radius: 50%; filter: blur(60px); z-index: -2; opacity: 0.15; }
-        .dark .orb { opacity: 0.3; }
+        
+        /* Background Orbs Tinh Chỉnh */
+        .orb { position: absolute; border-radius: 50%; filter: blur(80px); z-index: -2; opacity: 0.15; }
+        .dark .orb { opacity: 0.15; } /* Giảm độ chói trong dark mode */
+        .dark .orb-pink { background: #ec4899; opacity: 0.2; }
+        .dark .orb-blue { background: #3b82f6; opacity: 0.15; }
+        .dark .orb-purple { background: #9333ea; opacity: 0.15; }
     </style>
 </head>
-<body class="antialiased font-sans bg-slate-50 text-slate-800 dark:bg-slate-900 dark:text-slate-200 selection:bg-brand-pink selection:text-white">
+<body class="antialiased font-sans bg-slate-50 text-slate-800 dark:bg-[#0b1120] dark:text-slate-200 selection:bg-brand-pink selection:text-white transition-colors duration-300">
 
     <!-- BACKGROUND ORBS -->
-    <div class="orb bg-brand-pink w-96 h-96 top-[-10%] left-[-10%]"></div>
-    <div class="orb bg-brand-blue w-[30rem] h-[30rem] top-[20%] right-[-10%]"></div>
-    <div class="orb bg-purple-600 w-80 h-80 bottom-[-10%] left-[20%]"></div>
+    <div class="orb orb-pink bg-brand-pink w-96 h-96 top-[-10%] left-[-10%]"></div>
+    <div class="orb orb-blue bg-brand-blue w-[30rem] h-[30rem] top-[20%] right-[-10%]"></div>
+    <div class="orb orb-purple bg-purple-600 w-80 h-80 bottom-[-10%] left-[20%]"></div>
 
-    <!-- THANH HEADER CỐ ĐỊNH (Đồng bộ với index.html) -->
+    <!-- THANH HEADER -->
     <header class="fixed top-0 left-0 w-full z-50 glass border-b border-slate-200 dark:border-white/10">
         <div class="max-w-7xl mx-auto px-4 md:px-6 h-16 md:h-20 flex items-center justify-between">
             
-            <div class="flex items-center gap-4 relative">
+            <div class="flex items-center gap-2 md:gap-4 relative">
                 <!-- Nút Menu 3 gạch -->
-                <button id="btnMenuLanding" class="w-10 h-10 flex items-center justify-center rounded-full text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                <button id="btnMenuLanding" class="w-10 h-10 flex items-center justify-center rounded-full text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" /></svg>
                 </button>
 
@@ -46,11 +74,11 @@
                 </div>
 
                 <!-- Menu Xổ Xuống -->
-                <div id="menuDropdownLanding" class="absolute top-14 left-0 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-xl w-48 overflow-hidden hidden opacity-0 scale-95 transition-all duration-200">
+                <div id="menuDropdownLanding" class="absolute top-14 left-0 bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 rounded-2xl shadow-xl w-48 overflow-hidden hidden opacity-0 scale-95 transition-all duration-200">
                     <div class="flex flex-col py-2">
-                        <a href="#features" class="menu-item flex items-center gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors">Tính năng</a>
-                        <a href="#how-it-works" class="menu-item flex items-center gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors">Cách hoạt động</a>
-                        <a href="#about" class="menu-item flex items-center gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors">Về dự án</a>
+                        <a href="#features" class="menu-item flex items-center gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-white/5 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors">Tính năng</a>
+                        <a href="#how-it-works" class="menu-item flex items-center gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-white/5 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors">Cách hoạt động</a>
+                        <a href="#about" class="menu-item flex items-center gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-white/5 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors">Về dự án</a>
                     </div>
                 </div>
             </div>
@@ -58,11 +86,11 @@
             <!-- BÊN PHẢI -->
             <div class="flex items-center gap-2 md:gap-4">
                 <!-- Nút Sáng/Tối -->
-                <button id="themeToggle" class="w-10 h-10 flex items-center justify-center rounded-full text-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
-                    🌙
+                <button id="themeToggle" class="w-10 h-10 flex items-center justify-center rounded-full text-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors">
+                    <!-- Icon sẽ được JS cập nhật -->
                 </button>
                 <!-- Nút Trải nghiệm -->
-                <a href="./index.html" class="hidden md:block px-5 py-2.5 rounded-full text-sm font-bold text-white bg-gradient-to-r from-brand-pink to-brand-blue shadow-md hover:opacity-90 transition-all transform hover:scale-105">
+                <a href="./index.html" class="block px-4 py-2 md:px-5 md:py-2.5 rounded-full text-xs md:text-sm font-bold text-white bg-gradient-to-r from-brand-pink to-brand-blue shadow-md hover:opacity-90 transition-all transform hover:scale-105">
                     Trải nghiệm ngay
                 </a>
             </div>
@@ -79,7 +107,7 @@
                 Biến câu lệnh <br class="md:hidden"> thông thường <br> thành <span class="text-gradient">Prompt Chuyên Gia</span>
             </h1>
             <p class="text-base md:text-xl text-slate-600 dark:text-slate-400 mb-10 max-w-2xl mx-auto leading-relaxed">
-                AI tự động phân tích, chấm điểm và tối ưu hóa câu lệnh của bạn theo cấu trúc <strong>11 mục</strong> chuẩn quốc tế.
+                AI tự động phân tích, chấm điểm và tối ưu hóa câu lệnh của bạn theo cấu trúc <strong>11 mục</strong> chuẩn quốc tế. Không còn nỗi lo AI trả lời sai ý.
             </p>
             <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
                 <a href="./index.html" class="glow-btn w-full sm:w-auto px-8 py-4 rounded-full font-bold text-white bg-gradient-to-r from-brand-pink to-brand-blue transition-all transform hover:scale-105 flex items-center justify-center gap-2">
@@ -94,33 +122,38 @@
 
         <!-- MOCKUP GIAO DIỆN -->
         <div class="max-w-5xl mx-auto mt-16 md:mt-20 relative z-10 animate-float">
-            <div class="absolute inset-0 bg-gradient-to-r from-brand-pink to-brand-blue rounded-3xl blur-2xl opacity-20 dark:opacity-40"></div>
-            <div class="glass border border-slate-200 dark:border-white/10 rounded-3xl p-4 md:p-6 shadow-2xl relative bg-white/90 dark:bg-[#0b1120]/90">
+            <div class="absolute inset-0 bg-gradient-to-r from-brand-pink to-brand-blue rounded-3xl blur-2xl opacity-20 dark:opacity-30"></div>
+            <div class="glass border border-slate-200 dark:border-white/10 rounded-3xl p-4 md:p-6 shadow-2xl relative bg-white/90 dark:bg-[#0f172a]/90">
                 <div class="flex items-center gap-2 mb-4 px-2">
-                    <div class="w-3 h-3 rounded-full bg-red-500"></div>
-                    <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
-                    <div class="w-3 h-3 rounded-full bg-green-500"></div>
+                    <div class="w-3 h-3 rounded-full bg-red-500/80"></div>
+                    <div class="w-3 h-3 rounded-full bg-yellow-500/80"></div>
+                    <div class="w-3 h-3 rounded-full bg-green-500/80"></div>
                     <div class="ml-4 h-6 w-64 bg-slate-200 dark:bg-white/5 rounded-md"></div>
                 </div>
                 <div class="space-y-6">
-                    <div class="bg-slate-50 dark:bg-[#0f172a] border border-slate-200 dark:border-white/10 rounded-2xl p-6 relative">
-                        <p class="text-slate-400 dark:text-slate-400 text-sm">Mô tả điều bạn muốn AI thực hiện...</p>
+                    <div class="bg-slate-50 dark:bg-[#0b1120] border border-slate-200 dark:border-white/10 rounded-2xl p-6 relative">
+                        <p class="text-slate-400 dark:text-slate-500 text-sm">Mô tả điều bạn muốn AI thực hiện...</p>
+                        <div class="absolute bottom-4 right-4 text-xs text-slate-400 dark:text-slate-600">0/5000</div>
                     </div>
-                    <div class="w-full h-14 bg-gradient-to-r from-brand-pink to-brand-blue rounded-2xl flex items-center justify-center text-white font-bold text-lg shadow-md">Đánh giá & Viết lại</div>
+                    <div class="w-full h-14 bg-gradient-to-r from-brand-pink to-brand-blue rounded-2xl flex items-center justify-center text-white font-bold text-lg shadow-md opacity-90">Đánh giá & Viết lại</div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="bg-slate-50 dark:bg-[#0f172a] border border-slate-200 dark:border-white/10 rounded-2xl p-6">
-                            <p class="text-xs text-slate-500 font-bold mb-2">ĐIỂM TỔNG</p>
+                        <div class="bg-slate-50 dark:bg-[#0b1120] border border-slate-200 dark:border-white/10 rounded-2xl p-6">
+                            <p class="text-xs text-slate-500 dark:text-slate-400 font-bold mb-2">ĐIỂM TỔNG</p>
                             <div class="flex items-baseline gap-2">
                                 <span class="text-5xl font-extrabold text-gradient">8.5</span>
                                 <span class="text-slate-400 dark:text-slate-500">/ 10</span>
                             </div>
-                            <div class="w-full bg-slate-200 dark:bg-slate-800 h-2 rounded-full mt-4">
+                            <div class="w-full bg-slate-200 dark:bg-white/10 h-2 rounded-full mt-4">
                                 <div class="bg-gradient-to-r from-brand-pink to-brand-blue h-2 rounded-full w-[85%]"></div>
                             </div>
                         </div>
-                        <div class="bg-slate-50 dark:bg-[#0f172a] border border-slate-200 dark:border-white/10 rounded-2xl p-6">
-                            <p class="text-xs text-slate-500 font-bold mb-2">PHÂN LOẠI</p>
+                        <div class="bg-slate-50 dark:bg-[#0b1120] border border-slate-200 dark:border-white/10 rounded-2xl p-6">
+                            <p class="text-xs text-slate-500 dark:text-slate-400 font-bold mb-2">PHÂN LOẠI</p>
                             <span class="px-4 py-1.5 rounded-full text-xs font-bold text-white bg-brand-blue shadow-sm">TEMPLATE</span>
+                            <div class="mt-4 flex gap-2">
+                                <span class="px-2 py-1 rounded bg-slate-200 dark:bg-white/10 text-xs text-slate-600 dark:text-slate-300">Đóng vai</span>
+                                <span class="px-2 py-1 rounded bg-slate-200 dark:bg-white/10 text-xs text-slate-600 dark:text-slate-300">Ví dụ mẫu</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -128,18 +161,80 @@
         </div>
     </section>
 
-    <!-- CÁC PHẦN KHÁC GIỮ NGUYÊN NHƯ CŨ -->
+    <!-- TÍNH NĂNG -->
     <section id="features" class="py-24 relative z-10">
         <div class="max-w-7xl mx-auto px-4 md:px-6">
             <div class="text-center mb-16">
-                <h2 class="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-4">Giải pháp toàn diện</h2>
-                <p class="text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">Dạy bạn cách tư duy để viết ra những câu lệnh hoàn hảo nhất.</p>
+                <h2 class="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-4">Giải pháp toàn diện từ <span class="text-gradient">Trợ lý AI</span></h2>
+                <p class="text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">Chúng tôi không chỉ chấm điểm, chúng tôi dạy bạn cách tư duy để viết ra những câu lệnh hoàn hảo nhất.</p>
             </div>
+            
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div class="glass-card glass rounded-3xl p-8"><div class="text-2xl mb-4">🎯</div><h3 class="text-xl font-bold mb-2">Chấm điểm</h3><p class="text-sm text-slate-500">14+ tiêu chí phân tích.</p></div>
-                <div class="glass-card glass rounded-3xl p-8"><div class="text-2xl mb-4">🧠</div><h3 class="text-xl font-bold mb-2">Gợi ý tư duy</h3><p class="text-sm text-slate-500">Gợi mở cách sửa lỗi.</p></div>
-                <div class="glass-card glass rounded-3xl p-8"><div class="text-2xl mb-4">✨</div><h3 class="text-xl font-bold mb-2">Viết lại 11 mục</h3><p class="text-sm text-slate-500">Chuẩn format copy & dùng.</p></div>
-                <div class="glass-card glass rounded-3xl p-8"><div class="text-2xl mb-4">📊</div><h3 class="text-xl font-bold mb-2">Thống kê</h3><p class="text-sm text-slate-500">Biểu đồ Admin trực quan.</p></div>
+                <div class="glass-card glass rounded-3xl p-8 transition-all duration-300">
+                    <div class="w-14 h-14 rounded-2xl bg-brand-pink/10 dark:bg-brand-pink/20 flex items-center justify-center text-2xl mb-6">🎯</div>
+                    <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-3">Chấm điểm Đa chiều</h3>
+                    <p class="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">Phân tích khắt khe dựa trên 14+ tiêu chí như độ rõ ràng, bối cảnh, định dạng và tính khả thi.</p>
+                </div>
+                <div class="glass-card glass rounded-3xl p-8 transition-all duration-300">
+                    <div class="w-14 h-14 rounded-2xl bg-brand-blue/10 dark:bg-brand-blue/20 flex items-center justify-center text-2xl mb-6">🧠</div>
+                    <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-3">Gợi ý tư duy</h3>
+                    <p class="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">Không chỉ chê bai, AI của chúng tôi đưa ra các câu hỏi gợi mở để bạn tự hoàn thiện tư duy viết Prompt.</p>
+                </div>
+                <div class="glass-card glass rounded-3xl p-8 transition-all duration-300">
+                    <div class="w-14 h-14 rounded-2xl bg-purple-500/10 dark:bg-purple-500/20 flex items-center justify-center text-2xl mb-6">✨</div>
+                    <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-3">Viết lại chuẩn 11 mục</h3>
+                    <p class="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">Tự động cấu trúc lại câu lệnh của bạn theo format 11 mục chuyên nghiệp. Chỉ việc Copy và dùng.</p>
+                </div>
+                <div class="glass-card glass rounded-3xl p-8 transition-all duration-300">
+                    <div class="w-14 h-14 rounded-2xl bg-green-500/10 dark:bg-green-500/20 flex items-center justify-center text-2xl mb-6">📊</div>
+                    <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-3">Thống kê thông minh</h3>
+                    <p class="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">Hệ thống Admin giúp bạn theo dõi lịch sử và biểu đồ phân bố lỗi để tối ưu hóa trải nghiệm người dùng.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- QUY TRÌNH -->
+    <section id="how-it-works" class="py-24 relative z-10 bg-white/50 dark:bg-[#0f172a]/50 border-y border-slate-200 dark:border-white/5">
+        <div class="max-w-5xl mx-auto px-4 md:px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-4">Chỉ 3 bước để có Prompt hoàn hảo</h2>
+            </div>
+            
+            <div class="flex flex-col md:flex-row gap-8 relative">
+                <div class="hidden md:block absolute top-1/2 left-0 w-full h-0.5 bg-slate-200 dark:bg-white/10 -translate-y-1/2 z-0"></div>
+                
+                <div class="flex-1 relative z-10 glass rounded-2xl p-6 text-center bg-white dark:bg-[#0b1120] border border-slate-200 dark:border-white/10">
+                    <div class="w-12 h-12 rounded-full bg-slate-100 dark:bg-white/5 border-2 border-brand-pink text-slate-800 dark:text-white font-bold text-xl flex items-center justify-center mx-auto mb-4">1</div>
+                    <h4 class="font-bold text-slate-900 dark:text-white mb-2">Nhập ý tưởng thô</h4>
+                    <p class="text-sm text-slate-500 dark:text-slate-400">VD: "Viết email xin việc IT".</p>
+                </div>
+                <div class="flex-1 relative z-10 glass rounded-2xl p-6 text-center bg-white dark:bg-[#0b1120] border border-slate-200 dark:border-white/10">
+                    <div class="w-12 h-12 rounded-full bg-slate-100 dark:bg-white/5 border-2 border-brand-blue text-slate-800 dark:text-white font-bold text-xl flex items-center justify-center mx-auto mb-4">2</div>
+                    <h4 class="font-bold text-slate-900 dark:text-white mb-2">AI phân tích ngầm</h4>
+                    <p class="text-sm text-slate-500 dark:text-slate-400">Hệ thống tự động đánh giá và tối ưu hóa.</p>
+                </div>
+                <div class="flex-1 relative z-10 glass rounded-2xl p-6 text-center bg-white dark:bg-[#0b1120] border border-slate-200 dark:border-white/10">
+                    <div class="w-12 h-12 rounded-full bg-slate-100 dark:bg-white/5 border-2 border-purple-500 text-slate-800 dark:text-white font-bold text-xl flex items-center justify-center mx-auto mb-4">3</div>
+                    <h4 class="font-bold text-slate-900 dark:text-white mb-2">Nhận kết quả</h4>
+                    <p class="text-sm text-slate-500 dark:text-slate-400">Xem điểm số và nhấn "Sao chép" bản sửa.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ABOUT DỰ ÁN -->
+    <section id="about" class="py-20 relative z-10">
+        <div class="max-w-3xl mx-auto px-4 md:px-6 text-center">
+            <h2 class="text-2xl font-bold text-slate-900 dark:text-white mb-4">Về dự án này</h2>
+            <p class="text-slate-600 dark:text-slate-400 leading-relaxed mb-6">
+                Dự án được phát triển với mục tiêu nâng cao kỹ năng tương tác giữa con người và Trí tuệ nhân tạo. Chúng tôi tin rằng AI không thay thế tư duy của bạn, mà giúp tư duy của bạn trở nên sắc bén hơn.
+            </p>
+            <div class="flex flex-wrap justify-center gap-3 text-sm font-medium">
+                <span class="px-3 py-1 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-full text-slate-700 dark:text-slate-300">FastAPI (Python)</span>
+                <span class="px-3 py-1 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-full text-slate-700 dark:text-slate-300">Groq AI</span>
+                <span class="px-3 py-1 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-full text-slate-700 dark:text-slate-300">Supabase</span>
+                <span class="px-3 py-1 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-full text-slate-700 dark:text-slate-300">Tailwind CSS</span>
             </div>
         </div>
     </section>
@@ -148,16 +243,21 @@
     <section class="py-24 relative z-10">
         <div class="max-w-4xl mx-auto px-4 md:px-6">
             <div class="glass rounded-3xl p-10 md:p-16 text-center relative overflow-hidden border border-slate-200 dark:border-white/10">
-                <div class="absolute inset-0 bg-gradient-to-r from-brand-pink/10 to-brand-blue/10 dark:from-brand-pink/20 dark:to-brand-blue/20"></div>
+                <div class="absolute inset-0 bg-gradient-to-r from-brand-pink/10 to-brand-blue/10 dark:from-brand-pink/5 dark:to-brand-blue/5"></div>
                 <div class="relative z-10">
-                    <h2 class="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-6">Sẵn sàng nâng cấp Prompt?</h2>
-                    <a href="./index.html" class="glow-btn inline-block px-10 py-4 rounded-full font-bold text-white bg-gradient-to-r from-brand-pink to-brand-blue transition-all transform hover:scale-105 shadow-lg">Vào ứng dụng ngay 🚀</a>
+                    <h2 class="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-6">Sẵn sàng nâng cấp Prompt của bạn?</h2>
+                    <a href="./index.html" class="glow-btn inline-block px-10 py-4 rounded-full font-bold text-white bg-gradient-to-r from-brand-pink to-brand-blue transition-all transform hover:scale-105 shadow-lg">
+                        Vào ứng dụng ngay 🚀
+                    </a>
                 </div>
             </div>
         </div>
     </section>
 
-    <footer class="border-t border-slate-200 dark:border-white/10 py-8 text-center text-slate-500 text-sm relative z-10"><p>© 2026 Trợ lý AI. Đội 2 - Nghiên cứu AI & Tư duy.</p></footer>
+    <!-- FOOTER -->
+    <footer class="border-t border-slate-200 dark:border-white/10 py-8 text-center text-slate-500 dark:text-slate-500 text-sm relative z-10">
+        <p>© 2026 Trợ lý AI. Phát triển bởi Đội 2 - Nghiên cứu AI & Tư duy.</p>
+    </footer>
 
     <!-- LOGIC LANDING -->
     <script>
@@ -166,14 +266,28 @@
         const menuDropdownLanding = document.getElementById('menuDropdownLanding');
         let isMenuOpen = false;
 
-        function applyTheme(dark) {
-            document.documentElement.classList.toggle('dark', dark); 
-            themeToggle.textContent = dark ? '☀️' : '🌙';
-            try { localStorage.setItem('theme', dark ? 'dark' : 'light'); } catch (e) {}
+        // Hàm cập nhật Icon và Class cho Theme
+        function updateThemeUI(isDark) {
+            themeToggle.textContent = isDark ? '☀️' : '🌙';
+            if (isDark) {
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+            }
         }
-        (function initTheme() { let saved = null; try { saved = localStorage.getItem('theme'); } catch (e) {} applyTheme(saved ? saved === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches); })();
-        themeToggle.addEventListener('click', () => applyTheme(!document.documentElement.classList.contains('dark')));
 
+        // Khởi tạo trạng thái ban đầu cho Icon
+        updateThemeUI(document.documentElement.classList.contains('dark'));
+
+        // Sự kiện click đổi theme
+        themeToggle.addEventListener('click', () => {
+            const isDark = !document.documentElement.classList.contains('dark');
+            updateThemeUI(isDark);
+        });
+
+        // Logic Menu 3 Gạch
         btnMenuLanding.addEventListener('click', (e) => {
             e.stopPropagation();
             isMenuOpen = !isMenuOpen;
