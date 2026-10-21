@@ -21,21 +21,20 @@
 </head>
 <body class="antialiased min-h-screen relative text-slate-800 dark:text-slate-100 transition-colors duration-300 bg-slate-50 dark:bg-slate-900 dark-glow flex flex-col">
 
-    <!-- NÚT NỔI GÓC TRÊN BÊN PHẢI (Đã đưa trở lại top) -->
+    <!-- NÚT NỔI GÓC TRÊN BÊN PHẢI -->
     <div class="fixed top-4 right-4 flex flex-col gap-2 z-[100]">
         <button id="adminToggleBtn" class="w-10 h-10 flex items-center justify-center rounded-full bg-white dark:bg-slate-800 shadow-md border border-slate-200 dark:border-slate-700 text-lg hover:scale-105 transition-transform" title="Quản trị viên">
-            🙎‍♂️
+            🔐
         </button>
         <button id="themeToggle" class="w-10 h-10 flex items-center justify-center rounded-full bg-white dark:bg-slate-800 shadow-md border border-slate-200 dark:border-slate-700 text-lg hover:scale-105 transition-transform">
             🌙
         </button>
     </div>
 
-    <!-- Thêm pt-20 để tránh bị nút đè lên tiêu đề -->
     <div class="max-w-xl w-full mx-auto px-5 pt-20 pb-32 flex-grow flex flex-col" id="mainContainer">
         
         <!-- HEADER -->
-        <div class="text-center mb-8">
+        <div class="text-center mb-8 px-6">
             <h1 class="text-2xl md:text-3xl font-extrabold mb-3 leading-tight">
                 <span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-blue-500">✨ Trợ lý tối ưu hoá Prompt</span>
             </h1>
@@ -46,6 +45,7 @@
 
         <!-- USER MODE -->
         <div id="userModeSection">
+            <!-- Thẻ nhập liệu -->
             <div class="glass-card bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/50 shadow-sm rounded-3xl p-5">
                 <div class="relative">
                     <textarea id="promptInput" maxlength="5000" class="w-full h-36 p-4 pb-10 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700/50 focus:outline-none focus:ring-1 focus:ring-pink-500 focus:border-pink-500 resize-none text-slate-800 dark:text-slate-100 placeholder-slate-400 text-sm transition-all" placeholder="Mô tả điều bạn muốn AI thực hiện..."></textarea>
@@ -67,9 +67,12 @@
                 </button>
             </div>
 
+            <!-- KẾT QUẢ ĐÁNH GIÁ -->
             <div id="resultArea" class="mt-8 space-y-5" style="display: none;">
-                <div class="glass-card bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/50 shadow-sm rounded-3xl p-6 flex justify-between items-center relative overflow-hidden">
-                    <div class="flex flex-col w-1/2">
+                
+                <!-- 1. Điểm tổng & Phân loại đa chiều -->
+                <div class="glass-card bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/50 shadow-sm rounded-3xl p-6 flex justify-between items-start relative overflow-hidden">
+                    <div class="flex flex-col w-1/2 pt-1">
                         <p class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1">Điểm tổng</p>
                         <div class="flex items-baseline">
                             <span id="totalScore" class="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-blue-500">0.0</span>
@@ -81,10 +84,16 @@
                     </div>
                     <div class="flex flex-col items-end justify-center w-1/2">
                         <p class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2">Phân loại</p>
-                        <span id="promptType" class="px-4 py-1.5 rounded-full text-xs font-bold text-white shadow-sm bg-blue-500">PROMPT</span>
+                        <div class="flex flex-wrap justify-end gap-1.5">
+                            <!-- Nhãn chính -->
+                            <span id="promptType" class="px-3 py-1 rounded-full text-[11px] font-bold text-white shadow-sm bg-blue-500">PROMPT</span>
+                            <!-- Các nhãn kỹ thuật sẽ được chèn vào đây bằng JS -->
+                            <div id="techniqueBadges" class="flex flex-wrap gap-1.5"></div>
+                        </div>
                     </div>
                 </div>
 
+                <!-- 2. Điểm sáng -->
                 <div id="strengthsCard" class="glass-card bg-green-50/50 dark:bg-green-900/10 border border-green-200 dark:border-green-800/30 shadow-sm rounded-3xl p-6" style="display: none;">
                     <h3 class="font-bold text-sm mb-3 text-green-700 dark:text-green-400 flex items-center gap-2">
                         <span class="text-lg">🌟</span> Điểm sáng của bạn
@@ -92,6 +101,7 @@
                     <ul id="strengthsList" class="space-y-2 text-sm text-slate-700 dark:text-slate-300 list-disc pl-4"></ul>
                 </div>
 
+                <!-- 3. Lỗi & Gợi ý -->
                 <div class="glass-card bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/50 shadow-sm rounded-3xl p-6">
                     <h3 class="font-bold text-sm mb-4 text-slate-800 dark:text-slate-200 flex items-center gap-2">
                         <span class="w-2 h-2 rounded-full bg-red-500"></span> Điểm nên luyện thêm
@@ -99,6 +109,7 @@
                     <ul id="userErrorList" class="space-y-3 text-sm text-slate-700 dark:text-slate-300"></ul>
                 </div>
 
+                <!-- 4. Chi tiết điểm (2 cột) -->
                 <div class="glass-card bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/50 shadow-sm rounded-3xl p-6">
                     <h3 class="font-bold text-sm mb-5 text-slate-800 dark:text-slate-200 flex items-center gap-2">
                         <span class="w-2 h-2 rounded-full bg-blue-500"></span> Chi tiết điểm
@@ -106,6 +117,7 @@
                     <div id="criteriaList" class="grid grid-cols-2 gap-x-4 gap-y-4"></div>
                 </div>
 
+                <!-- 5. Bản sửa -->
                 <div class="glass-card bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/50 shadow-sm rounded-3xl overflow-hidden">
                     <div class="flex justify-between items-center px-5 py-3 border-b border-slate-200 dark:border-slate-700/50 bg-slate-50 dark:bg-slate-900/40">
                         <h3 class="font-bold text-sm text-slate-800 dark:text-slate-200 flex items-center gap-2">
@@ -201,7 +213,7 @@
 </div>
 
 <script>
-    const API_URL = "https://prompt-tx2e.onrender.com"; // Đảm bảo đúng link Render của bạn
+    const API_URL = "https://prompt-tx2e.onrender.com"; 
     const SECTION_NAMES = ["1. VAI TRÒ", "2. BỐI CẢNH", "3. INPUT", "4. MỤC TIÊU", "5. YÊU CẦU", "6. RÀNG BUỘC", "7. TASK", "8. ĐỊNH DẠNG ĐẦU RA", "9. NEVER DO", "10. THỨ TỰ ƯU TIÊN", "11. XỬ LÝ NỘI BỘ"];
     const $ = id => document.getElementById(id);
     let lastResult = null;
@@ -221,6 +233,15 @@
         "C01": "Đối tượng chưa rõ", "C02": "Thiếu bối cảnh", "C03": "Chung chung", "C04": "Thiếu ví dụ",
         "D01": "Mâu thuẫn", "D02": "Bất khả thi", "D03": "Vai trò sai",
         "E01": "Trộn lĩnh vực", "E02": "Thuật ngữ lộn xộn", "E03": "Thiếu đặc thù"
+    };
+
+    // Bảng dịch mã kỹ thuật sang tiếng Việt
+    const TECH_NAMES = {
+        "ROLE_PLAY": "Đóng vai",
+        "FEW_SHOT": "Ví dụ mẫu",
+        "CHAIN_OF_THOUGHT": "Suy luận",
+        "FORMATTED_OUTPUT": "Định dạng",
+        "CREATIVE_GEN": "Sáng tạo"
     };
 
     const promptInput = $('promptInput'); const charCount = $('charCount'); const btnClearInput = $('btnClearInput'); const longPromptWarning = $('longPromptWarning');
@@ -260,15 +281,32 @@
 
     function render(r) {
         $('totalScore').textContent = r.total; setTimeout(() => { $('scoreBar').style.width = `${r.total * 10}%`; }, 100);
+        
+        // Xử lý hiển thị Nhãn chính
         const typeMap = { "PROMPT": "PROMPT", "TEMPLATE": "TEMPLATE", "PROMPT META": "META", "TABLE": "TABLE", "STEM": "STEM", "IMAGE": "IMAGE" };
         const typeColors = { "PROMPT": "bg-blue-500", "TEMPLATE": "bg-purple-500", "META": "bg-orange-500", "TABLE": "bg-teal-500", "STEM": "bg-green-500", "IMAGE": "bg-pink-500" };
-        const pType = $('promptType'); const mappedType = typeMap[r.type] || r.type; pType.textContent = mappedType;
-        pType.className = `px-4 py-1.5 rounded-full text-xs font-bold text-white shadow-sm ${typeColors[mappedType] || 'bg-slate-500'}`;
+        const pType = $('promptType'); const mappedType = typeMap[r.type] || r.type; 
+        pType.textContent = mappedType;
+        pType.className = `px-3 py-1 rounded-full text-[11px] font-bold text-white shadow-sm ${typeColors[mappedType] || 'bg-slate-500'}`;
 
+        // Xử lý hiển thị Nhãn kỹ thuật (Techniques)
+        const techContainer = $('techniqueBadges');
+        techContainer.replaceChildren();
+        if (r.techniques && r.techniques.length > 0) {
+            r.techniques.forEach(tech => {
+                const span = document.createElement('span');
+                span.className = 'px-2 py-1 rounded-md text-[10px] font-semibold bg-slate-200 text-slate-700 dark:bg-slate-700/80 dark:text-slate-300';
+                span.textContent = TECH_NAMES[tech] || tech;
+                techContainer.appendChild(span);
+            });
+        }
+
+        // Điểm sáng
         const strengthsCard = $('strengthsCard'); const strengthsList = $('strengthsList'); strengthsList.replaceChildren(); let hasStrength = false;
         Object.entries(r.details).forEach(([name, score]) => { if (score >= 7) { hasStrength = true; const li = document.createElement('li'); li.innerHTML = `Rất tốt ở tiêu chí <strong>${name}</strong> (đạt ${score}/10).`; strengthsList.appendChild(li); } });
         strengthsCard.style.display = hasStrength ? 'block' : 'none';
 
+        // Chi tiết điểm
         const list = $('criteriaList'); list.replaceChildren();
         Object.entries(r.details).forEach(([name, score]) => {
             const row = document.createElement('div'); const headerDiv = document.createElement('div'); headerDiv.className = 'flex justify-between items-start mb-1.5';
@@ -280,6 +318,7 @@
             barBg.appendChild(barFill); row.appendChild(headerDiv); row.appendChild(barBg); list.appendChild(row);
         });
 
+        // Lỗi
         const userErrList = $('userErrorList'); userErrList.replaceChildren();
         if (r.errors && r.errors.length > 0) {
             r.errors.forEach(err => {
@@ -303,6 +342,7 @@
             const li = document.createElement('li'); li.className = 'text-green-600 dark:text-green-400 text-xs font-semibold p-3.5 bg-green-50 dark:bg-green-900/20 rounded-xl'; li.textContent = 'Tuyệt vời! Không phát hiện lỗi nào.'; userErrList.appendChild(li);
         }
 
+        // Bản sửa
         const rw = $('rewriteList'); rw.replaceChildren();
         SECTION_NAMES.forEach(sec => {
             const item = document.createElement('div'); item.className = 'mb-4 last:mb-0'; 
