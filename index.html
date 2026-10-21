@@ -85,9 +85,7 @@
                     <div class="flex flex-col items-end justify-center w-1/2">
                         <p class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2">Phân loại</p>
                         <div class="flex flex-wrap justify-end gap-1.5">
-                            <!-- Nhãn chính -->
                             <span id="promptType" class="px-3 py-1 rounded-full text-[11px] font-bold text-white shadow-sm bg-blue-500">PROMPT</span>
-                            <!-- Các nhãn kỹ thuật sẽ được chèn vào đây bằng JS -->
                             <div id="techniqueBadges" class="flex flex-wrap gap-1.5"></div>
                         </div>
                     </div>
@@ -235,7 +233,6 @@
         "E01": "Trộn lĩnh vực", "E02": "Thuật ngữ lộn xộn", "E03": "Thiếu đặc thù"
     };
 
-    // Bảng dịch mã kỹ thuật sang tiếng Việt
     const TECH_NAMES = {
         "ROLE_PLAY": "Đóng vai",
         "FEW_SHOT": "Ví dụ mẫu",
@@ -282,14 +279,12 @@
     function render(r) {
         $('totalScore').textContent = r.total; setTimeout(() => { $('scoreBar').style.width = `${r.total * 10}%`; }, 100);
         
-        // Xử lý hiển thị Nhãn chính
         const typeMap = { "PROMPT": "PROMPT", "TEMPLATE": "TEMPLATE", "PROMPT META": "META", "TABLE": "TABLE", "STEM": "STEM", "IMAGE": "IMAGE" };
         const typeColors = { "PROMPT": "bg-blue-500", "TEMPLATE": "bg-purple-500", "META": "bg-orange-500", "TABLE": "bg-teal-500", "STEM": "bg-green-500", "IMAGE": "bg-pink-500" };
         const pType = $('promptType'); const mappedType = typeMap[r.type] || r.type; 
         pType.textContent = mappedType;
         pType.className = `px-3 py-1 rounded-full text-[11px] font-bold text-white shadow-sm ${typeColors[mappedType] || 'bg-slate-500'}`;
 
-        // Xử lý hiển thị Nhãn kỹ thuật (Techniques)
         const techContainer = $('techniqueBadges');
         techContainer.replaceChildren();
         if (r.techniques && r.techniques.length > 0) {
@@ -301,12 +296,10 @@
             });
         }
 
-        // Điểm sáng
         const strengthsCard = $('strengthsCard'); const strengthsList = $('strengthsList'); strengthsList.replaceChildren(); let hasStrength = false;
         Object.entries(r.details).forEach(([name, score]) => { if (score >= 7) { hasStrength = true; const li = document.createElement('li'); li.innerHTML = `Rất tốt ở tiêu chí <strong>${name}</strong> (đạt ${score}/10).`; strengthsList.appendChild(li); } });
         strengthsCard.style.display = hasStrength ? 'block' : 'none';
 
-        // Chi tiết điểm
         const list = $('criteriaList'); list.replaceChildren();
         Object.entries(r.details).forEach(([name, score]) => {
             const row = document.createElement('div'); const headerDiv = document.createElement('div'); headerDiv.className = 'flex justify-between items-start mb-1.5';
@@ -318,7 +311,6 @@
             barBg.appendChild(barFill); row.appendChild(headerDiv); row.appendChild(barBg); list.appendChild(row);
         });
 
-        // Lỗi
         const userErrList = $('userErrorList'); userErrList.replaceChildren();
         if (r.errors && r.errors.length > 0) {
             r.errors.forEach(err => {
@@ -342,7 +334,6 @@
             const li = document.createElement('li'); li.className = 'text-green-600 dark:text-green-400 text-xs font-semibold p-3.5 bg-green-50 dark:bg-green-900/20 rounded-xl'; li.textContent = 'Tuyệt vời! Không phát hiện lỗi nào.'; userErrList.appendChild(li);
         }
 
-        // Bản sửa
         const rw = $('rewriteList'); rw.replaceChildren();
         SECTION_NAMES.forEach(sec => {
             const item = document.createElement('div'); item.className = 'mb-4 last:mb-0'; 
