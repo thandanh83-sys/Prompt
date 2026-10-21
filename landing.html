@@ -37,10 +37,10 @@
     <style>
         body { overflow-x: hidden; transition: background-color 0.3s, color 0.3s; }
         
-        /* Tối ưu Glassmorphism: Giảm độ mờ để máy không bị lag khi đổi theme */
+        /* Tối ưu Glassmorphism */
         .glass { 
             background: rgba(255, 255, 255, 0.7); 
-            backdrop-filter: blur(8px); /* Giảm từ 12px xuống 8px */
+            backdrop-filter: blur(8px);
             border: 1px solid rgba(0, 0, 0, 0.05); 
         }
         .dark .glass { 
@@ -71,12 +71,32 @@
         }
         .glow-btn:hover::before { opacity: 1; }
 
-        /* Đốm sáng nền: Giảm độ mờ để tăng hiệu năng */
+        /* Đốm sáng nền */
         .orb { position: absolute; border-radius: 50%; filter: blur(60px); z-index: -2; opacity: 0.15; }
         .dark .orb { opacity: 0.3; }
+
+        /* CSS cho nút kéo thả (Sáng/Tối) */
+        #draggableThemeToggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            cursor: grab;
+            touch-action: none; 
+            transition: transform 0.1s;
+        }
+        #draggableThemeToggle:active {
+            cursor: grabbing;
+            transform: scale(1.1);
+        }
     </style>
 </head>
 <body class="antialiased font-sans bg-slate-50 text-slate-800 dark:bg-slate-900 dark:text-slate-200 selection:bg-brand-pink selection:text-white">
+
+    <!-- NÚT CHUYỂN SÁNG/TỐI (KÉO THẢ) -->
+    <button id="draggableThemeToggle" class="w-12 h-12 flex items-center justify-center rounded-full bg-white dark:bg-slate-800 shadow-xl border border-slate-200 dark:border-slate-700 text-xl">
+        🌙
+    </button>
 
     <!-- BACKGROUND ORBS -->
     <div class="orb bg-brand-pink w-96 h-96 top-[-10%] left-[-10%]"></div>
@@ -86,20 +106,35 @@
     <!-- NAVBAR -->
     <nav class="fixed w-full top-0 z-40 glass border-b border-slate-200 dark:border-white/10 transition-all duration-300">
         <div class="max-w-7xl mx-auto px-4 md:px-6 h-20 flex items-center justify-between">
-            <!-- Logo -->
-            <div class="flex items-center gap-2 cursor-pointer" onclick="window.location.href='./index.html'">
-                <span class="text-2xl">✨</span>
-                <span class="text-xl font-bold text-slate-900 dark:text-white tracking-wide">Trợ lý AI</span>
+            
+            <!-- BÊN TRÁI: MENU 3 GẠCH + LOGO -->
+            <div class="flex items-center gap-2 md:gap-4 relative">
+                <!-- Nút 3 gạch -->
+                <button id="btnMenuLanding" class="w-10 h-10 flex items-center justify-center rounded-full text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                </button>
+
+                <!-- Logo -->
+                <div class="flex items-center gap-2 cursor-pointer z-10" onclick="window.location.href='./index.html'">
+                    <span class="text-2xl">✨</span>
+                    <span class="text-xl font-bold text-slate-900 dark:text-white tracking-wide">Trợ lý AI</span>
+                </div>
+
+                <!-- Menu Xổ Xuống (Landing) -->
+                <div id="menuDropdownLanding" class="absolute top-12 left-0 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-xl w-48 overflow-hidden hidden opacity-0 scale-95 transition-all duration-200">
+                    <div class="flex flex-col py-2">
+                        <a href="#features" class="menu-item flex items-center gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors">Tính năng</a>
+                        <a href="#how-it-works" class="menu-item flex items-center gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors">Cách hoạt động</a>
+                        <a href="#about" class="menu-item flex items-center gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors">Về dự án</a>
+                    </div>
+                </div>
             </div>
             
-            <!-- Right Side (Menu & Buttons) -->
+            <!-- BÊN PHẢI: NÚT TRẢI NGHIỆM -->
             <div class="flex items-center gap-3">
-                <!-- Nút chuyển Sáng/Tối -->
-                <button id="themeToggle" class="w-10 h-10 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-lg hover:scale-105 transition-transform shadow-sm">
-                    🌙
-                </button>
-                <!-- Nút Trải nghiệm ngay (Hiển thị trên cả Mobile) -->
-                <a href="./index.html" class="px-4 py-2 md:px-6 md:py-2.5 rounded-full text-sm font-bold text-white bg-gradient-to-r from-brand-pink to-brand-blue shadow-md hover:opacity-90 transition-all transform hover:scale-105">
+                <a href="./index.html" class="px-5 py-2.5 rounded-full text-sm font-bold text-white bg-gradient-to-r from-brand-pink to-brand-blue shadow-md hover:opacity-90 transition-all transform hover:scale-105">
                     Trải nghiệm ngay
                 </a>
             </div>
@@ -121,7 +156,6 @@
                 AI tự động phân tích, chấm điểm và tối ưu hóa câu lệnh của bạn theo cấu trúc <strong>11 mục</strong> chuẩn quốc tế. Không còn nỗi lo AI trả lời sai ý.
             </p>
             <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
-                <!-- Nút Hero -->
                 <a href="./index.html" class="glow-btn w-full sm:w-auto px-8 py-4 rounded-full font-bold text-white bg-gradient-to-r from-brand-pink to-brand-blue transition-all transform hover:scale-105 flex items-center justify-center gap-2">
                     Bắt đầu đánh giá miễn phí
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
@@ -136,14 +170,12 @@
         <div class="max-w-5xl mx-auto mt-16 md:mt-20 relative z-10 animate-float">
             <div class="absolute inset-0 bg-gradient-to-r from-brand-pink to-brand-blue rounded-3xl blur-2xl opacity-20 dark:opacity-40"></div>
             <div class="glass border border-slate-200 dark:border-white/10 rounded-3xl p-4 md:p-6 shadow-2xl relative bg-white/90 dark:bg-[#0b1120]/90">
-                <!-- Thanh công cụ giả lập -->
                 <div class="flex items-center gap-2 mb-4 px-2">
                     <div class="w-3 h-3 rounded-full bg-red-500"></div>
                     <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
                     <div class="w-3 h-3 rounded-full bg-green-500"></div>
                     <div class="ml-4 h-6 w-64 bg-slate-200 dark:bg-white/5 rounded-md"></div>
                 </div>
-                <!-- Nội dung App giả lập -->
                 <div class="space-y-6">
                     <div class="bg-slate-50 dark:bg-[#0f172a] border border-slate-200 dark:border-white/10 rounded-2xl p-6 relative">
                         <p class="text-slate-400 dark:text-slate-400 text-sm">Mô tả điều bạn muốn AI thực hiện...</p>
@@ -253,14 +285,13 @@
         </div>
     </section>
 
-    <!-- CTA CUỐI TRANG (Đã đổi thành màu Gradient) -->
+    <!-- CTA CUỐI TRANG -->
     <section class="py-24 relative z-10">
         <div class="max-w-4xl mx-auto px-4 md:px-6">
             <div class="glass rounded-3xl p-10 md:p-16 text-center relative overflow-hidden border border-slate-200 dark:border-white/10">
                 <div class="absolute inset-0 bg-gradient-to-r from-brand-pink/10 to-brand-blue/10 dark:from-brand-pink/20 dark:to-brand-blue/20"></div>
                 <div class="relative z-10">
                     <h2 class="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-6">Sẵn sàng nâng cấp Prompt của bạn?</h2>
-                    <!-- Nút màu Gradient rực rỡ -->
                     <a href="./index.html" class="glow-btn inline-block px-10 py-4 rounded-full font-bold text-white bg-gradient-to-r from-brand-pink to-brand-blue transition-all transform hover:scale-105 shadow-lg">
                         Vào ứng dụng ngay 🚀
                     </a>
@@ -274,10 +305,14 @@
         <p>© 2026 Trợ lý AI. Phát triển bởi Đội 2 - Nghiên cứu AI & Tư duy.</p>
     </footer>
 
-    <!-- LOGIC CHUYỂN ĐỔI THEME -->
+    <!-- LOGIC KÉO THẢ, THEME VÀ MENU -->
     <script>
-        const themeToggle = document.getElementById('themeToggle');
-        
+        const themeToggle = document.getElementById('draggableThemeToggle');
+        const btnMenuLanding = document.getElementById('btnMenuLanding');
+        const menuDropdownLanding = document.getElementById('menuDropdownLanding');
+        let isMenuOpen = false;
+
+        // 1. Logic Đổi Theme
         function applyTheme(dark) {
             document.documentElement.classList.toggle('dark', dark); 
             themeToggle.textContent = dark ? '☀️' : '🌙';
@@ -287,11 +322,110 @@
         (function initTheme() { 
             let saved = null; 
             try { saved = localStorage.getItem('theme'); } catch (e) {} 
-            // Mặc định lấy theo cài đặt thiết bị hoặc đã lưu
             applyTheme(saved ? saved === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches); 
         })();
 
-        themeToggle.addEventListener('click', () => {
+        // 2. Logic Menu 3 Gạch
+        btnMenuLanding.addEventListener('click', (e) => {
+            e.stopPropagation();
+            isMenuOpen = !isMenuOpen;
+            if (isMenuOpen) {
+                menuDropdownLanding.classList.remove('hidden');
+                setTimeout(() => {
+                    menuDropdownLanding.classList.remove('opacity-0', 'scale-95');
+                    menuDropdownLanding.classList.add('opacity-100', 'scale-100');
+                }, 10);
+            } else {
+                menuDropdownLanding.classList.remove('opacity-100', 'scale-100');
+                menuDropdownLanding.classList.add('opacity-0', 'scale-95');
+                setTimeout(() => {
+                    menuDropdownLanding.classList.add('hidden');
+                }, 200);
+            }
+        });
+
+        // Đóng menu khi click ra ngoài hoặc click vào item
+        document.addEventListener('click', (e) => {
+            if (isMenuOpen && !menuDropdownLanding.contains(e.target) && e.target !== btnMenuLanding) {
+                isMenuOpen = false;
+                menuDropdownLanding.classList.remove('opacity-100', 'scale-100');
+                menuDropdownLanding.classList.add('opacity-0', 'scale-95');
+                setTimeout(() => { menuDropdownLanding.classList.add('hidden'); }, 200);
+            }
+        });
+
+        document.querySelectorAll('.menu-item').forEach(item => {
+            item.addEventListener('click', () => {
+                isMenuOpen = false;
+                menuDropdownLanding.classList.remove('opacity-100', 'scale-100');
+                menuDropdownLanding.classList.add('opacity-0', 'scale-95');
+                setTimeout(() => { menuDropdownLanding.classList.add('hidden'); }, 200);
+            });
+        });
+
+        // 3. Logic Kéo Thả Nút Theme
+        let isDragging = false;
+        let startX, startY, initialX, initialY;
+        let hasMoved = false;
+
+        themeToggle.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            hasMoved = false;
+            startX = e.clientX;
+            startY = e.clientY;
+            const rect = themeToggle.getBoundingClientRect();
+            initialX = rect.left;
+            initialY = rect.top;
+            
+            themeToggle.style.right = 'auto';
+            themeToggle.style.left = `${initialX}px`;
+            themeToggle.style.top = `${initialY}px`;
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            hasMoved = true;
+            const dx = e.clientX - startX;
+            const dy = e.clientY - startY;
+            themeToggle.style.left = `${initialX + dx}px`;
+            themeToggle.style.top = `${initialY + dy}px`;
+        });
+
+        document.addEventListener('mouseup', () => { isDragging = false; });
+
+        themeToggle.addEventListener('touchstart', (e) => {
+            isDragging = true;
+            hasMoved = false;
+            const touch = e.touches[0];
+            startX = touch.clientX;
+            startY = touch.clientY;
+            const rect = themeToggle.getBoundingClientRect();
+            initialX = rect.left;
+            initialY = rect.top;
+            
+            themeToggle.style.right = 'auto';
+            themeToggle.style.left = `${initialX}px`;
+            themeToggle.style.top = `${initialY}px`;
+        }, { passive: true });
+
+        document.addEventListener('touchmove', (e) => {
+            if (!isDragging) return;
+            hasMoved = true;
+            const touch = e.touches[0];
+            const dx = touch.clientX - startX;
+            const dy = touch.clientY - startY;
+            themeToggle.style.left = `${initialX + dx}px`;
+            themeToggle.style.top = `${initialY + dy}px`;
+        }, { passive: true });
+
+        document.addEventListener('touchend', () => { isDragging = false; });
+
+        themeToggle.addEventListener('click', (e) => {
+            if (hasMoved) {
+                e.preventDefault();
+                e.stopPropagation();
+                return;
+            }
             applyTheme(!document.documentElement.classList.contains('dark'));
         });
     </script>
