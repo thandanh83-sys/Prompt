@@ -22,7 +22,8 @@
 <body class="antialiased min-h-screen relative text-slate-800 dark:text-slate-100 transition-colors duration-300 bg-slate-50 dark:bg-slate-900 dark-glow flex flex-col">
 
     <div class="fixed top-4 right-4 flex flex-col gap-2 z-[100]">
-        <button id="adminToggleBtn" class="w-10 h-10 flex items-center justify-center rounded-full bg-white dark:bg-slate-800 shadow-md border border-slate-200 dark:border-slate-700 text-lg hover:scale-105 transition-transform" title="Quản trị viên">
+        <!-- Nút Admin có ID để JS có thể ẩn/hiện -->
+        <button id="adminToggleBtn" class="w-10 h-10 flex items-center justify-center rounded-full bg-white dark:bg-slate-800 shadow-md border border-slate-200 dark:border-slate-700 text-lg hover:scale-105 transition-transform" title="Quản trị viên" style="display: none;">
             🔐
         </button>
         <button id="themeToggle" class="w-10 h-10 flex items-center justify-center rounded-full bg-white dark:bg-slate-800 shadow-md border border-slate-200 dark:border-slate-700 text-lg hover:scale-105 transition-transform">
@@ -209,6 +210,24 @@
     let adminToken = null;
     let chart1 = null;
     let chart2 = null;
+
+    // --- KIỂM TRA IP ĐỂ HIỆN NÚT ADMIN KHI TẢI TRANG ---
+    async function checkAdminAccess() {
+        try {
+            const res = await fetch(`${API_URL}/check_admin_ip`);
+            if (res.ok) {
+                // Nếu Server trả về 200 OK -> IP hợp lệ -> Hiện nút
+                $('adminToggleBtn').style.display = 'flex';
+            } else {
+                // Nếu bị chặn (403) -> Ẩn nút
+                $('adminToggleBtn').style.display = 'none';
+            }
+        } catch (e) {
+            console.log("Lỗi kiểm tra IP Admin", e);
+            $('adminToggleBtn').style.display = 'none';
+        }
+    }
+    checkAdminAccess();
 
     function closeModal() {
         const modal = $('instructionModal');
