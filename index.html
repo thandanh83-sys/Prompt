@@ -90,14 +90,16 @@
 
             <div id="adminDashboard" class="glass-card bg-white/40 dark:bg-slate-800/60 backdrop-blur-lg border border-white/60 dark:border-slate-700/60 shadow-xl rounded-3xl p-6 space-y-6" style="display: none;">
                 <h3 class="font-bold text-xl border-b border-slate-200 dark:border-slate-700 pb-4">🔧 CHI TIẾT NỘI BỘ (Lịch sử Supabase)</h3>
+                
                 <div class="overflow-x-auto mt-4">
+                    <p class="text-xs text-slate-500 uppercase font-bold mb-2">Lịch sử đánh giá:</p>
                     <table class="w-full text-sm text-left">
                         <thead class="text-xs text-slate-500 uppercase bg-white/50 dark:bg-slate-900/50">
                             <tr>
                                 <th class="px-4 py-2 rounded-l-lg">Thời gian</th>
                                 <th class="px-4 py-2">Prompt</th>
-                                <th class="px-4 py-2">Loại</th>
-                                <th class="px-4 py-2 rounded-r-lg">Điểm</th>
+                                <th class="px-4 py-2">Điểm</th>
+                                <th class="px-4 py-2 rounded-r-lg">Mã lỗi</th> <!-- THÊM CỘT NÀY -->
                             </tr>
                         </thead>
                         <tbody id="adminHistoryList">
@@ -105,6 +107,7 @@
                         </tbody>
                     </table>
                 </div>
+
                 <div class="flex gap-4 pt-2">
                     <button id="btnAdminLogout" class="flex-1 py-3 rounded-full font-bold bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 transition">Đăng xuất</button>
                 </div>
@@ -113,7 +116,7 @@
     </div>
 </div>
 
-<!-- POPUP HƯỚNG DẪN (Đã khôi phục) -->
+<!-- POPUP HƯỚNG DẪN -->
 <div id="instructionModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-opacity duration-300">
     <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-md p-6 relative transform transition-transform duration-300 scale-100">
         <button id="closeModalBtn" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 bg-slate-100 dark:bg-slate-700 w-8 h-8 rounded-full flex items-center justify-center transition">✕</button>
@@ -137,7 +140,6 @@
 </div>
 
 <script>
-    // [QUAN TRỌNG]: Link API gốc (Không có /evaluate ở cuối)
     const API_URL = "https://prompt-tx2e.onrender.com"; 
     const SECTION_NAMES = ["1. VAI TRÒ", "2. BỐI CẢNH", "3. INPUT", "4. MỤC TIÊU", "5. YÊU CẦU", "6. RÀNG BUỘC", "7. TASK", "8. ĐỊNH DẠNG ĐẦU RA", "9. NEVER DO", "10. THỨ TỰ ƯU TIÊN", "11. XỬ LÝ NỘI BỘ"];
     const $ = id => document.getElementById(id);
@@ -196,7 +198,7 @@
         }
     }
 
-    // RENDER KẾT QUẢ (Đã chống XSS tuyệt đối)
+    // RENDER KẾT QUẢ (CHỐNG XSS)
     function render(r) {
         $('totalScore').textContent = r.total;
         const typeMap = { "PROMPT": "PROMPT", "TEMPLATE": "TEMPLATE", "PROMPT META": "PROMPT META", "TABLE": "TABLE", "STEM": "TOÁN/LÝ/HÓA" };
@@ -303,7 +305,7 @@
         } catch (e) { alert("Không thể sao chép. Vui lòng thử lại!"); }
     });
 
-    // ĐĂNG NHẬP ADMIN
+    // ADMIN ĐĂNG NHẬP
     $('toggleAdminPassword').addEventListener('click', function() {
         const pwdInput = $('adminPassword');
         if (pwdInput.type === 'password') { pwdInput.type = 'text'; this.innerText = '🙈'; } else { pwdInput.type = 'password'; this.innerText = '👁️'; }
@@ -333,6 +335,7 @@
         }
     });
 
+    // LẤY LỊCH SỬ (HIỂN THỊ CỘT MÃ LỖI)
     async function fetchHistory() {
         const tbody = $('adminHistoryList'); tbody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-slate-500">Đang tải dữ liệu...</td></tr>';
         try {
@@ -341,16 +344,32 @@
                 headers: { 'X-Admin-Token': adminToken }
             });
             const data = await response.json();
+            
             if (response.ok && data.history) {
                 tbody.replaceChildren();
                 if (data.history.length === 0) { tbody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-slate-500">Chưa có dữ liệu.</td></tr>'; return; }
+                
                 data.history.forEach(item => {
-                    const tr = document.createElement('tr'); tr.className = "border-b border-slate-200/50 dark:border-slate-700/50 bg-white/30 dark:bg-slate-800/30";
+                    const tr = document.createElement('tr'); 
+                    tr.className = "border-b border-slate-200/50 dark:border-slate-700/50 bg-white/30 dark:bg-slate-800/30";
+                    
                     const tdTime = document.createElement('td'); tdTime.className = "px-4 py-3 whitespace-nowrap text-xs text-slate-500"; tdTime.textContent = new Date(item.created_at).toLocaleString('vi-VN');
+                    
                     const tdPrompt = document.createElement('td'); tdPrompt.className = "px-4 py-3 truncate max-w-[200px]"; tdPrompt.title = item.prompt; tdPrompt.textContent = item.prompt;
-                    const tdType = document.createElement('td'); tdType.className = "px-4 py-3 font-semibold text-blue-500"; tdType.textContent = item.type;
+                    
                     const tdScore = document.createElement('td'); tdScore.className = "px-4 py-3 font-bold text-pink-500"; tdScore.textContent = item.total_score;
-                    tr.appendChild(tdTime); tr.appendChild(tdPrompt); tr.appendChild(tdType); tr.appendChild(tdScore); tbody.appendChild(tr);
+                    
+                    // Xử lý hiển thị mã lỗi
+                    const tdErrors = document.createElement('td'); tdErrors.className = "px-4 py-3 font-semibold text-red-500";
+                    if (item.errors && item.errors.length > 0) {
+                        tdErrors.textContent = item.errors.map(e => e.code).join(', ');
+                    } else {
+                        tdErrors.textContent = "Sạch";
+                        tdErrors.className = "px-4 py-3 font-semibold text-green-500";
+                    }
+                    
+                    tr.appendChild(tdTime); tr.appendChild(tdPrompt); tr.appendChild(tdScore); tr.appendChild(tdErrors); 
+                    tbody.appendChild(tr);
                 });
             }
         } catch (e) { tbody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-red-500">Lỗi tải dữ liệu.</td></tr>'; }
