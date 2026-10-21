@@ -8,70 +8,111 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script> tailwind.config = { darkMode: 'class' } </script>
     <style>
+        /* Thêm hiệu ứng nền cực quang */
+        .aurora-bg {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1;
+            overflow: hidden;
+            pointer-events: none;
+        }
+        .aurora-blob {
+            position: absolute;
+            filter: blur(80px);
+            opacity: 0.5;
+            border-radius: 50%;
+            animation: float 10s infinite ease-in-out alternate;
+        }
+        .dark .aurora-blob { opacity: 0.3; }
+        
+        @keyframes float {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(30px, 50px) scale(1.1); }
+        }
+
         .glass-card { transition: all 0.3s ease; }
         .pre-wrap { white-space: pre-wrap; }
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         .dark ::-webkit-scrollbar-thumb { background: #475569; }
+        
+        /* Hiệu ứng phát sáng cho nút bấm */
+        .btn-glow {
+            box-shadow: 0 0 15px rgba(236, 72, 153, 0.4);
+            transition: all 0.3s ease;
+        }
+        .btn-glow:hover {
+            box-shadow: 0 0 25px rgba(59, 130, 246, 0.6);
+            transform: translateY(-2px);
+        }
     </style>
 </head>
-<body class="antialiased">
+<body class="antialiased min-h-screen relative text-slate-800 dark:text-slate-100 transition-colors duration-300 bg-slate-50 dark:bg-slate-900">
 
-<div class="min-h-screen bg-gradient-to-br from-slate-50 to-blue-100 text-slate-800 dark:from-slate-900 dark:to-slate-800 dark:text-slate-100 transition-colors duration-300">
-    
-    <!-- KHU VỰC NÚT GÓC TRÊN BÊN PHẢI (Đã chuyển thành hàng dọc - flex-col) -->
+    <!-- BACKGROUND CỰC QUANG (LÀM NỀN) -->
+    <div class="aurora-bg">
+        <div class="aurora-blob bg-pink-400 w-72 h-72 top-[-10%] left-[-10%]"></div>
+        <div class="aurora-blob bg-blue-400 w-96 h-96 bottom-[-20%] right-[-10%]" style="animation-delay: -5s;"></div>
+        <div class="aurora-blob bg-purple-400 w-64 h-64 top-[40%] left-[20%]" style="animation-delay: -2s;"></div>
+    </div>
+
+    <!-- Nút Góc Trên Bên Phải (Hàng Dọc) -->
     <div class="fixed top-4 right-4 flex flex-col gap-3 z-50">
-        <!-- Nút Admin (Ổ khóa) -->
-        <button id="adminToggleBtn" class="w-10 h-10 flex items-center justify-center rounded-full bg-white/50 dark:bg-slate-800/60 backdrop-blur-md shadow-lg border border-white/50 dark:border-slate-700/60 text-lg hover:scale-105 transition-transform" title="Quản trị viên">
+        <button id="adminToggleBtn" class="w-10 h-10 flex items-center justify-center rounded-full bg-white/70 dark:bg-slate-800/80 backdrop-blur-md shadow-lg border border-white/50 dark:border-slate-700/60 text-lg hover:scale-110 transition-transform" title="Quản trị viên">
             🔐
         </button>
-        <!-- Nút Sáng/Tối -->
-        <button id="themeToggle" class="w-10 h-10 flex items-center justify-center rounded-full bg-white/50 dark:bg-slate-800/60 backdrop-blur-md shadow-lg border border-white/50 dark:border-slate-700/60 text-lg hover:scale-105 transition-transform">
+        <button id="themeToggle" class="w-10 h-10 flex items-center justify-center rounded-full bg-white/70 dark:bg-slate-800/80 backdrop-blur-md shadow-lg border border-white/50 dark:border-slate-700/60 text-lg hover:scale-110 transition-transform">
             🌙
         </button>
     </div>
 
-    <div class="max-w-4xl mx-auto pt-20 px-4 pb-20">
-        <div class="text-center mb-8 px-8">
-            <!-- Đã thu nhỏ text để không bị đè lên nút góc phải -->
-            <h1 class="text-2xl md:text-3xl font-extrabold mb-3 text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-blue-400 leading-tight">Trợ lý tối ưu hoá Prompt</h1>
+    <div class="max-w-4xl mx-auto pt-16 px-4 pb-20">
+        <div class="text-center mb-8 px-6">
+            <!-- Tiêu đề có thêm hiệu ứng drop shadow nhẹ -->
+            <h1 class="text-3xl md:text-4xl font-extrabold mb-3 text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-blue-500 drop-shadow-sm leading-tight">Trợ lý tối ưu hoá Prompt</h1>
             <p class="text-slate-600 dark:text-slate-300 text-sm md:text-base font-medium max-w-2xl mx-auto">Thích nghi mọi lĩnh vực: Lập trình, Viết lách, Nấu ăn, Tâm lý... <br>AI sẽ tự nhận diện và tạo Prompt chuẩn chuyên gia cho bạn.</p>
         </div>
 
         <!-- USER MODE -->
         <div id="userModeSection">
-            <div class="glass-card bg-white/40 dark:bg-slate-800/60 backdrop-blur-lg border border-white/60 dark:border-slate-700/60 shadow-xl rounded-3xl p-6">
-                <textarea id="promptInput" maxlength="5000" class="w-full h-32 p-4 rounded-2xl bg-white/60 dark:bg-slate-900/60 border border-white/80 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-pink-400 resize-none text-slate-800 dark:text-slate-100" placeholder="Nhập ý tưởng..."></textarea>
+            <div class="glass-card bg-white/40 dark:bg-slate-800/60 backdrop-blur-xl border border-white/60 dark:border-slate-700/60 shadow-2xl rounded-3xl p-6">
+                <textarea id="promptInput" maxlength="5000" class="w-full h-32 p-4 rounded-2xl bg-white/70 dark:bg-slate-900/70 border border-white/80 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-pink-400 resize-none text-slate-800 dark:text-slate-100 placeholder-slate-400 transition-shadow" placeholder="Nhập ý tưởng..."></textarea>
                 <p id="errorMsg" class="text-red-500 text-sm mt-2 font-semibold" style="display: none;">Vui lòng nhập prompt!</p>
-                <button id="btnEvaluate" class="w-full mt-4 py-3 rounded-full font-bold bg-gradient-to-r from-pink-500 to-blue-400 text-white shadow-lg hover:opacity-90 disabled:opacity-60 transition text-lg">Đánh giá & Viết lại</button>
+                
+                <!-- Nút Đánh giá có hiệu ứng phát sáng -->
+                <button id="btnEvaluate" class="w-full mt-4 py-3.5 rounded-full font-bold bg-gradient-to-r from-pink-500 to-blue-500 text-white shadow-lg btn-glow disabled:opacity-60 disabled:shadow-none disabled:transform-none transition text-lg flex items-center justify-center gap-2">
+                    <span id="btnText">Đánh giá & Viết lại</span>
+                    <!-- Vòng xoay loading (mặc định ẩn) -->
+                    <svg id="loadingSpinner" class="hidden animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                </button>
             </div>
 
             <div id="resultArea" class="mt-6 space-y-6" style="display: none;">
-                <div class="glass-card bg-white/40 dark:bg-slate-800/60 backdrop-blur-lg border border-white/60 dark:border-slate-700/60 shadow-xl rounded-3xl p-6 flex justify-between items-stretch">
+                <div class="glass-card bg-white/40 dark:bg-slate-800/60 backdrop-blur-xl border border-white/60 dark:border-slate-700/60 shadow-xl rounded-3xl p-6 flex justify-between items-stretch">
                     <div class="flex flex-col justify-center">
-                        <p class="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase mb-1">Điểm tổng</p>
+                        <p class="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1">Điểm tổng</p>
                         <div class="flex items-baseline">
-                            <span id="totalScore" class="text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-blue-400">0.0</span>
+                            <span id="totalScore" class="text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-blue-500">0.0</span>
                             <span class="text-2xl font-bold text-slate-400 ml-1">/ 10</span>
                         </div>
                     </div>
                     <div class="flex flex-col justify-end items-end h-full">
-                        <p class="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase mb-2">Phân loại</p>
-                        <span id="promptType" class="px-5 py-2 rounded-full font-bold text-white bg-gradient-to-r from-pink-500 to-blue-400 shadow-md">PROMPT</span>
+                        <p class="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">Phân loại</p>
+                        <span id="promptType" class="px-5 py-2 rounded-full font-bold text-white bg-gradient-to-r from-pink-500 to-blue-500 shadow-md">PROMPT</span>
                     </div>
                 </div>
 
-                <div class="glass-card bg-white/40 dark:bg-slate-800/60 backdrop-blur-lg border border-white/60 dark:border-slate-700/60 shadow-xl rounded-3xl p-6">
+                <div class="glass-card bg-white/40 dark:bg-slate-800/60 backdrop-blur-xl border border-white/60 dark:border-slate-700/60 shadow-xl rounded-3xl p-6">
                     <h3 class="font-bold text-lg mb-4 text-red-500">Danh sách lỗi chi tiết</h3>
                     <ul id="userErrorList" class="space-y-3 text-sm text-slate-700 dark:text-slate-300"></ul>
                 </div>
 
-                <div class="glass-card bg-white/40 dark:bg-slate-800/60 backdrop-blur-lg border border-white/60 dark:border-slate-700/60 shadow-xl rounded-3xl p-6">
+                <div class="glass-card bg-white/40 dark:bg-slate-800/60 backdrop-blur-xl border border-white/60 dark:border-slate-700/60 shadow-xl rounded-3xl p-6">
                     <h3 class="font-bold text-lg mb-4">Điểm từng tiêu chí</h3>
                     <div id="criteriaList" class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5"></div>
                 </div>
 
-                <div class="glass-card bg-white/40 dark:bg-slate-800/60 backdrop-blur-lg border border-white/60 dark:border-slate-700/60 shadow-xl rounded-3xl p-6 relative">
+                <div class="glass-card bg-white/40 dark:bg-slate-800/60 backdrop-blur-xl border border-white/60 dark:border-slate-700/60 shadow-xl rounded-3xl p-6 relative">
                     <button id="btnCopyAll" class="absolute top-4 right-4 flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300 bg-white/60 dark:bg-slate-900/60 rounded-md border border-slate-200 dark:border-slate-700 shadow-sm hover:bg-white dark:hover:bg-slate-800 transition">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
                         <span id="copyBtnText">Sao chép</span>
@@ -84,8 +125,7 @@
 
         <!-- ADMIN MODE -->
         <div id="adminModeSection" style="display: none;">
-            <div id="adminLoginBox" class="glass-card bg-white/40 dark:bg-slate-800/60 backdrop-blur-lg border border-white/60 dark:border-slate-700/60 shadow-xl rounded-3xl p-6 max-w-md mx-auto text-center relative">
-                <!-- Nút quay lại -->
+            <div id="adminLoginBox" class="glass-card bg-white/40 dark:bg-slate-800/60 backdrop-blur-xl border border-white/60 dark:border-slate-700/60 shadow-2xl rounded-3xl p-6 max-w-md mx-auto text-center relative">
                 <button id="btnBackToUser" class="absolute top-4 left-4 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white transition font-semibold text-sm flex items-center gap-1">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
                     Quay lại
@@ -93,14 +133,14 @@
 
                 <h3 class="font-bold text-lg mb-4 mt-4">Đăng nhập Admin</h3>
                 <div class="relative w-full mb-4">
-                    <input type="password" id="adminPassword" class="w-full p-3 rounded-xl bg-white/60 dark:bg-slate-900/60 border border-white/80 dark:border-slate-700 text-center pr-10 focus:outline-none focus:ring-2 focus:ring-pink-400 text-slate-800 dark:text-slate-100" placeholder="Mật khẩu...">
+                    <input type="password" id="adminPassword" class="w-full p-3 rounded-xl bg-white/70 dark:bg-slate-900/70 border border-white/80 dark:border-slate-700 text-center pr-10 focus:outline-none focus:ring-2 focus:ring-pink-400 text-slate-800 dark:text-slate-100" placeholder="Mật khẩu...">
                     <button type="button" id="toggleAdminPassword" class="absolute inset-y-0 right-0 pr-4 flex items-center text-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 cursor-pointer">🐵</button>
                 </div>
                 <p id="adminError" class="text-red-500 text-sm font-semibold mb-4" style="display: none;">Sai mật khẩu hoặc lỗi kết nối.</p>
-                <button id="btnAdminLogin" class="w-full py-3 rounded-full font-bold bg-gradient-to-r from-pink-500 to-blue-400 text-white shadow-lg hover:opacity-90 transition">Đăng nhập</button>
+                <button id="btnAdminLogin" class="w-full py-3 rounded-full font-bold bg-gradient-to-r from-pink-500 to-blue-500 text-white shadow-lg hover:opacity-90 transition">Đăng nhập</button>
             </div>
 
-            <div id="adminDashboard" class="glass-card bg-white/40 dark:bg-slate-800/60 backdrop-blur-lg border border-white/60 dark:border-slate-700/60 shadow-xl rounded-3xl p-6 space-y-6" style="display: none;">
+            <div id="adminDashboard" class="glass-card bg-white/40 dark:bg-slate-800/60 backdrop-blur-xl border border-white/60 dark:border-slate-700/60 shadow-xl rounded-3xl p-6 space-y-6" style="display: none;">
                 <h3 class="font-bold text-xl border-b border-slate-200 dark:border-slate-700 pb-4">🔧 CHI TIẾT NỘI BỘ</h3>
                 
                 <div class="overflow-x-auto mt-4">
@@ -126,13 +166,13 @@
             </div>
         </div>
     </div>
-</div>
 
-<!-- POPUP HƯỚNG DẪN -->
+<!-- POPUP HƯỚNG DẪN (Giữ nguyên) -->
 <div id="instructionModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-opacity duration-300">
+    <!-- Nội dung popup giữ nguyên -->
     <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-md p-6 relative transform transition-transform duration-300 scale-100">
         <button id="closeModalBtn" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 bg-slate-100 dark:bg-slate-700 w-8 h-8 rounded-full flex items-center justify-center transition">✕</button>
-        <h2 class="text-2xl font-bold text-center mb-6 text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-blue-400">Hướng dẫn sử dụng</h2>
+        <h2 class="text-2xl font-bold text-center mb-6 text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-blue-500">Hướng dẫn sử dụng</h2>
         <div class="space-y-5 mb-8">
             <div class="flex items-start gap-4">
                 <div class="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 font-bold flex items-center justify-center shrink-0">1</div>
@@ -142,12 +182,12 @@
                 <div class="w-8 h-8 rounded-full bg-pink-100 dark:bg-pink-900/50 text-pink-600 dark:text-pink-400 font-bold flex items-center justify-center shrink-0">2</div>
                 <div><p class="font-bold text-slate-800 dark:text-slate-200">AI chấm điểm</p><p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Chỉ ra điểm yếu cần khắc phục</p></div>
             </div>
-            <div class="flex items-start gap-4">
+            <div class="flex items '-start gap-4">
                 <div class="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-400 font-bold flex items-center justify-center shrink-0">3</div>
-                <div><p class="font-bold text-slate-800 dark:text-slate-200">Copy & Sử dụng</p><p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Dán Prompt vào ChatGPT/Claude</p></div>
+                <div><p class="font-bold textlight-slate-800 dark:text-s');late-200">Copy & Sử } dụng</p>< catchp class="text-sm text-slate-500 dark:text-slate-400 mt-1">Dán Prompt vào ChatGPT/Claude</p></div>
             </div>
         </div>
-        <button id="startAppBtn" class="w-full py-3 rounded-full font-bold bg-gradient-to-r from-pink-500 to-blue-400 text-white shadow-lg hover:opacity-90 transition text-lg">Đã hiểu, Bắt đầu</button>
+        <button id="startAppBtn" class="w-full py-3 rounded-full font-bold bg-gradient-to-r from-pink-500 to-blue-500 text-white shadow-lg hover:opacity-90 transition text-lg">Đã hiểu, Bắt đầu</button>
     </div>
 </div>
 
@@ -156,7 +196,7 @@
     const SECTION_NAMES = ["1. VAI TRÒ", "2. BỐI CẢNH", "3. INPUT", "4. MỤC TIÊU", "5. YÊU CẦU", "6. RÀNG BUỘC", "7. TASK", "8. ĐỊNH DẠNG ĐẦU RA", "9. NEVER DO", "10. THỨ TỰ ƯU TIÊN", "11. XỬ LÝ NỘI BỘ"];
     const $ = id => document.getElementById(id);
     let lastResult = null;
-    let adminToken = null;
+    ( let adminToken = null;
 
     const ERROR_NAMES = {
         "A01": "Lỗi chính tả", "A02": "Thiếu dấu câu", "A03": "Lặp lại",
@@ -179,7 +219,7 @@
     function applyTheme(dark) {
         document.documentElement.classList.toggle('dark', dark);
         $('themeToggle').textContent = dark ? '☀️' : '🌙';
-        try { localStorage.setItem('theme', dark ? 'dark' : 'light'); } catch (e) {}
+        try { localStorage.setItem('theme', dark ? 'dark' :e) {}
     }
     (function initTheme() {
         let saved = null; try { saved = localStorage.getItem('theme'); } catch (e) {}
@@ -276,17 +316,24 @@
         $('resultArea').style.display = 'block';
     }
 
-    // ĐÁNH GIÁ
+    // ĐÁNH GIÁ (CẬP NHẬT LOADING SPINNER)
     $('btnEvaluate').addEventListener('click', async () => {
         const prompt = $('promptInput').value.trim();
         if (!prompt) { $('errorMsg').style.display = 'block'; return; }
         $('errorMsg').style.display = 'none';
         
-        const btn = $('btnEvaluate'); btn.disabled = true; 
-        let seconds = 0; btn.textContent = 'Đang kết nối Server (0s)...';
+        const btn = $('btnEvaluate'); 
+        const btnText = $('btnText');
+        const spinner = $('loadingSpinner');
+        
+        btn.disabled = true; 
+        spinner.classList.remove('hidden'); // Hiện vòng xoay
+        
+        let seconds = 0; 
+        btnText.textContent = 'Đang kết nối (0s)...';
         const timer = setInterval(() => {
             seconds++;
-            btn.textContent = seconds < 15 ? `Đang đợi Server tỉnh dậy (${seconds}s)...` : `AI đang viết 11 mục (${seconds}s)...`;
+            btnText.textContent = seconds < 15 ? `Đang đợi Server (${seconds}s)...` : `AI đang viết (${seconds}s)...`;
         }, 1000);
         
         try {
@@ -296,7 +343,10 @@
             $('errorMsg').textContent = e.message; 
             $('errorMsg').style.display = 'block';
         } finally {
-            clearInterval(timer); btn.disabled = false; btn.textContent = 'Đánh giá & Viết lại';
+            clearInterval(timer); 
+            btn.disabled = false; 
+            spinner.classList.add('hidden'); // Ẩn vòng xoay
+            btnText.textContent = 'Đánh giá & Viết lại';
         }
     });
 
@@ -323,14 +373,13 @@
     $('adminToggleBtn').addEventListener('click', () => {
         $('userModeSection').style.display = 'none'; 
         $('adminModeSection').style.display = 'block';
-        $('adminToggleBtn').style.display = 'none'; // Ẩn nút ổ khóa đi khi đã vào trong
+        $('adminToggleBtn').style.display = 'none'; 
     });
 
     function backToUserMode() {
         $('userModeSection').style.display = 'block'; 
         $('adminModeSection').style.display = 'none';
-        $('adminToggleBtn').style.display = 'flex'; // Hiện lại nút ổ khóa
-        // Reset trạng thái admin
+        $('adminToggleBtn').style.display = 'flex'; 
         $('adminLoginBox').style.display = 'block'; 
         $('adminDashboard').style.display = 'none'; 
         $('adminPassword').value = ''; 
