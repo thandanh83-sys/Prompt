@@ -1,7 +1,7 @@
 import hashlib
 import json
 
-# --- 1. ĐỊNH NGHĨA CÁC LOẠI (MAIN TASKS) ---
+# --- 1. ĐỊNH NGHĨA CÁC LOẠI NHIỆM VỤ CHÍNH (MAIN TASKS) ---
 TYPE_PROMPT = "PROMPT"
 TYPE_TEMPLATE = "TEMPLATE"
 TYPE_PROMPT_META = "PROMPT META"
@@ -10,7 +10,7 @@ TYPE_STEM = "STEM"
 TYPE_EMPTY = "EMPTY"
 TYPE_IMAGE = "IMAGE"
 
-# --- 2. ĐỊNH NGHĨA CÁC KỸ THUẬT (TECHNIQUES) ---
+# --- 2. ĐỊNH NGHĨA CÁC KỸ THUẬT BỔ TRỢ (TECHNIQUES) ---
 TECH_ROLE_PLAY = "ROLE_PLAY"
 TECH_FEW_SHOT = "FEW_SHOT"
 TECH_COT = "CHAIN_OF_THOUGHT"
@@ -25,7 +25,8 @@ VALID_ERROR_CODES = {
     "E01": "Trộn lĩnh vực", "E02": "Thuật ngữ không nhất quán", "E03": "Thiếu tính đặc thù lĩnh vực"
 }
 
-# --- 3. BỘ TIÊU CHÍ CƠ BẢN (Giữ nguyên của bạn) ---
+# --- 3. BỘ TIÊU CHÍ NHIỆM VỤ CHÍNH (Giữ nguyên của bạn) ---
+
 CRITERIA_PROMPT = {
     "P01": {"name": "Độ rõ nhiệm vụ", "weight": 1.2, "rubric": "0-2: Không có động từ hành động. 3-4: Động từ mơ hồ. 5-6: Rõ hành động. 7-10: Rõ hành động, rõ kết quả."},
     "P02": {"name": "Đối tượng tác động", "weight": 1.2, "rubric": "0-2: Không có đối tượng. 3-4: Đối tượng chung chung. 5-6: Đối tượng cụ thể. 7-10: Đối tượng rất chi tiết."},
@@ -39,7 +40,7 @@ CRITERIA_PROMPT = {
     "P10": {"name": "Chuyên môn có căn cứ", "weight": 0.5, "rubric": "0-2: Không có căn cứ. 3-4: Căn cứ yếu. 5-6: Có căn cứ. 7-10: Căn cứ vững chắc."},
     "P11": {"name": "Nhất quán lĩnh vực", "weight": 1.0, "rubric": "0-2: Trộn lẫn lĩnh vực. 3-4: Chưa nhất quán. 5-6: Khá nhất quán. 7-10: Rất nhất quán."},
     "P12": {"name": "Yêu cầu khả thi", "weight": 0.8, "rubric": "0-2: Bất khả thi. 3-4: Khó thực hiện. 5-6: Có thể thực hiện. 7-10: Rất khả thi."},
-    "P13": {"name": "Vai trò phù hợp", "weight": 0 ".8,rubric": "0-2: Không có vai trò. 3-4: Vai trò mờ nhạt. 5-6: Vai trò rõ. 7-10: Vai trò rất phù hợp."},
+    "P13": {"name": "Vai trò phù hợp", "weight": 0.8, "rubric": "0-2: Không có vai trò. 3-4: Vai trò mờ nhạt. 5-6: Vai trò rõ. 7-10: Vai trò rất phù hợp."},
     "P14": {"name": "Không mâu thuẫn", "weight": 0.2, "rubric": "0-2: Nhiều mâu thuẫn. 3-4: Có mâu thuẫn. 5-6: Ít mâu thuẫn. 7-10: Không mâu thuẫn."}
 }
 
@@ -90,7 +91,7 @@ CRITERIA_TABLE = {
     "TB09": {"name": "Mức độ chi tiết", "weight": 1.0, "rubric": "0-2: Quá sơ sài. 7-10: Rất chi tiết."}
 }
 
-# --- 4. BỘ TIÊU CHÍ KỸ THUẬT (Đã sửa theo góp ý của bạn) ---
+# --- 4. BỘ TIÊU CHÍ KỸ THUẬT BỔ TRỢ (MỚI) ---
 
 CRITERIA_ROLE_PLAY = {
     "R01": {"name": "Sự phù hợp của vai trò", "weight": 1.5, "rubric": "0-2: Vai trò không liên quan. 3-4: Vai trò chung chung. 5-6: Vai trò phù hợp với nhiệm vụ. 7-10: Vai trò được chọn lọc, tối ưu cho nhiệm vụ."},
@@ -128,8 +129,8 @@ REQUIRED_REWRITE_SECTIONS = [
     "10. THỨ TỰ ƯU TIÊN", "11. XỬ LÝ NỘI BỘ"
 ]
 
-# --- 5. HÀM LẤY CRITERIA (GỘP ĐA CHIỀU) ---
-def get_criteria_by_type(classification: dict):
+# --- 5. HÀM GỘP CRITERIA ĐA CHIỀU ---
+def get_criteria_by_type(classification: dict) -> dict:
     """
     Nhận vào dict {"main_task": "...", "techniques": [...]}
     Trả về dict gộp tất cả tiêu chí.
@@ -137,12 +138,14 @@ def get_criteria_by_type(classification: dict):
     main_task = classification.get("main_task", TYPE_PROMPT)
     techniques = classification.get("techniques", [])
     
-    # Lấy tiêu chí cơ bản
+    # Lấy tiêu chí cơ bản dựa trên main_task
     mapping = {
         TYPE_PROMPT: CRITERIA_PROMPT, TYPE_TEMPLATE: CRITERIA_TEMPLATE,
         TYPE_PROMPT_META: CRITERIA_PROMPT_META, TYPE_TABLE: CRITERIA_TABLE,
         TYPE_STEM: CRITERIA_STEM, TYPE_IMAGE: CRITERIA_PROMPT, TYPE_EMPTY: {}
     }
+    
+    # Copy để tránh thay đổi trực tiếp vào dict gốc
     criteria = mapping.get(main_task, CRITERIA_PROMPT).copy()
 
     # Gộp thêm tiêu chí kỹ thuật (nếu có)
@@ -162,7 +165,7 @@ def classify_prompt(prompt_text: str) -> dict:
     lower_text = text.lower()
     techniques = []
     
-    # Nhận diện Kỹ thuật
+    # 1. Nhận diện Kỹ thuật (Techniques)
     if any(kw in lower_text for kw in ["đóng vai", "bạn là", "hãy vào vai", "giả sử bạn là", "act as"]):
         techniques.append(TECH_ROLE_PLAY)
     
@@ -178,33 +181,23 @@ def classify_prompt(prompt_text: str) -> dict:
     if any(kw in lower_text for kw in ["viết truyện", "làm thơ", "sáng tác", "kịch bản", "viết quảng cáo", "brainstorm", "viết content"]):
         techniques.append(TECH_CREATIVE)
 
-    # Nhận diện Nhiệm vụ chính (ưu tiên Template trước)
+    # 2. Nhận diện Nhiệm vụ chính (Main Tasks - Ưu tiên Template trước)
     if any(kw in lower_text for kw in ["[điền", "[thay", "[chọn", "___", "{}"]):
         return {"main_task": TYPE_TEMPLATE, "techniques": techniques}
     if text.count('[') >= 3 and text.count(']') >= 3:
         return {"main_task": TYPE_TEMPLATE, "techniques": techniques}
 
     stem_keywords = ["giải toán", "phương trình", "đạo hàm", "tích phân", "vật lý", "hóa học", "phản ứng", "tính vận tốc", "gia tốc", "nguyên tử"]
-    if any(kw in lower_text for kw in stem_keywords): return {"main_task": TYPE_STEM, "techniques": techniques}
+    if any(kw in lower_text for kw in stem_keywords): 
+        return {"main_task": TYPE_STEM, "techniques": techniques}
     
-    if any(kw in lower_text for kw in ["http", "jpg", "png", "vẽ ảnh", "tạo ảnh", "hình ảnh"]): return {"main_task": TYPE_IMAGE, "techniques": techniques}
+    if any(kw in lower_text for kw in ["http", "jpg", "png", "vẽ ảnh", "tạo ảnh", "hình ảnh"]): 
+        return {"main_task": TYPE_IMAGE, "techniques": techniques}
     
-    if any(kw in lower_text for kw in ["tạo bảng", "lập bảng", "dạng bảng", "cột", "hàng"]): return {"main_task": TYPE_TABLE, "techniques": techniques}
+    if any(kw in lower_text for kw in ["tạo bảng", "lập bảng", "dạng bảng", "cột", "hàng"]): 
+        return {"main_task": TYPE_TABLE, "techniques": techniques}
     
-    if any(kw in lower_text for kw in ["đánh giá prompt", "viết prompt", "sửa prompt", "chấm điểm prompt", "tạo prompt"]): return {"main_task": TYPE_PROMPT_META, "techniques": techniques}
+    if any(kw in lower_text for kw in ["đánh giá prompt", "viết prompt", "sửa prompt", "chấm điểm prompt", "tạo prompt"]): 
+        return {"main_task": TYPE_PROMPT_META, "techniques": techniques}
     
     return {"main_task": TYPE_PROMPT, "techniques": techniques}
-
-# --- 7. HÀM TÍNH ĐIỂM CHUẨN HÓA (FIX LỖI MẪU SỐ) ---
-def calculate_final_score(ai_scores: dict, criteria: dict) -> float:
-    total_weight = sum(info["weight"] for info in criteria.values())
-    if total_weight == 0: return 0.0
-    
-    weighted_score = 0.0
-    for crit_id, info in criteria.items():
-        score = ai_scores.get(crit_id, 0)
-        weighted_score += score * info["weight"]
-        
-    # Chuẩn hóa về thang điểm 10 bất kể có bao nhiêu tiêu chí
-    final_score = (weighted_score / total_weight) * 10.0
-    return round(final_score, 1)
