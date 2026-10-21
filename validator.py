@@ -67,9 +67,11 @@ def validate_full_report(ai_json: dict, main_criteria: dict, tech_criteria: dict
         if not ev_norm:
             raise ReportValidationError(f"Lỗi '{err['code']}' phải có bằng chứng trích dẫn.")
             
-        prompt_norm = normalize_text(original_prompt)
-        if ev_norm not in prompt_norm:
-            raise ReportValidationError(f"Bằng chứng '{evidence}' không có trong prompt gốc.")
+        # SỬA LỖI TẠI ĐÂY: Thêm ngoại lệ cho phép "toàn bộ"
+        if ev_norm not in ["toàn bộ", "toàn bộ prompt"]:
+            prompt_norm = normalize_text(original_prompt)
+            if ev_norm not in prompt_norm:
+                raise ReportValidationError(f"Bằng chứng '{evidence}' không có trong prompt gốc.")
 
     rewrite = ai_json["rewrite"]
     if not isinstance(rewrite, dict): 
