@@ -21,7 +21,6 @@
 </head>
 <body class="antialiased min-h-screen relative text-slate-800 dark:text-slate-100 transition-colors duration-300 bg-slate-50 dark:bg-slate-900 dark-glow flex flex-col">
 
-    <!-- NÚT NỔI GÓC TRÊN BÊN PHẢI -->
     <div class="fixed top-4 right-4 flex flex-col gap-2 z-[100]">
         <button id="adminToggleBtn" class="w-10 h-10 flex items-center justify-center rounded-full bg-white dark:bg-slate-800 shadow-md border border-slate-200 dark:border-slate-700 text-lg hover:scale-105 transition-transform" title="Quản trị viên">
             🔐
@@ -33,7 +32,6 @@
 
     <div class="max-w-xl w-full mx-auto px-5 pt-20 pb-32 flex-grow flex flex-col" id="mainContainer">
         
-        <!-- HEADER -->
         <div class="text-center mb-8 px-6">
             <h1 class="text-2xl md:text-3xl font-extrabold mb-3 leading-tight">
                 <span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-blue-500">✨ Trợ lý tối ưu hoá Prompt</span>
@@ -45,7 +43,6 @@
 
         <!-- USER MODE -->
         <div id="userModeSection">
-            <!-- Thẻ nhập liệu -->
             <div class="glass-card bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/50 shadow-sm rounded-3xl p-5">
                 <div class="relative">
                     <textarea id="promptInput" maxlength="5000" class="w-full h-36 p-4 pb-10 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700/50 focus:outline-none focus:ring-1 focus:ring-pink-500 focus:border-pink-500 resize-none text-slate-800 dark:text-slate-100 placeholder-slate-400 text-sm transition-all" placeholder="Mô tả điều bạn muốn AI thực hiện..."></textarea>
@@ -67,10 +64,8 @@
                 </button>
             </div>
 
-            <!-- KẾT QUẢ ĐÁNH GIÁ -->
             <div id="resultArea" class="mt-8 space-y-5" style="display: none;">
                 
-                <!-- 1. Điểm tổng & Phân loại đa chiều -->
                 <div class="glass-card bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/50 shadow-sm rounded-3xl p-6 flex justify-between items-start relative overflow-hidden">
                     <div class="flex flex-col w-1/2 pt-1">
                         <p class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1">Điểm tổng</p>
@@ -91,7 +86,6 @@
                     </div>
                 </div>
 
-                <!-- 2. Điểm sáng -->
                 <div id="strengthsCard" class="glass-card bg-green-50/50 dark:bg-green-900/10 border border-green-200 dark:border-green-800/30 shadow-sm rounded-3xl p-6" style="display: none;">
                     <h3 class="font-bold text-sm mb-3 text-green-700 dark:text-green-400 flex items-center gap-2">
                         <span class="text-lg">🌟</span> Điểm sáng của bạn
@@ -99,7 +93,6 @@
                     <ul id="strengthsList" class="space-y-2 text-sm text-slate-700 dark:text-slate-300 list-disc pl-4"></ul>
                 </div>
 
-                <!-- 3. Lỗi & Gợi ý -->
                 <div class="glass-card bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/50 shadow-sm rounded-3xl p-6">
                     <h3 class="font-bold text-sm mb-4 text-slate-800 dark:text-slate-200 flex items-center gap-2">
                         <span class="w-2 h-2 rounded-full bg-red-500"></span> Điểm nên luyện thêm
@@ -107,7 +100,6 @@
                     <ul id="userErrorList" class="space-y-3 text-sm text-slate-700 dark:text-slate-300"></ul>
                 </div>
 
-                <!-- 4. Chi tiết điểm (2 cột) -->
                 <div class="glass-card bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/50 shadow-sm rounded-3xl p-6">
                     <h3 class="font-bold text-sm mb-5 text-slate-800 dark:text-slate-200 flex items-center gap-2">
                         <span class="w-2 h-2 rounded-full bg-blue-500"></span> Chi tiết điểm
@@ -115,7 +107,6 @@
                     <div id="criteriaList" class="grid grid-cols-2 gap-x-4 gap-y-4"></div>
                 </div>
 
-                <!-- 5. Bản sửa -->
                 <div class="glass-card bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/50 shadow-sm rounded-3xl overflow-hidden">
                     <div class="flex justify-between items-center px-5 py-3 border-b border-slate-200 dark:border-slate-700/50 bg-slate-50 dark:bg-slate-900/40">
                         <h3 class="font-bold text-sm text-slate-800 dark:text-slate-200 flex items-center gap-2">
@@ -267,12 +258,19 @@
         const controller = new AbortController(); const timeoutId = setTimeout(() => controller.abort(), 180000); 
         try {
             const response = await fetch(`${API_URL}/evaluate`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt: prompt }), signal: controller.signal });
-            clearTimeout(timeoutId); const data = await response.json();
-            if (!response.ok) throw new Error(data.error || data.detail || `Lỗi HTTP: ${response.status}`);
-            if (data.error) throw new Error(data.error);
+            clearTimeout(timeoutId); 
+            
+            if (!response.ok) {
+                const data = await response.json();
+                throw new Error(data.error || data.detail || `Lỗi HTTP: ${response.status}`);
+            }
+            
+            const data = await response.json();
             return data;
         } catch (error) {
-            clearTimeout(timeoutId); if (error.name === 'AbortError') throw new Error("Quá thời gian chờ (3 phút)."); throw error;
+            clearTimeout(timeoutId); 
+            if (error.name === 'AbortError') throw new Error("Quá thời gian chờ (3 phút)."); 
+            throw error;
         }
     }
 
