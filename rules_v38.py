@@ -1,7 +1,7 @@
+import math
 import hashlib
 import json
 
-# --- 1. ĐỊNH NGHĨA CÁC LOẠI NHIỆM VỤ CHÍNH (MAIN TASKS) ---
 TYPE_PROMPT = "PROMPT"
 TYPE_TEMPLATE = "TEMPLATE"
 TYPE_PROMPT_META = "PROMPT META"
@@ -10,12 +10,15 @@ TYPE_STEM = "STEM"
 TYPE_EMPTY = "EMPTY"
 TYPE_IMAGE = "IMAGE"
 
-# --- 2. ĐỊNH NGHĨA CÁC KỸ THUẬT BỔ TRỢ (TECHNIQUES) ---
 TECH_ROLE_PLAY = "ROLE_PLAY"
 TECH_FEW_SHOT = "FEW_SHOT"
 TECH_COT = "CHAIN_OF_THOUGHT"
 TECH_FORMAT = "FORMATTED_OUTPUT"
 TECH_CREATIVE = "CREATIVE_GEN"
+
+class ConfigurationError(Exception):
+    """Ngoại lệ cho lỗi cấu hình tiêu chí."""
+    pass
 
 VALID_ERROR_CODES = {
     "A01": "Lỗi chính tả", "A02": "Thiếu dấu câu", "A03": "Lặp lại",
@@ -24,8 +27,6 @@ VALID_ERROR_CODES = {
     "D01": "Mâu thuẫn nội bộ", "D02": "Yêu cầu bất khả thi", "D03": "Vai trò không phù hợp",
     "E01": "Trộn lĩnh vực", "E02": "Thuật ngữ không nhất quán", "E03": "Thiếu tính đặc thù lĩnh vực"
 }
-
-# --- 3. BỘ TIÊU CHÍ NHIỆM VỤ CHÍNH ---
 
 CRITERIA_PROMPT = {
     "P01": {"name": "Độ rõ nhiệm vụ", "weight": 1.2, "rubric": "0-2: Không có động từ hành động. 3-4: Động từ mơ hồ. 5-6: Rõ hành động. 7-10: Rõ hành động, rõ kết quả."},
@@ -91,8 +92,6 @@ CRITERIA_TABLE = {
     "TB09": {"name": "Mức độ chi tiết", "weight": 1.0, "rubric": "0-2: Quá sơ sài. 7-10: Rất chi tiết."}
 }
 
-# --- 4. BỘ TIÊU CHÍ KỸ THUẬT BỔ TRỢ ---
-
 CRITERIA_ROLE_PLAY = {
     "R01": {"name": "Sự phù hợp của vai trò", "weight": 1.5, "rubric": "0-2: Vai trò không liên quan. 3-4: Vai trò chung chung. 5-6: Vai trò phù hợp với nhiệm vụ. 7-10: Vai trò được chọn lọc, tối ưu cho nhiệm vụ."},
     "R02": {"name": "Mục tiêu hội thoại", "weight": 1.2, "rubric": "0-2: Không có mục tiêu. 3-4: Mục tiêu mơ hồ. 5-6: Mục tiêu rõ ràng. 7-10: Mục tiêu cụ thể, có thể đo lường được."},
@@ -129,15 +128,25 @@ REQUIRED_REWRITE_SECTIONS = [
     "10. THỨ TỰ ƯU TIÊN", "11. XỬ LÝ NỘI BỘ"
 ]
 
-# --- 5. HÀM TÁCH CRITERIA 2 TẦNG ---
+def validate_config(main_criteria: dict, tech_criteria: dict):
+    if not main_criteria:
+        raise ConfigurationError("Nhóm tiêu chí chính bị rỗng.")
+        
+    all_criteria = {**main_criteria, **tech_criteria}
+    
+    if len(all_criteria) != len(main_criteria) + len(tech_criteria):
+        raise ConfigurationError("Phát hiện ID tiêu chí bị trùng giữa Main và Tech.")
+
+    for k, v in all_criteria.items():
+        w = v.get("weight", 0)
+        is_valid_type = type(w) in (int, float) and not isinstance(w, bool)
+        if not is_valid_type or not math.isfinite(w) or w <= 0:
+            raise ConfigurationError(f"Trọng số của '{k}' không hợp lệ.")
+
 def get_criteria_by_type(classification: dict) -> dict:
-    """
-    Trả về dict gồm 2 tầng riêng biệt: {"main": {...}, "tech": {...}}
-    """
     main_task = classification.get("main_task", TYPE_PROMPT)
     techniques = classification.get("techniques", [])
     
-    # TẦNG 1: MAIN CRITERIA
     mapping = {
         TYPE_PROMPT: CRITERIA_PROMPT, TYPE_TEMPLATE: CRITERIA_TEMPLATE,
         TYPE_PROMPT_META: CRITERIA_PROMPT_META, TYPE_TABLE: CRITERIA_TABLE,
@@ -145,7 +154,6 @@ def get_criteria_by_type(classification: dict) -> dict:
     }
     main_criteria = mapping.get(main_task, CRITERIA_PROMPT).copy()
 
-    # TẦNG 2: TECH CRITERIA
     tech_criteria = {}
     if TECH_ROLE_PLAY in techniques: tech_criteria.update(CRITERIA_ROLE_PLAY)
     if TECH_FEW_SHOT in techniques: tech_criteria.update(CRITERIA_FEW_SHOT)
@@ -153,9 +161,9 @@ def get_criteria_by_type(classification: dict) -> dict:
     if TECH_FORMAT in techniques: tech_criteria.update(CRITERIA_FORMATTED_OUTPUT)
     if TECH_CREATIVE in techniques: tech_criteria.update(CRITERIA_CREATIVE)
 
+    validate_config(main_criteria, tech_criteria)
     return {"main": main_criteria, "tech": tech_criteria}
 
-# --- 6. HÀM PHÂN LOẠI ĐA CHIỀU ---
 def classify_prompt(prompt_text: str) -> dict:
     text = prompt_text.strip()
     if not text: return {"main_task": TYPE_EMPTY, "techniques": []}
@@ -163,23 +171,17 @@ def classify_prompt(prompt_text: str) -> dict:
     lower_text = text.lower()
     techniques = []
     
-    # 1. Nhận diện Kỹ thuật
     if any(kw in lower_text for kw in ["đóng vai", "bạn là", "hãy vào vai", "giả sử bạn là", "act as"]):
         techniques.append(TECH_ROLE_PLAY)
-    
     if any(kw in lower_text for kw in ["ví dụ 1:", "ví dụ mẫu", "input:", "output:", "dưới đây là ví dụ", "ví dụ như sau"]):
         techniques.append(TECH_FEW_SHOT)
-        
     if any(kw in lower_text for kw in ["từng bước", "suy luận", "giải thích từng bước", "chain of thought", "các bước sau", "quy trình"]):
         techniques.append(TECH_COT)
-        
     if any(kw in lower_text for kw in ["json", "xml", "định dạng bảng", "markdown", "trả về dạng", "cấu trúc dữ liệu"]):
         techniques.append(TECH_FORMAT)
-        
     if any(kw in lower_text for kw in ["viết truyện", "làm thơ", "sáng tác", "kịch bản", "viết quảng cáo", "brainstorm", "viết content"]):
         techniques.append(TECH_CREATIVE)
 
-    # 2. Nhận diện Nhiệm vụ chính
     if any(kw in lower_text for kw in ["[điền", "[thay", "[chọn", "___", "{}"]):
         return {"main_task": TYPE_TEMPLATE, "techniques": techniques}
     if text.count('[') >= 3 and text.count(']') >= 3:
