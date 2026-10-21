@@ -50,17 +50,13 @@ def get_client_ip(request: Request) -> str:
         return forwarded.split(",")[0].strip()
     return request.client.host if request.client else "unknown"
 
-# --- HÀM KIỂM TRA IP ADMIN ---
+# Hàm kiểm tra IP Admin
 def verify_admin_ip(request: Request):
     client_ip = get_client_ip(request)
-    
-    # Nếu bạn có cấu hình danh sách IP (không rỗng), thì mới bắt đầu kiểm tra
     if ADMIN_ALLOWED_IPS:
-        # Kiểm tra xem IP của client có nằm trong danh sách cho phép không
         if client_ip not in ADMIN_ALLOWED_IPS:
             logger.warning(f"TỪ CHỐI TRUY CẬP ADMIN: IP lạ {client_ip} cố gắng truy cập.")
             raise HTTPException(status_code=403, detail="Truy cập bị từ chối. IP của bạn không nằm trong danh sách cho phép.")
-            
     return client_ip
 
 limiter = Limiter(key_func=get_client_ip)
@@ -188,11 +184,25 @@ def read_root():
 def health_check(): 
     return {"status": "ok"}
 
-# --- API MỚI: KIỂM TRA IP ĐỂ HIỆN/ẨN NÚT ADMIN ---
 @app.get("/check_admin_ip")
 def check_admin_ip(client_ip: str = Depends(verify_admin_ip)):
-    # Nếu IP hợp lệ, hàm verify_admin_ip không ném lỗi 403, code sẽ chạy xuống đây
     return {"is_admin": True}
+
+@app.get("/top_prompts")
+def get_top_prompts():
+    if not supabase:
+        return {"prompts": []}
+    try:
+        res = supabase.table("history")\
+            .select("prompt, type, total_score, created_at")\
+            .gte("total_score", 8.0)\
+            .order("total_score", desc=True)\
+            .limit(10)\
+            .execute()
+        return {"prompts": res.data}
+    except Exception as e:
+        logger.error(f"Lỗi lấy top prompts: {e}")
+        return {"prompts": []}
 
 @app.post("/login")
 @limiter.limit("5/minute")
