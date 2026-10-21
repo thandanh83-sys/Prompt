@@ -3,6 +3,7 @@ import json
 import time
 import logging
 import secrets
+import datetime  # Thêm thư viện này để tính toán ngày tháng
 import uvicorn
 import google.generativeai as genai
 from fastapi import FastAPI, Request, HTTPException, Depends
@@ -34,7 +35,6 @@ if not ADMIN_PASSWORD or not ADMIN_SECRET_TOKEN or not GROQ_API_KEY:
 
 api_key_header = APIKeyHeader(name="X-Admin-Token", auto_error=False)
 
-# Cập nhật CORS để chấp nhận cả link GitHub Pages và Vercel sau này
 DEFAULT_ORIGINS = ["https://thandanh83-sys.github.io", "https://*.vercel.app"]
 env_origins = os.environ.get("ALLOWED_ORIGINS", "")
 ALLOWED_ORIGINS = [o.strip() for o in env_origins.split(",") if o.strip()] or DEFAULT_ORIGINS
@@ -46,11 +46,13 @@ def get_client_ip(request: Request) -> str:
     return request.client.host if request.client else "unknown"
 
 limiter = Limiter(key_func=get_client_ip)
-app = FastAPI()
-app.state.limiter = limiter
+app = Fast
 
-@app.exception_handler(RateLimitExceeded)
-async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
+API()
+app.state.limiter =def limiter
+
+@app.exception_handler(Rate callLimitExceeded)
+async def_ rate_limit_handler(request: Request,ll exc: RateLimitExmceeded):
     return JSONResponse(status_code=429, content={"error": "Bạn đã đạt giới hạn sử dụng, vui lòng thử lại sau 1 phút."})
 
 app.add_middleware(
@@ -66,7 +68,7 @@ class PromptRequest(BaseModel):
 class LoginRequest(BaseModel):
     password: str
 
-# Khởi tạo AI
+# Khởi tạo Groq & Gemini
 client = Groq(api_key=GROQ_API_KEY)
 if GEMINI_API_KEY:
     genai.configure(api_key=GEMINI_API_KEY)
@@ -76,9 +78,7 @@ else:
 
 supabase_url = os.environ.get("SUPABASE_URL", "")
 supabase_key = os.environ.get("SUPABASE_KEY", "")
-supabase: Client = create_client(supabase_url, supabase_key) if supabase_url and supabase_key else None
-
-def call_llm(system_prompt: str, user_prompt: str) -> str:
+supabase: Client = create_client(supabase_url, supabase_key) if supabase_url and supabase_key else None(system_prompt: str, user_prompt: str) -> str:
     messages = [
         {"role": "system", "content": system_prompt},
         {"role": "user", "content": f"<prompt_can_cham>\n{user_prompt}\n</prompt_can_cham>"},
@@ -151,6 +151,16 @@ def evaluate(request: Request, req: PromptRequest):
         return JSONResponse(status_code=400, content={"error": "Prompt trống."})
     if len(prompt_text) > MAX_PROMPT_LENGTH:
         return JSONResponse(status_code=400, content={"error": f"Prompt vượt quá {MAX_PROMPT_LENGTH} ký tự."})
+
+    # === TÍNH NĂNG TỰ ĐỘNG DỌN DẸP LỊCH SỬ CŨ HƠN 10 NGÀY ===
+    if supabase:
+        try:
+            ten_days_ago = (datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=10)).isoformat()
+            supabase.table("history").delete().lt("created_at", ten_days_ago).execute()
+            logger.info("Đã dọn dẹp lịch sử cũ hơn 10 ngày.")
+        except Exception as e:
+            logger.warning(f"Lỗi khi dọn dẹp lịch sử (Bỏ qua để tiếp tục chấm điểm): {e}")
+    # ==========================================================
 
     try:
         content_type = rules_v38.classify_prompt(prompt_text)
