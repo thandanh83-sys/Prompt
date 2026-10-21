@@ -1,12 +1,13 @@
 import os
 import json
+import re
 import time
 import logging
 import secrets
 import datetime
 import uvicorn
 import google.generativeai as genai
-from fastapi import FastAPI, Request, HTTPException, Depends
+from fastapi import FastAPI, Request, HTTPException, Depends, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.security import APIKeyHeader
@@ -17,7 +18,7 @@ from slowapi import Limiter
 from slowapi.errors import RateLimitExceeded
 
 import rules_v38
-from validator import validate_full_report, calculate_final_score
+from validator import validate_full_report, calculate_final_score, ReportValidationError
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger("prompt-evaluator")
@@ -35,7 +36,7 @@ if not ADMIN_PASSWORD or not ADMIN_SECRET_TOKEN or not GROQ_API_KEY:
 
 api_key_header = APIKeyHeader(name="X-Admin-Token", auto_error=False)
 
-DEFAULT_ORIGINS = ["https://thandanh83-sys.github.io", "https://*.vercel.app"]
+DEFAULT_ORIGINS = ["https://thandanh83-sys.github.io"]
 env_origins = os.environ.get("ALLOWED_ORIGINS", "")
 ALLOWED_ORIGINS = [o.strip() for o in env_origins.split(",") if o.strip()] or DEFAULT_ORIGINS
 
@@ -56,6 +57,7 @@ async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
 app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS,
+    allow_origin_regex=r"https://.*\.vercel\.app", # Cấu hình Regex cho Vercel
     allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["Content-Type", "X-Admin-Token"],
 )
@@ -77,6 +79,32 @@ supabase_url = os.environ.get("SUPABASE_URL", "")
 supabase_key = os.environ.get("SUPABASE_KEY", "")
 supabase: Client = create_client(supabase_url, supabase_key) if supabase_url and supabase_key else None
 
+def extract_json(text: str) -> str:
+    if not isinstance(text, str) or not text.strip():
+        return ""
+    text = text.strip()
+    try:
+        json.loads(text)
+        return text
+    except json.JSONDecodeError:
+        pass
+    match = re.search(r'```(?:json)?\s*(\{.*?\})\s*```', text, re.DOTALL)
+    if match:
+        candidate = match.group(1).strip()
+        try:
+            json.loads(candidate)
+            return candidate
+        except json.JSONDecodeError:
+            pass
+    for i, char in enumerate(text):
+        if char == '{':
+            try:
+                obj, end_idx = json.JSONDecoder().raw_decode(text[i:])
+                return text[i:i+end_idx]
+            except json.JSONDecodeError:
+                continue
+    return ""
+
 def call_llm(system_prompt: str, user_prompt: str) -> str:
     messages = [
         {"role": "system", "content": system_prompt},
@@ -97,21 +125,43 @@ def call_llm(system_prompt: str, user_prompt: str) -> str:
 
     if gemini_model:
         try:
-            full_prompt = f"{system_prompt}\n\n---\n\n<prompt_can_cham>\n{user_prompt}\n</prompt_can_cham>"
-            response = gemini_model.generate_content(
-                full_prompt,
+            temp_model = genai.GenerativeModel(
+                'gemini-1.5-flash', 
+                system_instruction=system_prompt
+            )
+            response = temp_model.generate_content(
+                user_prompt,
                 generation_config=genai.types.GenerationConfig(
                     response_mime_type="application/json",
                     temperature=0.0,
                 )
             )
+            if not response.text:
+                 raise ValueError("Gemini trả về chuỗi rỗng.")
             logger.info("Gemini trả về thành công (Fallback).")
             return response.text
         except Exception as e:
             logger.error(f"Gemini cũng thất bại: {e}")
-            raise Exception("Cả 2 hệ thống AI đều đang bận.")
+            raise HTTPException(status_code=503, detail="Hệ thống AI đang quá tải. Vui lòng thử lại sau ít phút.")
     else:
-        raise Exception("Chưa cấu hình GEMINI_API_KEY và Groq đang gặp sự cố.")
+        raise HTTPException(status_code=503, detail="Groq đang gặp sự cố và chưa cấu hình Gemini dự phòng.")
+
+def bg_save_history(payload: dict):
+    if not supabase: return
+    try:
+        supabase.table("history").insert(payload).execute()
+        logger.info("Đã lưu lịch sử vào Supabase.")
+    except Exception as e:
+        logger.error(f"LỖI BACKGROUND: Không thể lưu lịch sử vào Supabase: {e}")
+
+def bg_cleanup_history():
+    if not supabase: return
+    try:
+        ten_days_ago = (datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=10)).isoformat()
+        supabase.table("history").delete().lt("created_at", ten_days_ago).execute()
+        logger.info("Đã dọn dẹp lịch sử cũ hơn 10 ngày.")
+    except Exception as e:
+        logger.warning(f"LỖI BACKGROUND: Không thể dọn dẹp lịch sử: {e}")
 
 @app.get("/")
 def read_root(): 
@@ -143,7 +193,7 @@ def get_history(token: str = Depends(api_key_header)):
 
 @app.post("/evaluate")
 @limiter.limit(RATE_LIMIT)
-def evaluate(request: Request, req: PromptRequest):
+def evaluate(request: Request, req: PromptRequest, background_tasks: BackgroundTasks):
     prompt_text = req.prompt.strip()
 
     if not prompt_text:
@@ -151,26 +201,20 @@ def evaluate(request: Request, req: PromptRequest):
     if len(prompt_text) > MAX_PROMPT_LENGTH:
         return JSONResponse(status_code=400, content={"error": f"Prompt vượt quá {MAX_PROMPT_LENGTH} ký tự."})
 
-    # Dọn dẹp lịch sử cũ hơn 10 ngày
-    if supabase:
-        try:
-            ten_days_ago = (datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=10)).isoformat()
-            supabase.table("history").delete().lt("created_at", ten_days_ago).execute()
-        except Exception as e:
-            logger.warning(f"Lỗi dọn dẹp: {e}")
+    background_tasks.add_task(bg_cleanup_history)
 
     try:
-        # 1. PHÂN LOẠI ĐA CHIỀU
         classification = rules_v38.classify_prompt(prompt_text)
+        
+        if classification["main_task"] == rules_v38.TYPE_EMPTY:
+             return JSONResponse(status_code=400, content={"error": "Nội dung prompt không hợp lệ."})
+
+        criteria_pack = rules_v38.get_criteria_by_type(classification)
         main_task = classification["main_task"]
         techniques = classification["techniques"]
-        
-        # 2. LẤY CRITERIA 2 TẦNG
-        criteria_pack = rules_v38.get_criteria_by_type(classification)
         main_criteria = criteria_pack["main"]
         tech_criteria = criteria_pack["tech"]
         
-        # Gộp lại để lấy danh sách ID cho AI điền
         all_criteria = {**main_criteria, **tech_criteria}
         
         criteria_desc = ""
@@ -203,36 +247,34 @@ MÃ LỖI:
 
 CHỈ TRẢ VỀ CHUỖI JSON HỢP LỆ. KHÔNG THÊM BẤT KỲ VĂN BẢN NÀO KHÁC.
 """
-        raw_text = call_llm(system_prompt, prompt_text)
+        
+        ai_data = None
+        max_attempts = 2 
 
-        if "```json" in raw_text:
-            raw_text = raw_text.split("```json")[1].split("```")[0].strip()
-        elif "```" in raw_text:
-            raw_text = raw_text.replace("```", "").strip()
+        for attempt in range(max_attempts):
+            try:
+                raw_text = call_llm(system_prompt, prompt_text)
+                if not raw_text:
+                    raise ReportValidationError("AI trả về rỗng.")
+                
+                json_str = extract_json(raw_text)
+                ai_data = json.loads(json_str)
+                validate_full_report(ai_data, main_criteria, tech_criteria, prompt_text)
+                break 
+                
+            except json.JSONDecodeError as e:
+                logger.warning(f"Lần {attempt+1}: Lỗi parse JSON ({e}). Đang thử lại...")
+                ai_data = None
+            except ReportValidationError as e:
+                logger.warning(f"Lần {attempt+1}: Dữ liệu sai cấu trúc ({e}). Đang thử lại...")
+                ai_data = None
 
-        ai_data = json.loads(raw_text)
+        if ai_data is None:
+            logger.error("Thất bại sau 2 lần gọi. AI liên tục trả dữ liệu không hợp lệ.")
+            return JSONResponse(status_code=502, content={"error": "AI trả về dữ liệu không hợp lệ. Vui lòng thử lại."})
 
-        try:
-            validate_full_report(ai_data, main_criteria, tech_criteria, prompt_text)
-        except ValueError as ve:
-            logger.warning(f"Auto-Repair: {ve}")
-            if "scores" not in ai_data or not isinstance(ai_data["scores"], dict): ai_data["scores"] = {}
-            for k in all_criteria.keys():
-                if k not in ai_data["scores"]: ai_data["scores"][k] = 0
-            if "rewrite" not in ai_data or not isinstance(ai_data["rewrite"], dict): ai_data["rewrite"] = {}
-            for sec in rules_v38.REQUIRED_REWRITE_SECTIONS:
-                if sec not in ai_data["rewrite"]: ai_data["rewrite"][sec] = "[AI chưa tạo được mục này]"
-            valid_errors = []
-            if "errors" in ai_data and isinstance(ai_data["errors"], list):
-                for err in ai_data["errors"]:
-                    if isinstance(err, dict) and err.get("code") in rules_v38.VALID_ERROR_CODES:
-                        valid_errors.append(err)
-            ai_data["errors"] = valid_errors
-
-        # 3. TÍNH ĐIỂM 2 TẦNG
         final_score = calculate_final_score(ai_data["scores"], main_criteria, tech_criteria)
 
-        # 4. TRẢ KẾT QUẢ
         display_details = {all_criteria[k]["name"]: v for k, v in ai_data["scores"].items() if k in all_criteria}
         
         result = {
@@ -242,27 +284,29 @@ CHỈ TRẢ VỀ CHUỖI JSON HỢP LỆ. KHÔNG THÊM BẤT KỲ VĂN BẢN NÀ
             "total": final_score,
             "details": display_details,
             "errors": ai_data.get("errors", []), 
-            "rewrite": ai_data["rewrite"],
+            "rewrite": ai_data["rewrite"]
         }
 
-        if supabase:
-            try:
-                supabase.table("history").insert({
-                    "prompt": prompt_text, 
-                    "type": main_task, 
-                    "total_score": final_score,
-                    "details": result["details"], 
-                    "errors": result["errors"], 
-                    "rewrite": result["rewrite"],
-                }).execute()
-            except Exception as e:
-                logger.error(f"Lỗi lưu Supabase: {e}")
+        db_payload = {
+            "prompt": prompt_text, 
+            "type": main_task, 
+            "total_score": final_score,
+            "details": result["details"], 
+            "errors": result["errors"], 
+            "rewrite": result["rewrite"],
+        }
+        background_tasks.add_task(bg_save_history, db_payload)
 
         return result
 
+    except rules_v38.ConfigurationError as ce:
+        logger.error(f"LỖI CẤU HÌNH HỆ THỐNG: {ce}")
+        return JSONResponse(status_code=500, content={"error": "Lỗi cấu hình hệ thống chấm điểm."})
+    except HTTPException as he:
+        raise he
     except Exception as e:
-        logger.exception("Lỗi trong /evaluate")
-        return JSONResponse(status_code=500, content={"error": f"Lỗi xử lý: {str(e)[:100]}"})
+        logger.exception("Lỗi nghiêm trọng trong /evaluate")
+        return JSONResponse(status_code=500, content={"error": "Lỗi máy chủ nội bộ."})
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=int(os.environ.get("PORT", 8000)))
