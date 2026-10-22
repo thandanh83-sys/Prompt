@@ -1,16 +1,19 @@
 <!DOCTYPE html>
-<html lang="vi" class="scroll-smooth">
+<html lang="vi" class="scroll-smooth light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Trợ lý AI - Tối ưu hoá Prompt</title>
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23ec4899'/%3E%3Cstop offset='100%25' stop-color='%233b82f6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' rx='20' fill='url(%23g)'/%3E%3Ctext x='50' y='72' font-size='60' font-family='Arial,sans-serif' font-weight='bold' fill='white' text-anchor='middle'%3EP%3C/text%3E%3C/svg%3E">
     
+    <!-- SCRIPT CHỐNG NHÁY TRẮNG VÀ ĐỒNG BỘ THEME -->
     <script>
         if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             document.documentElement.classList.add('dark');
+            document.documentElement.classList.remove('light');
         } else {
             document.documentElement.classList.remove('dark');
+            document.documentElement.classList.add('light');
         }
     </script>
 
@@ -31,12 +34,17 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         body { overflow-x: hidden; transition: background-color 0.3s, color 0.3s; }
+        
+        /* Hiệu ứng nền đồng bộ index */
         .dark-glow { background: radial-gradient(circle at 50% 0%, rgba(236,72,153,0.15) 0%, transparent 60%); }
+        
         .glass { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(8px); border: 1px solid rgba(0, 0, 0, 0.05); }
         .dark .glass { background: rgba(30, 41, 59, 0.6); border: 1px solid rgba(255, 255, 255, 0.1); }
+        
         .glass-card { transition: all 0.3s ease; }
         .glass-card:hover { border-color: rgba(236, 72, 153, 0.5); box-shadow: 0 0 30px rgba(236, 72, 153, 0.15); transform: translateY(-5px); }
         .dark .glass-card:hover { border-color: rgba(59, 130, 246, 0.4); box-shadow: 0 0 30px rgba(59, 130, 246, 0.15); }
+        
         .text-gradient { background: linear-gradient(to right, #ec4899, #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .glow-btn { position: relative; }
         .glow-btn::before { content: ''; position: absolute; inset: -2px; background: linear-gradient(45deg, #ec4899, #3b82f6); border-radius: inherit; z-index: -1; filter: blur(8px); opacity: 0.7; transition: opacity 0.3s; }
@@ -46,7 +54,7 @@
         .menu-dropdown { transition: all 0.2s ease-in-out; transform-origin: top left; }
     </style>
 </head>
-<body class="antialiased font-sans bg-slate-50 text-slate-800 dark:bg-slate-900 dark:text-slate-200 selection:bg-brand-pink selection:text-white dark-glow">
+<body class="antialiased font-sans bg-slate-50 text-slate-800 dark:bg-slate-900 dark:text-slate-200 selection:bg-brand-pink selection:text-white dark-glow flex flex-col min-h-screen">
 
     <div class="orb bg-brand-pink w-96 h-96 top-[-10%] left-[-10%]"></div>
     <div class="orb bg-brand-blue w-[30rem] h-[30rem] top-[20%] right-[-10%]"></div>
@@ -73,12 +81,10 @@
                 <!-- MENU XỔ XUỐNG -->
                 <div id="menuDropdownLanding" class="menu-dropdown absolute top-14 left-0 bg-white dark:bg-[#1e293b] border border-slate-200 dark:border-slate-700 rounded-2xl shadow-xl w-56 overflow-hidden hidden opacity-0 scale-95 z-50">
                     <div class="flex flex-col py-2">
-                        <!-- Ở landing, nhấn trang chủ sẽ reload lại landing.html -->
                         <a href="./landing.html" class="menu-item flex items-center gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-pink-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
                             Trang chủ
                         </a>
-                        <!-- Link sang index -->
                         <a href="./index.html?tab=evaluate" class="menu-item flex items-center gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg>
                             Đánh giá
@@ -243,15 +249,13 @@
 
         function applyTheme(dark) {
             document.documentElement.classList.toggle('dark', dark); 
+            document.documentElement.classList.toggle('light', !dark);
             themeToggle.innerHTML = dark ? sunSVG : moonSVG;
             try { localStorage.setItem('theme', dark ? 'dark' : 'light'); } catch (e) {}
         }
         
-        (function initTheme() { 
-            let saved = null; 
-            try { saved = localStorage.getItem('theme'); } catch (e) {} 
-            applyTheme(saved ? saved === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches); 
-        })();
+        // Khởi tạo Theme ngay khi load xong HTML
+        applyTheme(document.documentElement.classList.contains('dark'));
         
         themeToggle.addEventListener('click', () => applyTheme(!document.documentElement.classList.contains('dark')));
 
