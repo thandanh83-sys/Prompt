@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="vi" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thư viện Prompt - Trợ lý AI</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23ec4899'/%3E%3Cstop offset='100%25' stop-color='%233b82f6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' rx='20' fill='url(%23g)'/%3E%3Ctext x='50' y='72' font-size='60' font-family='Arial,sans-serif' font-weight='bold' fill='white' text-anchor='middle'%3EP%3C/text%3E%3C/svg%3E">
+    <script>
+        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) document.documentElement.classList.add('dark');
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>tailwind.config = { darkMode: 'class' }</script>
+    <style>
+        body { -webkit-tap-highlight-color: transparent; overflow-x: hidden; transition: background-color .15s ease; }
+        .glass-card { transition: transform .2s ease; }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; } .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .dark-glow { background: radial-gradient(ellipse at 18% 10%, rgba(229,112,196,.16) 0%, transparent 38%), #f8f7fc; }
+        .dark.dark-glow { background: radial-gradient(ellipse at 18% 10%, rgba(164,55,130,.13) 0%, transparent 38%), #0f172a; }
+        .brand-text { background: linear-gradient(100deg, #e743a3, #a052c8 52%, #3979f5); -webkit-background-clip: text; background-clip: text; color: transparent; }
+        .app-header { background: #fff; border-color: rgba(0,0,0,.06); } .dark .app-header { background: #0f172a; border-color: rgba(255,255,255,.1); }
+        .menu-dropdown { transition: all .2s; transform-origin: top left; width: min(290px, calc(100vw - 24px)); }
+    </style>
+</head>
+<body class="antialiased min-h-screen relative text-slate-800 dark:text-slate-100 bg-slate-50 dark:bg-slate-900 dark-glow flex flex-col">
+    <header class="app-header fixed top-0 left-0 w-full z-50 border-b">
+        <div class="w-full max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-3">
+            <div class="relative flex items-center">
+                <button id="btnHamburger" class="w-10 h-10 flex items-center justify-center rounded-full text-slate-600 dark:text-slate-300"><svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+                <div id="dropdownMenu" class="menu-dropdown absolute top-12 left-0 bg-white dark:bg-[#1e293b] border border-slate-200 dark:border-slate-700 rounded-2xl shadow-xl hidden opacity-0 scale-95 z-50">
+                    <div class="flex flex-col py-2">
+                        <a href="./index.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 text-sm font-semibold">🏠 Trang chủ</a>
+                        <a href="./landing.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 text-sm font-semibold">⚡ Đánh giá</a>
+                        <a href="./library.html" class="flex items-center gap-3 px-4 py-3 bg-slate-50 dark:bg-slate-700/50 text-sm font-semibold text-purple-500">📚 Thư viện (Hiện tại)</a>
+                    </div>
+                </div>
+            </div>
+            <a href="./index.html" class="flex items-center gap-2"><svg class="w-7 h-7" viewBox="0 0 24 24"><defs><linearGradient id="brandSparkGradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ec4899"/><stop offset="100%" stop-color="#3b82f6"/></linearGradient></defs><path fill="url(#brandSparkGradient)" d="M12 2L14.7 9.3 22 12l-7.3 2.7L12 22l-2.7-7.3L2 12l7.3-2.7L12 2Z"/></svg><span class="brand-text text-lg font-extrabold">Trợ lý AI</span></a>
+            <button id="themeToggle" class="w-10 h-10 rounded-full flex items-center justify-center text-slate-600 dark:text-slate-300"><svg id="themeIcon" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364-.707-.707M6.343 6.343l-.707-.707m12.728 0-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg></button>
+        </div>
+    </header>
+
+    <main class="w-full max-w-3xl mx-auto px-4 pt-24 pb-32 flex-grow flex flex-col">
+        <div class="glass-card bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/50 shadow-sm rounded-3xl p-6 mt-4">
+            <h2 class="text-xl font-bold mb-2 flex items-center gap-2"><span>📚</span> Thư viện Prompt</h2>
+            <p class="text-sm text-slate-500 mb-6">Những câu lệnh đạt điểm 8.0 trở lên từ cộng đồng. Bấm "Copy" để sử dụng.</p>
+            <div id="libraryLoading" class="text-center py-10 text-slate-500 text-sm animate-pulse">Đang tải dữ liệu...</div>
+            <div id="libraryList" class="space-y-4"></div>
+        </div>
+    </main>
+
+    <div id="toastContainer" class="fixed bottom-5 left-1/2 transform -translate-x-1/2 z-[9999] flex flex-col gap-2 pointer-events-none"></div>
+
+<script>
+    const API_URL = "https://prompt-tx2e.onrender.com"; 
+    const $ = id => document.getElementById(id);
+    
+    function copyTextToClipboard(text) {
+        if (navigator.clipboard && window.isSecureContext) return navigator.clipboard.writeText(text);
+        let textArea = document.createElement("textarea"); textArea.value = text; textArea.style.position = "absolute"; textArea.style.left = "-999999px"; document.body.appendChild(textArea); textArea.focus(); textArea.select();
+        return new Promise((res, rej) => { try { document.execCommand('copy'); res(); } catch (error) { rej(error); } finally { textArea.remove(); } });
+    }
+    function showToast(msg, type = 'success') {
+        const container = $('toastContainer'), toast = document.createElement('div'); 
+        toast.className = `fixed bg-slate-800 text-white px-5 py-3 rounded-lg shadow-lg text-sm transition-opacity duration-300 ${type === 'success' ? 'border-l-4 border-green-500' : 'border-l-4 border-red-500'}`;
+        toast.innerHTML = `<span>${type === 'success' ? '✅' : '⚠️'}</span> <span>${msg}</span>`;
+        container.appendChild(toast); setTimeout(() => toast.style.opacity = '1', 10); setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 300); }, 3000);
+    }
+
+    const btnHamburger = $('btnHamburger'), dropdownMenu = $('dropdownMenu'); let isMenuOpen = false;
+    btnHamburger.addEventListener('click', (e) => { e.stopPropagation(); isMenuOpen = !isMenuOpen; if (isMenuOpen) { dropdownMenu.classList.remove('hidden'); setTimeout(() => { dropdownMenu.classList.remove('opacity-0', 'scale-95'); dropdownMenu.classList.add('opacity-100', 'scale-100'); }, 10); } else { dropdownMenu.classList.remove('opacity-100', 'scale-100'); dropdownMenu.classList.add('opacity-0', 'scale-95'); setTimeout(() => { dropdownMenu.classList.add('hidden'); }, 200); } });
+    document.addEventListener('click', (e) => { if (isMenuOpen && !dropdownMenu.contains(e.target) && e.target !== btnHamburger) { isMenuOpen = false; dropdownMenu.classList.remove('opacity-100', 'scale-100'); dropdownMenu.classList.add('opacity-0', 'scale-95'); setTimeout(() => { dropdownMenu.classList.add('hidden'); }, 200); } });
+
+    const moonSVG = `<path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z"/>`;
+    const sunSVG = `<path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364-.707-.707M6.343 6.343l-.707-.707m12.728 0-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>`;
+    function applyTheme(dark) { const root = document.documentElement; root.classList.toggle('dark', dark); $('themeIcon').innerHTML = dark ? sunSVG : moonSVG; try { localStorage.setItem('theme', dark ? 'dark' : 'light'); } catch (e) {} }
+    applyTheme(document.documentElement.classList.contains('dark'));
+    $('themeToggle').addEventListener('click', () => applyTheme(!document.documentElement.classList.contains('dark')));
+
+    const typeMap = { "PROMPT": "PROMPT", "TEMPLATE": "TEMPLATE", "PROMPT META": "META", "TABLE": "TABLE", "STEM": "STEM", "IMAGE": "IMAGE" };
+    const typeColors = { "PROMPT": "bg-blue-500", "TEMPLATE": "bg-purple-500", "META": "bg-orange-500", "TABLE": "bg-teal-500", "STEM": "bg-green-500", "IMAGE": "bg-pink-500" };
+
+    async function fetchLibrary() {
+        const list = $('libraryList'), loading = $('libraryLoading');
+        try {
+            const res = await fetch(`${API_URL}/top_prompts`);
+            const data = await res.json();
+            if (data.prompts && data.prompts.length > 0) {
+                data.prompts.forEach(item => {
+                    const mappedType = typeMap[item.type] || item.type;
+                    const colorClass = typeColors[mappedType] || 'bg-slate-500';
+                    const card = document.createElement('div');
+                    card.className = 'border border-slate-200 dark:border-slate-700/60 rounded-2xl p-4 bg-white dark:bg-slate-800/80 shadow-sm flex flex-col gap-3';
+                    const safePrompt = encodeURIComponent(item.prompt); 
+                    card.innerHTML = `
+                        <div class="flex justify-between items-start">
+                            <div class="flex items-center gap-2">
+                                <span class="px-2 py-1 rounded text-[10px] font-bold text-white ${colorClass}">${mappedType}</span>
+                                <span class="text-xs text-slate-500 font-medium">${new Date(item.created_at).toLocaleDateString('vi-VN')}</span>
+                            </div>
+                            <span class="text-lg font-extrabold text-green-500">${item.total_score} <span class="text-xs text-slate-400 font-semibold">điểm</span></span>
+                        </div>
+                        <div class="relative">
+                            <div class="max-h-40 overflow-y-auto custom-scrollbar bg-slate-50 dark:bg-slate-900/50 p-3 rounded-xl border border-slate-100 dark:border-slate-700/50">
+                                <p class="text-[13px] text-slate-700 dark:text-slate-300 leading-relaxed" style="white-space: pre-wrap;">${item.prompt}</p>
+                            </div>
+                        </div>
+                        <div class="flex justify-end mt-1">
+                            <button class="btn-copy-lib text-xs font-bold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5" data-prompt="${safePrompt}">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+                                <span>Copy Prompt</span>
+                            </button>
+                        </div>
+                    `;
+                    list.appendChild(card);
+                    const btn = card.querySelector('.btn-copy-lib');
+                    btn.addEventListener('click', async function() {
+                        const textToCopy = decodeURIComponent(this.getAttribute('data-prompt'));
+                        try { await copyTextToClipboard(textToCopy); showToast("Đã copy vào bộ nhớ tạm!"); const originalHTML = this.innerHTML; this.innerHTML = '<span class="text-green-600">Đã copy!</span>'; setTimeout(() => { this.innerHTML = originalHTML; }, 2000); } 
+                        catch (err) { showToast("Trình duyệt không cho phép tự động copy.", "error"); }
+                    });
+                });
+            } else { list.innerHTML = '<p class="text-center text-slate-500 text-sm py-4">Chưa có Prompt nào đạt 8 điểm.</p>'; }
+        } catch (e) { list.innerHTML = '<p class="text-center text-red-500 text-sm py-4">Lỗi tải dữ liệu.</p>'; } finally { loading.style.display = 'none'; }
+    }
+    document.addEventListener('DOMContentLoaded', fetchLibrary);
+</script>
+</body>
+</html>
