@@ -34,6 +34,17 @@
         .stat-card { background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.01) 100%); border: 1px solid rgba(255,255,255,0.1); }
         .dark .stat-card { background: linear-gradient(135deg, rgba(30,41,59,0.8) 0%, rgba(15,23,42,0.8) 100%); border: 1px solid rgba(51,65,85,0.5); }
         .menu-dropdown { transition: all 0.2s ease-in-out; transform-origin: top left; }
+        
+        /* CSS CHO TOAST THÔNG BÁO */
+        .toast-msg {
+            background-color: #1e293b; color: white; padding: 10px 20px; border-radius: 8px;
+            font-size: 14px; font-weight: 500; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            opacity: 0; transform: translateY(20px); transition: all 0.3s ease;
+            pointer-events: auto; display: flex; align-items: center; gap: 8px; white-space: nowrap;
+        }
+        .toast-success { border-left: 4px solid #22c55e; }
+        .toast-error { border-left: 4px solid #ef4444; }
+        .toast-show { opacity: 1; transform: translateY(0); }
     </style>
 </head>
 <body class="antialiased min-h-screen relative text-slate-800 dark:text-slate-100 transition-colors duration-300 bg-slate-50 dark:bg-slate-900 dark-glow flex flex-col">
@@ -197,6 +208,9 @@
         </div>
     </div>
 
+    <!-- CONTAINER CHỨA TOAST -->
+    <div id="toastContainer" class="fixed bottom-5 left-1/2 transform -translate-x-1/2 z-[9999] flex flex-col gap-2 pointer-events-none"></div>
+
     <!-- POPUP HƯỚNG DẪN -->
     <div id="instructionModal" class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-opacity duration-300">
         <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-sm p-6 relative">
@@ -220,6 +234,48 @@
     let chart1 = null;
     let chart2 = null;
     let isLibraryLoaded = false;
+
+    // ==========================================
+    // HÀM COPY ĐA NỀN TẢNG (SỬA LỖI TRÊN MOBILE)
+    // ==========================================
+    function copyTextToClipboard(text) {
+        if (navigator.clipboard && window.isSecureContext) {
+            // Ưu tiên dùng API hiện đại (Desktop)
+            return navigator.clipboard.writeText(text);
+        } else {
+            // Fallback cho điện thoại / trình duyệt cũ
+            let textArea = document.createElement("textarea");
+            textArea.value = text;
+            textArea.style.position = "absolute";
+            textArea.style.left = "-999999px";
+            textArea.style.top = "-999999px";
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            return new Promise((res, rej) => {
+                try {
+                    document.execCommand('copy');
+                    res();
+                } catch (error) {
+                    rej(error);
+                } finally {
+                    textArea.remove();
+                }
+            });
+        }
+    }
+
+    // Hàm hiển thị Toast
+    function showToast(message, type = 'success') {
+        const container = document.getElementById('toastContainer');
+        const toast = document.createElement('div');
+        toast.className = `toast-msg toast-${type}`;
+        const icon = type === 'success' ? '✅' : '⚠️';
+        toast.innerHTML = `<span>${icon}</span> <span>${message}</span>`;
+        container.appendChild(toast);
+        setTimeout(() => toast.classList.add('toast-show'), 10);
+        setTimeout(() => { toast.classList.remove('toast-show'); setTimeout(() => toast.remove(), 300); }, 3000);
+    }
 
     // SVG Icons
     const sunSVG = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>`;
@@ -279,18 +335,6 @@
     }
     checkAdminAccess();
 
-    // Toast (Thay thế alert)
-    function showToast(message, type = 'success') {
-        const container = document.getElementById('toastContainer');
-        const toast = document.createElement('div');
-        toast.className = `toast-msg toast-${type}`;
-        const icon = type === 'success' ? '✅' : '⚠️';
-        toast.innerHTML = `<span>${icon}</span> <span>${message}</span>`;
-        container.appendChild(toast);
-        setTimeout(() => toast.classList.add('toast-show'), 10);
-        setTimeout(() => { toast.classList.remove('toast-show'); setTimeout(() => toast.remove(), 300); }, 3000);
-    }
-
     const ERROR_NAMES = { "A01": "Lỗi chính tả", "A02": "Thiếu dấu câu", "A03": "Lặp lại", "B01": "Thiếu cấu trúc", "B02": "Mục không logic", "B03": "Sai phân cấp", "B04": "Chưa định dạng", "C01": "Đối tượng chưa rõ", "C02": "Thiếu bối cảnh", "C03": "Chung chung", "C04": "Thiếu ví dụ", "D01": "Mâu thuẫn", "D02": "Bất khả thi", "D03": "Vai trò sai", "E01": "Trộn lĩnh vực", "E02": "Thuật ngữ lộn xộn", "E03": "Thiếu đặc thù" };
     const TECH_NAMES = { "ROLE_PLAY": "Đóng vai", "FEW_SHOT": "Ví dụ mẫu", "CHAIN_OF_THOUGHT": "Suy luận", "FORMATTED_OUTPUT": "Định dạng", "CREATIVE_GEN": "Sáng tạo" };
     const typeMap = { "PROMPT": "PROMPT", "TEMPLATE": "TEMPLATE", "PROMPT META": "META", "TABLE": "TABLE", "STEM": "STEM", "IMAGE": "IMAGE" };
@@ -325,12 +369,19 @@
         } catch (e) { list.innerHTML = '<p class="text-center text-red-500 text-sm py-4">Lỗi tải dữ liệu.</p>'; } finally { loading.style.display = 'none'; isLibraryLoaded = true; }
     }
 
+    // SỬ DỤNG HÀM COPY ĐA NỀN TẢNG Ở ĐÂY
     window.copyFromLibrary = async function(promptText, btnElement) {
         try {
-            await navigator.clipboard.writeText(promptText);
+            await copyTextToClipboard(promptText);
             showToast("Đã copy vào bộ nhớ tạm!", "success");
-            if (btnElement) { const originalHTML = btnElement.innerHTML; btnElement.innerHTML = '<span class="text-green-500">Đã copy!</span>'; setTimeout(() => { btnElement.innerHTML = originalHTML; }, 2000); }
-        } catch (err) { showToast("Trình duyệt không cho phép tự động copy.", "error"); }
+            if (btnElement) { 
+                const originalHTML = btnElement.innerHTML; 
+                btnElement.innerHTML = '<span class="text-green-500">Đã copy!</span>'; 
+                setTimeout(() => { btnElement.innerHTML = originalHTML; }, 2000); 
+            }
+        } catch (err) { 
+            showToast("Trình duyệt không cho phép tự động copy.", "error"); 
+        }
     }
 
     const promptInput = $('promptInput'); const charCount = $('charCount'); const btnClearInput = $('btnClearInput'); const longPromptWarning = $('longPromptWarning');
@@ -364,7 +415,6 @@
     }
 
     function render(r) {
-        // Cập nhật điểm tổng và thanh Bar (Đã đổi màu theo điểm)
         const scoreNum = parseFloat(r.total);
         $('totalScore').textContent = r.total; 
         
@@ -441,16 +491,29 @@
         finally { clearInterval(timer); btn.disabled = false; spinner.classList.add('hidden'); btnText.textContent = 'Đánh giá & Viết lại'; }
     });
 
+    // SỬ DỤNG HÀM COPY ĐA NỀN TẢNG CHO NÚT SAO CHÉP TOÀN BỘ
     $('btnCopyAll').addEventListener('click', async () => {
-        if (!lastResult) return; let text = ""; 
+        if (!lastResult) return; 
+        let text = ""; 
         SECTION_NAMES.forEach(sec => { text += `${sec}:\n${lastResult.rewrite[sec] || ''}\n\n`; });
+        
         try {
-            await navigator.clipboard.writeText(text);
+            await copyTextToClipboard(text);
             showToast("Đã sao chép toàn bộ Prompt!", "success");
-            const btn = $('btnCopyAll'); const btnText = $('copyBtnText'); 
-            btnText.textContent = 'Đã chép!'; btnText.classList.add('text-green-500');
-            setTimeout(() => { btnText.textContent = 'Sao chép'; btnText.classList.remove('text-green-500'); }, 2000);
-        } catch (e) { showToast("Không thể sao chép.", "error"); }
+            
+            const btn = $('btnCopyAll'); 
+            const btnText = $('copyBtnText'); 
+            const originalHTML = btn.innerHTML; 
+            
+            btnText.textContent = 'Đã chép!'; 
+            btnText.classList.add('text-green-500');
+            btn.querySelector('svg').outerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>`;
+            
+            setTimeout(() => { btn.innerHTML = originalHTML; }, 2000);
+            
+        } catch (e) { 
+            showToast("Không thể sao chép.", "error"); 
+        }
     });
 
     function backToUserMode() { switchToEvaluate(); $('adminLoginBox').style.display = 'block'; $('adminDashboard').style.display = 'none'; $('adminPassword').value = ''; $('adminError').style.display = 'none'; adminToken = null; }
