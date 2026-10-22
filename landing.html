@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="vi" class="scroll-smooth light">
 <head>
@@ -5,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Trợ lý AI - Tối ưu hoá Prompt</title>
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23ec4899'/%3E%3Cstop offset='100%25' stop-color='%233b82f6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' rx='20' fill='url(%23g)'/%3E%3Ctext x='50' y='72' font-size='60' font-family='Arial,sans-serif' font-weight='bold' fill='white' text-anchor='middle'%3EP%3C/text%3E%3C/svg%3E">
-    
+
     <script>
         if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             document.documentElement.classList.add('dark');
@@ -31,39 +32,92 @@
         }
     </script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
     <style>
         /* TỐI ƯU HÓA HIỆU NĂNG */
-        body { overflow-x: hidden; transition: background-color 0.15s ease, color 0.15s ease; }
-        
-        @media (prefers-reduced-motion: reduce) {
-            body, .glass-card, .glow-btn::before { transition: none !important; animation: none !important; }
+        body {
+            overflow-x: hidden;
+            transition: background-color 0.15s ease, color 0.15s ease;
         }
 
-        .dark-glow { background: radial-gradient(circle at 50% 0%, rgba(236,72,153,0.15) 0%, transparent 60%); }
-        
-        /* 1. BỎ GLASS: Chuyển sang nền đặc, bỏ backdrop-filter */
-        .glass { background: #ffffff; border: 1px solid rgba(0, 0, 0, 0.06); }
-        .dark .glass { background: #1e293b; border: 1px solid rgba(255, 255, 255, 0.1); }
-        
-        .glass-card { transition: all 0.3s ease; }
-        .glass-card:hover { border-color: rgba(236, 72, 153, 0.5); box-shadow: 0 0 30px rgba(236, 72, 153, 0.15); transform: translateY(-5px); }
-        .dark .glass-card:hover { border-color: rgba(59, 130, 246, 0.4); box-shadow: 0 0 30px rgba(59, 130, 246, 0.15); }
-        
-        .text-gradient { background: linear-gradient(to right, #ec4899, #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        
-        .glow-btn { position: relative; }
-        .glow-btn::before { content: ''; position: absolute; inset: -2px; background: linear-gradient(45deg, #ec4899, #3b82f6); border-radius: inherit; z-index: -1; filter: blur(8px); opacity: 0.7; transition: opacity 0.3s; }
-        .glow-btn:hover::before { opacity: 1; }
-        
-        /* 2. GIẢM HIỆU ỨNG ORBS: Bỏ filter blur, giảm opacity */
-        .orb { position: absolute; border-radius: 50%; z-index: -2; opacity: 0.08; filter: none; }
-        .dark .orb { opacity: 0.12; }
-        
-        .menu-dropdown { transition: all 0.2s ease-in-out; transform-origin: top left; }
+        @media (prefers-reduced-motion: reduce) {
+            body, .glass-card, .glow-btn::before {
+                transition: none !important;
+                animation: none !important;
+            }
+        }
+
+        .dark-glow {
+            background: radial-gradient(circle at 50% 0%, rgba(236,72,153,0.15) 0%, transparent 60%);
+        }
+
+        /* Giữ nền đặc, không sử dụng backdrop-filter */
+        .glass {
+            background: #ffffff;
+            border: 1px solid rgba(0, 0, 0, 0.06);
+        }
+
+        .dark .glass {
+            background: #1e293b;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Giữ nguyên hiệu ứng hover của thẻ */
+        .glass-card {
+            transition: all 0.3s ease;
+        }
+
+        .glass-card:hover {
+            border-color: rgba(236, 72, 153, 0.5);
+            box-shadow: 0 0 30px rgba(236, 72, 153, 0.15);
+            transform: translateY(-5px);
+        }
+
+        .dark .glass-card:hover {
+            border-color: rgba(59, 130, 246, 0.4);
+            box-shadow: 0 0 30px rgba(59, 130, 246, 0.15);
+        }
+
+        /* Giữ nguyên gradient chữ */
+        .text-gradient {
+            background: linear-gradient(to right, #ec4899, #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Bỏ quầng sáng mờ quanh nút, giữ gradient trên chính nút */
+        .glow-btn {
+            position: relative;
+        }
+
+        .glow-btn::before {
+            content: none;
+        }
+
+        /* Giữ hình tròn Orbs nhưng ẩn màu nền */
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            z-index: -2;
+            opacity: 0;
+            filter: none;
+        }
+
+        .dark .orb {
+            opacity: 0;
+        }
+
+        /* Giữ nguyên hiệu ứng menu */
+        .menu-dropdown {
+            transition: all 0.2s ease-in-out;
+            transform-origin: top left;
+        }
     </style>
 </head>
+
 <body class="antialiased font-sans bg-slate-50 text-slate-800 dark:bg-slate-900 dark:text-slate-200 selection:bg-brand-pink selection:text-white dark-glow flex flex-col min-h-screen">
 
+    <!-- Giữ các hình tròn nhưng đã ẩn màu bằng CSS -->
     <div class="orb bg-brand-pink w-96 h-96 top-[-10%] left-[-10%]"></div>
     <div class="orb bg-brand-blue w-[30rem] h-[30rem] top-[20%] right-[-10%]"></div>
     <div class="orb bg-purple-600 w-80 h-80 bottom-[-10%] left-[20%]"></div>
@@ -71,12 +125,14 @@
     <!-- HEADER LANDING -->
     <header class="fixed top-0 left-0 w-full z-50 glass border-b border-slate-200 dark:border-white/10">
         <div class="max-w-7xl mx-auto px-4 md:px-6 h-16 md:h-20 flex items-center justify-between">
-            
+
             <div class="flex items-center gap-2 md:gap-4 relative">
                 <button id="btnMenuLanding" class="w-10 h-10 shrink-0 flex items-center justify-center rounded-full text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" /></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
                 </button>
-                
+
                 <div class="flex items-center gap-2 cursor-pointer" onclick="window.location.href='./landing.html'">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 text-brand-pink shrink-0">
                         <path fill-rule="evenodd" d="M9 4.5a.75.75 0 01.721.544l.813 2.846a3.75 3.75 0 002.576 2.576l2.846.813a.75.75 0 010 1.442l-2.846.813a3.75 3.75 0 00-2.576 2.576l-.813 2.846a.75.75 0 01-1.442 0l-.813-2.846a3.75 3.75 0 00-2.576-2.576l-2.846-.813a.75.75 0 010-1.442l2.846-.813A3.75 3.75 0 009 7.89l.813-2.846A.75.75 0 019 4.5zM18 1.5a.75.75 0 01.728.568l.258 1.036c.236.94.97 1.674 1.91 1.91l1.036.258a.75.75 0 010 1.456l-1.036.258c-.94.236-1.674.97-1.91 1.91l-.258 1.036a.75.75 0 01-1.456 0l-.258-1.036a2.625 2.625 0 00-1.91-1.91l-1.036-.258a.75.75 0 010-1.456l1.036-.258a2.625 2.625 0 001.91-1.91l.258-1.036A.75.75 0 0118 1.5zM16.5 15a.75.75 0 01.712.513l.394 1.183c.15.447.5.799.948.948l1.183.395a.75.75 0 010 1.422l-1.183.395c-.447.15-.799.5-.948.948l-.395 1.183a.75.75 0 01-1.422 0l-.395-1.183a1.5 1.5 0 00-.948-.948l-1.183-.395a.75.75 0 010-1.422l1.183-.395c.447-.15.799-.5.948-.948l.395-1.183A.75.75 0 0116.5 15z" clip-rule="evenodd" />
@@ -88,27 +144,39 @@
                 <div id="menuDropdownLanding" class="menu-dropdown absolute top-14 left-0 bg-white dark:bg-[#1e293b] border border-slate-200 dark:border-slate-700 rounded-2xl shadow-xl w-56 overflow-hidden hidden opacity-0 scale-95 z-50">
                     <div class="flex flex-col py-2">
                         <a href="./landing.html" class="menu-item flex items-center gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-pink-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-pink-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                            </svg>
                             Trang chủ
                         </a>
+
                         <a href="./index.html?tab=evaluate" class="menu-item flex items-center gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                            </svg>
                             Đánh giá
                         </a>
+
                         <a href="./index.html?tab=library" class="menu-item flex items-center gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                            </svg>
                             Thư viện
                         </a>
-                        
+
                         <div id="adminMenuDivider" class="h-px bg-slate-100 dark:bg-slate-700/50 mx-2 my-1" style="display: none;"></div>
+
                         <a id="menuBtnAdmin" href="./index.html?tab=admin" class="menu-item flex items-center gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors" style="display: none;">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
                             Quản trị (Admin)
                         </a>
                     </div>
                 </div>
             </div>
-            
+
             <div class="flex items-center gap-2 md:gap-3 shrink-0">
                 <button
                     id="themeToggle"
@@ -119,7 +187,7 @@
                 >
                     <!-- SVG sẽ được JS bơm vào -->
                 </button>
-                
+
                 <a href="./index.html" class="px-4 py-2 md:px-6 md:py-2.5 rounded-full text-[13px] md:text-base font-extrabold text-white bg-gradient-to-r from-brand-pink to-brand-blue shadow-[0_4px_15px_rgba(236,72,153,0.5)] hover:shadow-[0_6px_20px_rgba(59,130,246,0.7)] hover:-translate-y-0.5 transition-all transform hover:scale-105 whitespace-nowrap border border-white/20">
                     Trải nghiệm ngay
                 </a>
@@ -130,22 +198,30 @@
     <!-- HERO SECTION -->
     <section class="relative pt-32 pb-20 md:pt-48 md:pb-32 px-4 md:px-6">
         <div class="max-w-4xl mx-auto text-center z-10 relative">
-            <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full glass text-sm font-semibold text-brand-pink mb-8 animate-pulse-slow">
-                <span class="w-2 h-2 rounded-full bg-brand-pink"></span> Chuẩn mực mới cho Prompt Engineering
+
+            <!-- Đã bỏ animate-pulse-slow -->
+            <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full glass text-sm font-semibold text-brand-pink mb-8">
+                <span class="w-2 h-2 rounded-full bg-brand-pink"></span>
+                Chuẩn mực mới cho Prompt Engineering
             </div>
-            
+
             <h1 class="text-[1.8rem] sm:text-4xl md:text-5xl lg:text-7xl font-extrabold text-slate-900 dark:text-white leading-[1.2] tracking-tight mb-6 px-2">
-                Biến câu lệnh thông thường thành <span class="text-gradient block mt-2">Prompt Chuyên Gia</span>
+                Biến câu lệnh thông thường thành
+                <span class="text-gradient block mt-2">Prompt Chuyên Gia</span>
             </h1>
-            
+
             <p class="text-base md:text-xl text-slate-600 dark:text-slate-400 mb-10 max-w-2xl mx-auto leading-relaxed px-4">
                 AI tự động phân tích, chấm điểm và tối ưu hóa câu lệnh của bạn theo cấu trúc <strong>11 mục</strong> chuẩn quốc tế. Không còn nỗi lo AI trả lời sai ý.
             </p>
+
             <div class="flex flex-col sm:flex-row items-center justify-center gap-4 px-4">
                 <a href="./index.html" class="glow-btn w-full sm:w-auto px-8 py-4 rounded-full font-bold text-white bg-gradient-to-r from-brand-pink to-brand-blue transition-all transform hover:scale-105 flex items-center justify-center gap-2">
                     Bắt đầu đánh giá miễn phí
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+                    </svg>
                 </a>
+
                 <a href="#features" class="w-full sm:w-auto px-8 py-4 rounded-full font-bold text-slate-700 dark:text-slate-300 glass hover:bg-slate-50 dark:hover:bg-slate-800 transition-all">
                     Tìm hiểu thêm
                 </a>
@@ -155,6 +231,7 @@
         <!-- MOCKUP -->
         <div class="max-w-5xl mx-auto mt-16 md:mt-20 relative z-10 px-4 md:px-0">
             <div class="absolute inset-0 bg-gradient-to-r from-brand-pink to-brand-blue rounded-3xl opacity-20 dark:opacity-40"></div>
+
             <div class="glass border border-slate-200 dark:border-white/10 rounded-3xl p-4 md:p-6 shadow-2xl relative bg-white dark:bg-[#0b1120]">
                 <div class="flex items-center gap-2 mb-4 px-2">
                     <div class="w-3 h-3 rounded-full bg-red-500"></div>
@@ -162,17 +239,28 @@
                     <div class="w-3 h-3 rounded-full bg-green-500"></div>
                     <div class="ml-4 h-6 w-64 bg-slate-200 dark:bg-white/5 rounded-md"></div>
                 </div>
+
                 <div class="space-y-6">
                     <div class="bg-slate-50 dark:bg-[#0f172a] border border-slate-200 dark:border-white/10 rounded-2xl p-6 relative">
                         <p class="text-slate-400 dark:text-slate-400 text-sm">Mô tả điều bạn muốn AI thực hiện...</p>
                     </div>
-                    <div class="w-full h-14 bg-gradient-to-r from-brand-pink to-brand-blue rounded-2xl flex items-center justify-center text-white font-bold text-lg shadow-md">Đánh giá & Viết lại</div>
+
+                    <div class="w-full h-14 bg-gradient-to-r from-brand-pink to-brand-blue rounded-2xl flex items-center justify-center text-white font-bold text-lg shadow-md">
+                        Đánh giá & Viết lại
+                    </div>
+
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div class="bg-slate-50 dark:bg-[#0f172a] border border-slate-200 dark:border-white/10 rounded-2xl p-6">
                             <p class="text-xs text-slate-500 font-bold mb-2">ĐIỂM TỔNG</p>
-                            <div class="flex items-baseline gap-2"><span class="text-5xl font-extrabold text-gradient">8.5</span><span class="text-slate-400 dark:text-slate-500">/ 10</span></div>
-                            <div class="w-full bg-slate-200 dark:bg-slate-800 h-2 rounded-full mt-4"><div class="bg-gradient-to-r from-brand-pink to-brand-blue h-2 rounded-full w-[85%]"></div></div>
+                            <div class="flex items-baseline gap-2">
+                                <span class="text-5xl font-extrabold text-gradient">8.5</span>
+                                <span class="text-slate-400 dark:text-slate-500">/ 10</span>
+                            </div>
+                            <div class="w-full bg-slate-200 dark:bg-slate-800 h-2 rounded-full mt-4">
+                                <div class="bg-gradient-to-r from-brand-pink to-brand-blue h-2 rounded-full w-[85%]"></div>
+                            </div>
                         </div>
+
                         <div class="bg-slate-50 dark:bg-[#0f172a] border border-slate-200 dark:border-white/10 rounded-2xl p-6">
                             <p class="text-xs text-slate-500 font-bold mb-2">PHÂN LOẠI</p>
                             <span class="px-4 py-1.5 rounded-full text-xs font-bold text-white bg-brand-blue shadow-sm">TEMPLATE</span>
@@ -187,10 +275,14 @@
     <section id="features" class="py-24 relative z-10">
         <div class="max-w-7xl mx-auto px-4 md:px-6">
             <div class="text-center mb-16">
-                <h2 class="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-4">Giải pháp toàn diện từ <span class="text-gradient">Trợ lý AI</span></h2>
-                <p class="text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">Chúng tôi không chỉ chấm điểm, chúng tôi dạy bạn cách tư duy để viết ra những câu lệnh hoàn hảo nhất.</p>
+                <h2 class="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-4">
+                    Giải pháp toàn diện từ <span class="text-gradient">Trợ lý AI</span>
+                </h2>
+                <p class="text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
+                    Chúng tôi không chỉ chấm điểm, chúng tôi dạy bạn cách tư duy để viết ra những câu lệnh hoàn hảo nhất.
+                </p>
             </div>
-            
+
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <div class="glass-card glass rounded-3xl p-8">
                     <div class="w-14 h-14 rounded-2xl bg-brand-pink/10 dark:bg-brand-pink/20 flex items-center justify-center mb-6">
@@ -202,7 +294,7 @@
                     <h3 class="text-xl font-bold mb-3 text-slate-900 dark:text-white">Chấm điểm Đa chiều</h3>
                     <p class="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">Phân tích khắt khe dựa trên 14+ tiêu chí.</p>
                 </div>
-                
+
                 <div class="glass-card glass rounded-3xl p-8">
                     <div class="w-14 h-14 rounded-2xl bg-brand-blue/10 dark:bg-brand-blue/20 flex items-center justify-center mb-6">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -212,7 +304,7 @@
                     <h3 class="text-xl font-bold mb-3 text-slate-900 dark:text-white">Gợi ý tư duy</h3>
                     <p class="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">Đưa ra câu hỏi gợi mở để bạn tự hoàn thiện.</p>
                 </div>
-                
+
                 <div class="glass-card glass rounded-3xl p-8">
                     <div class="w-14 h-14 rounded-2xl bg-purple-500/10 dark:bg-purple-500/20 flex items-center justify-center mb-6">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -222,11 +314,11 @@
                     <h3 class="text-xl font-bold mb-3 text-slate-900 dark:text-white">Viết lại chuẩn 11 mục</h3>
                     <p class="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">Tự động cấu trúc lại format chuyên nghiệp.</p>
                 </div>
-                
+
                 <div class="glass-card glass rounded-3xl p-8">
                     <div class="w-14 h-14 rounded-2xl bg-green-500/10 dark:bg-green-500/20 flex items-center justify-center mb-6">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 00-2-2" />
                         </svg>
                     </div>
                     <h3 class="text-xl font-bold mb-3 text-slate-900 dark:text-white">Thống kê thông minh</h3>
@@ -249,10 +341,12 @@
         </div>
     </section>
 
-    <footer class="border-t border-slate-200 dark:border-white/10 py-8 text-center text-slate-500 text-sm relative z-10"><p>© 2026 Trợ lý AI - Nghiên cứu AI & Tư duy.</p></footer>
+    <footer class="border-t border-slate-200 dark:border-white/10 py-8 text-center text-slate-500 text-sm relative z-10">
+        <p>© 2026 Trợ lý AI - Nghiên cứu AI & Tư duy.</p>
+    </footer>
 
     <script>
-        const API_URL = "https://prompt-tx2e.onrender.com"; 
+        const API_URL = "https://prompt-tx2e.onrender.com";
         const themeToggle = document.getElementById('themeToggle');
         const btnMenuLanding = document.getElementById('btnMenuLanding');
         const menuDropdownLanding = document.getElementById('menuDropdownLanding');
@@ -275,14 +369,17 @@
             const root = document.documentElement;
             root.classList.toggle('dark', dark);
             root.classList.toggle('light', !dark);
-            
+
             themeToggle.innerHTML = dark ? sunSVG : moonSVG;
             themeToggle.setAttribute('aria-label', dark ? 'Chuyển sang giao diện sáng' : 'Chuyển sang giao diện tối');
-            
-            try { localStorage.setItem('theme', dark ? 'dark' : 'light'); } catch (e) {}
+
+            try {
+                localStorage.setItem('theme', dark ? 'dark' : 'light');
+            } catch (e) {}
         }
-        
+
         applyTheme(document.documentElement.classList.contains('dark'));
+
         themeToggle.addEventListener('click', () => {
             const isDark = document.documentElement.classList.contains('dark');
             applyTheme(!isDark);
@@ -291,37 +388,65 @@
         btnMenuLanding.addEventListener('click', (e) => {
             e.stopPropagation();
             isMenuOpen = !isMenuOpen;
+
             if (isMenuOpen) {
                 menuDropdownLanding.classList.remove('hidden');
-                setTimeout(() => { menuDropdownLanding.classList.remove('opacity-0', 'scale-95'); menuDropdownLanding.classList.add('opacity-100', 'scale-100'); }, 10);
+                setTimeout(() => {
+                    menuDropdownLanding.classList.remove('opacity-0', 'scale-95');
+                    menuDropdownLanding.classList.add('opacity-100', 'scale-100');
+                }, 10);
             } else {
-                menuDropdownLanding.classList.remove('opacity-100', 'scale-100'); menuDropdownLanding.classList.add('opacity-0', 'scale-95');
-                setTimeout(() => { menuDropdownLanding.classList.add('hidden'); }, 200);
+                menuDropdownLanding.classList.remove('opacity-100', 'scale-100');
+                menuDropdownLanding.classList.add('opacity-0', 'scale-95');
+                setTimeout(() => {
+                    menuDropdownLanding.classList.add('hidden');
+                }, 200);
             }
         });
 
         document.addEventListener('click', (e) => {
             if (isMenuOpen && !menuDropdownLanding.contains(e.target) && e.target !== btnMenuLanding) {
-                isMenuOpen = false; menuDropdownLanding.classList.remove('opacity-100', 'scale-100'); menuDropdownLanding.classList.add('opacity-0', 'scale-95');
-                setTimeout(() => { menuDropdownLanding.classList.add('hidden'); }, 200);
+                isMenuOpen = false;
+                menuDropdownLanding.classList.remove('opacity-100', 'scale-100');
+                menuDropdownLanding.classList.add('opacity-0', 'scale-95');
+
+                setTimeout(() => {
+                    menuDropdownLanding.classList.add('hidden');
+                }, 200);
             }
         });
 
         document.querySelectorAll('.menu-item').forEach(item => {
             item.addEventListener('click', () => {
-                isMenuOpen = false; menuDropdownLanding.classList.remove('opacity-100', 'scale-100'); menuDropdownLanding.classList.add('opacity-0', 'scale-95');
-                setTimeout(() => { menuDropdownLanding.classList.add('hidden'); }, 200);
+                isMenuOpen = false;
+                menuDropdownLanding.classList.remove('opacity-100', 'scale-100');
+                menuDropdownLanding.classList.add('opacity-0', 'scale-95');
+
+                setTimeout(() => {
+                    menuDropdownLanding.classList.add('hidden');
+                }, 200);
             });
         });
 
         async function checkAdminAccess() {
             try {
                 const res = await fetch(`${API_URL}/check_admin_ip`);
-                if (res.ok) { document.getElementById('adminMenuDivider').style.display = 'block'; document.getElementById('menuBtnAdmin').style.display = 'flex'; } 
-                else { document.getElementById('adminMenuDivider').style.display = 'none'; document.getElementById('menuBtnAdmin').style.display = 'none'; }
-            } catch (e) { document.getElementById('adminMenuDivider').style.display = 'none'; document.getElementById('menuBtnAdmin').style.display = 'none'; }
+
+                if (res.ok) {
+                    document.getElementById('adminMenuDivider').style.display = 'block';
+                    document.getElementById('menuBtnAdmin').style.display = 'flex';
+                } else {
+                    document.getElementById('adminMenuDivider').style.display = 'none';
+                    document.getElementById('menuBtnAdmin').style.display = 'none';
+                }
+            } catch (e) {
+                document.getElementById('adminMenuDivider').style.display = 'none';
+                document.getElementById('menuBtnAdmin').style.display = 'none';
+            }
         }
+
         checkAdminAccess();
     </script>
 </body>
 </html>
+```
