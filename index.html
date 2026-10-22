@@ -35,6 +35,8 @@
         }
 
         .glass-card { transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease; }
+        
+        /* Đảm bảo xuống dòng hoạt động trên mọi trình duyệt */
         .pre-wrap { white-space: pre-wrap; }
         #promptInput { white-space: pre-wrap; overflow-wrap: anywhere; }
 
@@ -47,12 +49,18 @@
         ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
         ::-webkit-scrollbar-track { background: transparent; }
 
-        /* TỐI ƯU HIỆU ỨNG NỀN */
         .dark-glow {
-            background: #f8f7fc;
+            background:
+                radial-gradient(ellipse at 18% 10%, rgba(229,112,196,.16) 0%, transparent 38%),
+                radial-gradient(ellipse at 82% 35%, rgba(90,129,255,.12) 0%, transparent 42%),
+                #f8f7fc;
         }
+
         .dark.dark-glow {
-            background: #0f172a;
+            background:
+                radial-gradient(ellipse at 18% 10%, rgba(164,55,130,.13) 0%, transparent 38%),
+                radial-gradient(ellipse at 82% 35%, rgba(53,84,180,.14) 0%, transparent 42%),
+                #0f172a;
         }
 
         .brand-spark { flex-shrink: 0; }
@@ -74,49 +82,29 @@
             #promptInput { min-height: 11rem; }
         }
 
-        /* TỐI ƯU HIỆU ỨNG NÚT */
-        .btn-glow {
-            box-shadow: 0 3px 10px rgba(236, 72, 153, .16);
-            transition: transform .18s ease;
-        }
-        .btn-glow:hover {
-            transform: translateY(-1px);
-        }
+        .btn-glow { box-shadow: 0 4px 15px rgba(236,72,153,.3); }
+        .btn-glow:hover { box-shadow: 0 6px 20px rgba(59,130,246,.5); transform: translateY(-1px); }
 
         .stat-card { background: linear-gradient(135deg, rgba(255,255,255,.05) 0%, rgba(255,255,255,.01) 100%); border: 1px solid rgba(255,255,255,.1); }
         .dark .stat-card { background: linear-gradient(135deg, rgba(30,41,59,.8) 0%, rgba(15,23,42,.8) 100%); border: 1px solid rgba(51,65,85,.5); }
 
-        /* SỬA LỖI XUNG ĐỘT MENU */
         .menu-dropdown {
+            transition: all .2s ease-in-out;
             transform-origin: top left;
             width: min(290px, calc(100vw - 24px));
             max-width: calc(100vw - 24px);
-            max-height: calc(100vh - 88px);
-            max-height: calc(100dvh - 88px);
-            overflow-x: hidden;
+            max-height: calc(100dvh - 100px);
             overflow-y: auto;
-            overscroll-behavior: contain;
+            overflow-x: hidden;
             box-sizing: border-box;
             -webkit-overflow-scrolling: touch;
-            transition: opacity .18s ease, transform .18s ease;
         }
+
         @media (max-width: 640px) {
-            .menu-dropdown {
-                width: min(270px, calc(100vw - 24px));
-                max-height: calc(100dvh - 80px);
-            }
-            .menu-dropdown a, .menu-dropdown button {
-                min-height: 48px;
-                max-width: 100%;
-                white-space: normal;
-                overflow-wrap: anywhere;
-            }
+            .menu-dropdown { width: min(270px, calc(100vw - 24px)); max-height: calc(100dvh - 88px); padding: 12px; }
+            .menu-dropdown a, .menu-dropdown button { max-width: 100%; overflow-wrap: anywhere; }
         }
-        @media (prefers-reduced-motion: reduce) {
-            .menu-dropdown {
-                transition: none;
-            }
-        }
+        @media (min-width: 641px) { .menu-dropdown { width: 290px; max-height: calc(100dvh - 100px); } }
 
         button:focus-visible, a:focus-visible, textarea:focus-visible { outline: 2px solid #ec4899; outline-offset: 3px; }
 
@@ -144,8 +132,8 @@
                     </svg>
                 </button>
 
-                <!-- SỬA LỖI: BỎ overflow-hidden -->
-                <div id="dropdownMenu" class="menu-dropdown absolute top-12 left-0 bg-white dark:bg-[#1e293b] border border-slate-200 dark:border-slate-700 rounded-2xl shadow-xl hidden opacity-0 scale-95 z-50">
+                <!-- MENU XỔ XUỐNG -->
+                <div id="dropdownMenu" class="menu-dropdown absolute top-12 left-0 bg-white dark:bg-[#1e293b] border border-slate-200 dark:border-slate-700 rounded-2xl shadow-xl overflow-hidden hidden opacity-0 scale-95 z-50">
                     <div class="flex flex-col py-2">
                         <a href="./landing.html" class="flex items-center gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors text-left">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-pink-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -305,7 +293,6 @@
                     <div class="stat-card rounded-2xl p-5"><p class="text-xs font-bold text-slate-500 mb-2 uppercase tracking-wide text-center">Top Lỗi Phổ Biến</p><div class="h-48 w-full flex justify-center"><canvas id="errorChart"></canvas></div></div>
                     <div class="stat-card rounded-2xl p-5"><p class="text-xs font-bold text-slate-500 mb-2 uppercase tracking-wide text-center">Phân Bố Điểm Số</p><div class="h-48 w-full flex justify-center"><canvas id="scoreChart"></canvas></div></div>
                 </div>
-                <!-- SỬA LỖI: DÁN LẠI ĐOẠN HTML SẠCH CHO BẢNG ADMIN -->
                 <div class="stat-card rounded-2xl overflow-hidden">
                     <div class="px-5 py-4 border-b border-slate-200 dark:border-slate-700/50 bg-slate-50/50 dark:bg-slate-800/30 flex justify-between items-center">
                         <p class="text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wide">
@@ -489,6 +476,7 @@
                     
                     const safePrompt = encodeURIComponent(item.prompt); 
 
+                    // ĐÃ SỬA: Dùng style white-space: pre-wrap để chắc chắn xuống dòng
                     card.innerHTML = `
                         <div class="flex justify-between items-start">
                             <div class="flex items-center gap-2">
@@ -500,7 +488,7 @@
                         
                         <div class="relative">
                             <div class="max-h-40 overflow-y-auto custom-scrollbar bg-slate-50 dark:bg-slate-900/50 p-3 rounded-xl border border-slate-100 dark:border-slate-700/50">
-                                <p class="text-[13px] text-slate-700 dark:text-slate-300 whitespace-pre-wrap leading-relaxed">${item.prompt}</p>
+                                <p class="text-[13px] text-slate-700 dark:text-slate-300 leading-relaxed" style="white-space: pre-wrap;">${item.prompt}</p>
                             </div>
                         </div>
 
@@ -570,7 +558,6 @@
         } catch (error) { clearTimeout(timeoutId); if (error.name === 'AbortError') throw new Error("Quá thời gian chờ."); throw error; }
     }
 
-    // SỬA LỖI: THÊM KIỂM TRA DỮ LIỆU API
     function render(r) {
         if (!r || !r.details || !r.rewrite) {
             throw new Error("Dữ liệu trả về không đúng định dạng.");
@@ -631,7 +618,8 @@
         SECTION_NAMES.forEach(sec => {
             const item = document.createElement('div'); item.className = 'mb-4 last:mb-0'; 
             const pTitle = document.createElement('p'); pTitle.className = 'font-bold text-pink-500 mb-1 text-[11px] uppercase tracking-wider'; pTitle.textContent = sec;
-            const pContent = document.createElement('p'); pContent.className = 'text-slate-700 dark:text-slate-300 break-words pre-wrap text-sm leading-relaxed'; pContent.textContent = r.rewrite[sec] || '';
+            // ĐÃ SỬA: Dùng whitespace-pre-wrap của Tailwind
+            const pContent = document.createElement('p'); pContent.className = 'text-slate-700 dark:text-slate-300 break-words whitespace-pre-wrap text-sm leading-relaxed'; pContent.textContent = r.rewrite[sec] || '';
             item.appendChild(pTitle); item.appendChild(pContent); rw.appendChild(item);
         });
         $('resultArea').style.display = 'block';
