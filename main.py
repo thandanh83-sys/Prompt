@@ -17,12 +17,15 @@ from supabase import create_client, Client
 from slowapi import Limiter
 from slowapi.errors import RateLimitExceeded
 
+# Import các module tự viết (đảm bảo các file này có trong cùng thư mục)
 import rules_v38
 from validator import validate_full_report, calculate_final_score, ReportValidationError
 
+# Cấu hình Logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger("prompt-evaluator")
 
+# Lấy biến môi trường
 MAX_PROMPT_LENGTH = 5000
 RATE_LIMIT = "20/minute"
 
@@ -31,6 +34,7 @@ ADMIN_SECRET_TOKEN = os.environ.get("ADMIN_SECRET_TOKEN")
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 
+# Xử lý danh sách IP được phép (cho Admin)
 ADMIN_ALLOWED_IPS = os.environ.get("ADMIN_ALLOWED_IPS", "").split(",")
 ADMIN_ALLOWED_IPS = [ip.strip() for ip in ADMIN_ALLOWED_IPS if ip.strip()]
 
@@ -39,6 +43,7 @@ if not ADMIN_PASSWORD or not ADMIN_SECRET_TOKEN or not GROQ_API_KEY:
 
 api_key_header = APIKeyHeader(name="X-Admin-Token", auto_error=False)
 
+# Cấu hình CORS
 DEFAULT_ORIGINS = ["https://thandanh83-sys.github.io"]
 env_origins = os.environ.get("ALLOWED_ORIGINS", "")
 ALLOWED_ORIGINS = [o.strip() for o in env_origins.split(",") if o.strip()] or DEFAULT_ORIGINS
@@ -79,6 +84,7 @@ class PromptRequest(BaseModel):
 class LoginRequest(BaseModel):
     password: str
 
+# Khởi tạo các client AI
 client = Groq(api_key=GROQ_API_KEY)
 if GEMINI_API_KEY:
     genai.configure(api_key=GEMINI_API_KEY)
@@ -86,6 +92,7 @@ if GEMINI_API_KEY:
 else:
     gemini_model = None
 
+# Khởi tạo Supabase
 supabase_url = os.environ.get("SUPABASE_URL", "")
 supabase_key = os.environ.get("SUPABASE_KEY", "")
 supabase: Client = create_client(supabase_url, supabase_key) if supabase_url and supabase_key else None
@@ -163,21 +170,31 @@ LAST_CLEANUP_TIME = 0
 def bg_cleanup_history():
     global LAST_CLEANUP_TIME
     current_time = time.time()
-    if current_time - LAST_CLEANUP_TIME < 3600: return
+    
+    # Chỉ chạy 1 tiếng 1 lần để tránh spam DB
+    if current_time - LAST_CLEANUP_TIME < 3600: 
+        return
+        
     if not supabase: return
     try:
+        # 1. XÓA DỮ LIỆU CŨ HƠN 7 NGÀY
         seven_days_ago = (datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=7)).isoformat()
         supabase.table("history").delete().lt("created_at", seven_days_ago).execute()
+        logger.info("Đã dọn dẹp lịch sử cũ hơn 7 ngày.")
 
+        # 2. GIỚI HẠN SỐ LƯỢNG BẢN GHI (Giới hạn ở mức 500)
         count_res = supabase.table("history").select("id", count="exact").limit(1).execute()
         total_records = count_res.count
 
         if total_records and total_records > 500:
             records_to_delete_count = total_records - 400 
             oldest_res = supabase.table("history").select("id").order("created_at", ascending=True).limit(records_to_delete_count).execute()
+            
             if oldest_res.data:
                 ids_to_delete = [row["id"] for row in oldest_res.data]
                 supabase.table("history").delete().in_("id", ids_to_delete).execute()
+                logger.info(f"Đã xóa {records_to_delete_count} bản ghi cũ nhất do vượt quá 500 bản ghi.")
+
         LAST_CLEANUP_TIME = current_time
     except Exception as e:
         logger.warning(f"LỖI BACKGROUND: Không thể dọn dẹp lịch sử: {e}")
@@ -212,8 +229,10 @@ def admin_login(request: Request, req: LoginRequest, client_ip: str = Depends(ve
                     "ip_address": client_ip,
                     "user_agent": request.headers.get("user-agent", "Unknown")
                 }).execute()
+                logger.info(f"Admin đăng nhập từ IP: {client_ip}")
             except Exception as e:
                 logger.error(f"Lỗi lưu log IP Admin: {e}")
+                
         return {"token": ADMIN_SECRET_TOKEN}
     raise HTTPException(status_code=401, detail="Sai mật khẩu")
 
@@ -241,6 +260,7 @@ def get_history(token: str = Depends(api_key_header), client_ip: str = Depends(v
         logger.error(f"Lỗi lấy lịch sử: {e}")
         raise HTTPException(status_code=500, detail="Lỗi máy chủ")
 
+# --- API XÓA PROMPT (DÀNH CHO ADMIN) ---
 @app.delete("/admin/delete_prompt/{prompt_id}")
 def delete_prompt(prompt_id: int, token: str = Depends(api_key_header), client_ip: str = Depends(verify_admin_ip)):
     if not token or not secrets.compare_digest(token, ADMIN_SECRET_TOKEN):
@@ -277,11 +297,8 @@ def evaluate(request: Request, req: PromptRequest, background_tasks: BackgroundT
         error_codes_desc = "\n".join([f"- {k}: {v}" for k, v in rules_v38.VALID_ERROR_CODES.items()])
         scores_example = ", ".join([f'"{k}": 8' for k in all_criteria.keys()])
 
-        # Cập nhật Prompt cho AI hiểu đang đánh giá loại nào
-        task_name = "một lĩnh vực TỔNG QUÁT (Hãy đánh giá dựa trên tính chuyên môn, logic và cấu trúc)" if main_task == rules_v38.TYPE_GENERAL else f"loại {main_task}"
-
         system_prompt = f"""
-Bạn là Chuyên gia Prompt Engineering. Đánh giá và viết lại câu lệnh của người dùng (được xác định thuộc {task_name}).
+Bạn là Chuyên gia Prompt Engineering. Đánh giá và viết lại câu lệnh của người dùng theo form 11 mục.
 
 BƯỚC 1: XÁC ĐỊNH LĨNH VỰC & CHUYÊN GIA.
 BƯỚC 2: VIẾT LẠI PROMPT THEO ĐÚNG CẤU TRÚC JSON SAU (Sử dụng \\n để xuống dòng trong nội dung):
@@ -305,7 +322,6 @@ CHỈ TRẢ VỀ CHUỖI JSON HỢP LỆ. KHÔNG THÊM BẤT KỲ VĂN BẢN NÀ
 """
         
         ai_data = None
-        last_error = ""
         for attempt in range(2):
             try:
                 raw_text = call_llm(system_prompt, prompt_text)
@@ -315,13 +331,12 @@ CHỈ TRẢ VỀ CHUỖI JSON HỢP LỆ. KHÔNG THÊM BẤT KỲ VĂN BẢN NÀ
                 ai_data = json.loads(json_str)
                 validate_full_report(ai_data, main_criteria, tech_criteria, prompt_text)
                 break 
-            except Exception as e:
-                last_error = str(e)
+            except (json.JSONDecodeError, ReportValidationError) as e:
                 logger.warning(f"Lần {attempt+1}: Lỗi ({e}). Đang thử lại...")
                 ai_data = None
 
         if ai_data is None:
-            return JSONResponse(status_code=502, content={"error": f"AI trả về dữ liệu không hợp lệ: {last_error}"})
+            return JSONResponse(status_code=502, content={"error": "AI trả về dữ liệu không hợp lệ. Vui lòng thử lại."})
 
         final_score = calculate_final_score(ai_data["scores"], main_criteria, tech_criteria)
         display_details = {all_criteria[k]["name"]: v for k, v in ai_data["scores"].items() if k in all_criteria}
@@ -346,7 +361,7 @@ CHỈ TRẢ VỀ CHUỖI JSON HỢP LỆ. KHÔNG THÊM BẤT KỲ VĂN BẢN NÀ
         raise he
     except Exception as e:
         logger.exception("Lỗi nghiêm trọng trong /evaluate")
-        return JSONResponse(status_code=500, content={"error": f"Lỗi máy chủ: {str(e)}"})
+        return JSONResponse(status_code=500, content={"error": "Lỗi máy chủ nội bộ."})
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=int(os.environ.get("PORT", 8000)))
