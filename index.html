@@ -26,27 +26,36 @@
     <script>tailwind.config = { darkMode: 'class' }</script>
 
     <style>
-        /* 1. HIỆU ỨNG HÀO QUANG RỰC RỠ */
+        /* XỬ LÝ NỀN VÀ HÀO QUANG */
         html { background-color: #f8f7fc; transition: background-color .15s ease; min-height: 100vh; scroll-behavior: smooth; }
+        html.dark { background-color: #0f172a; }
         
         body { 
-            -webkit-tap-highlight-color: transparent; overflow-x: hidden; transition: background-color .15s ease, color .15s ease; 
-            background-color: transparent !important; /* Ép trong suốt để thấy hào quang */
+            -webkit-tap-highlight-color: transparent; 
+            overflow-x: hidden; 
+            /* Ép body trong suốt để lớp hào quang bên dưới lộ ra */
+            background-color: transparent !important; 
             overscroll-behavior-y: none; 
         }
         
+        /* Lớp nền hào quang */
         .page-bg { 
-            position: fixed; inset: 0; z-index: -1; pointer-events: none; 
+            position: fixed; 
+            inset: 0; 
+            z-index: -1; 
+            pointer-events: none; 
             background-color: #f8f7fc;
-            background-image: radial-gradient(circle at 50% -10%, rgba(236,72,153,.15) 0%, transparent 60%), 
-                              radial-gradient(circle at 50% 110%, rgba(59,130,246,.15) 0%, transparent 60%); 
+            background-image: 
+                radial-gradient(circle at 50% -10%, rgba(236,72,153,0.15) 0%, transparent 60%), 
+                radial-gradient(circle at 50% 110%, rgba(59,130,246,0.15) 0%, transparent 60%); 
         }
         
-        /* Hào quang chế độ tối (Giống ảnh 2) */
+        /* Hào quang chế độ Tối - Rực rỡ */
         html.dark .page-bg { 
-            background-color: #0f172a;
-            background-image: radial-gradient(ellipse at 50% -20%, rgba(236, 72, 153, 0.6) 0%, rgba(168, 85, 247, 0.4) 40%, transparent 70%),
-                              radial-gradient(ellipse at 50% 120%, rgba(59, 130, 246, 0.6) 0%, transparent 70%);
+            background-color: #0b1120;
+            background-image: 
+                radial-gradient(ellipse at 50% 0%, rgba(236, 72, 153, 0.5) 0%, rgba(168, 85, 247, 0.3) 40%, transparent 70%),
+                radial-gradient(ellipse at 50% 100%, rgba(59, 130, 246, 0.5) 0%, transparent 70%);
         }
 
         .app-header { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); border-color: rgba(0,0,0,.06); transition: all .2s; }
@@ -104,15 +113,16 @@
 </head>
 
 <body class="antialiased font-sans min-h-screen relative text-slate-800 dark:text-slate-200 flex flex-col">
+    <!-- Lớp phủ hào quang -->
     <div class="page-bg"></div>
 
-    <!-- HEADER (Sửa lỗi Logo bằng Absolute) -->
+    <!-- HEADER (Dùng Grid 3 cột để ép Logo vào chính giữa) -->
     <header class="app-header fixed top-0 left-0 w-full z-50 border-b">
-        <div class="w-full max-w-7xl mx-auto px-3 sm:px-6 h-16 md:h-20 flex items-center justify-between relative">
+        <div class="w-full max-w-7xl mx-auto px-3 sm:px-6 h-16 md:h-20 grid grid-cols-3 items-center">
             
-            <!-- BÊN TRÁI: N shrinkÚT MENU -->
-            <-div class="relative flex items-center z0-50">
-                <button id=" flexbtnHamburger" class="w-10 h-10 items-center justify-center rounded-full text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+            <!-- CỘT 1: BÊN TRÁI (MENU) -->
+            <div class="flex items-center justify-start relative z-50">
+                <button id="btnHamburger" class="w-10 h-10 shrink-0 flex items-center justify-center rounded-full text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
                 </button>
                 
@@ -151,16 +161,16 @@
                 </div>
             </div>
 
-            <!-- Ở GIỮA: LOGO (Sử dụng absolute để ép chính giữa) -->
-            <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center z-40">
+            <!-- CỘT 2: Ở GIỮA (LOGO) -->
+            <div class="flex items-center justify-center z-40">
                 <a href="./index.html" class="flex items-center gap-1.5 min-w-0 no-underline focus:outline-none">
                     <svg class="w-5 h-5 sm:w-7 sm:h-7 shrink-0" viewBox="0 0 24 24"><defs><linearGradient id="brandSparkGradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ec4899"/><stop offset="100%" stop-color="#3b82f6"/></linearGradient></defs><path fill="url(#brandSparkGradient)" d="M12 2L14.7 9.3 22 12l-7.3 2.7L12 22l-2.7-7.3L2 12l7.3-2.7L12 2Z"/></svg>
                     <span class="brand-text text-[15px] sm:text-lg font-extrabold truncate">Trợ lý AI</span>
                 </a>
             </div>
             
-            <!-- BÊN PHẢI: NÚT TRẢI NGHIỆM NGAY -->
-            <div class="flex items-center justify-end z-50 ml-auto">
+            <!-- CỘT 3: BÊN PHẢI (NÚT TRẢI NGHIỆM) -->
+            <div class="flex items-center justify-end z-50">
                 <a href="./landing.html" class="px-3 py-1.5 md:px-6 md:py-2.5 rounded-full text-[11px] md:text-sm font-bold text-white bg-gradient-to-r from-pink-500 to-blue-500 shadow-md hover:shadow-lg hover:scale-105 active:scale-95 transition-all whitespace-nowrap">
                     Trải nghiệm ngay
                 </a>
@@ -256,11 +266,11 @@
                 </div>
                 <div>
                     <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-1">Chấm điểm Đa chiều</h3>
-                    <p class="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">Phân tích khắt khe dựa trên 14+ tiêu chí.</p>
-                </div>
+                    <p class="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">Phân tích khắt            khe dựa trên 14+ tiêu <!-- chí.</p Th>
+                </divẻ>
             </div>
 
-            <!-- Thẻ 2 -->
+ 2 -->
             <div class="feature-card bg-white/80 dark:bg-[#1e293b]/80 backdrop-blur-md border border-slate-200 dark:border-slate-700/60 rounded-3xl p-5 md:p-6 flex flex-col gap-3">
                 <div class="w-12 h-12 rounded-2xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
