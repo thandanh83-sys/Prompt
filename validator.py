@@ -18,21 +18,17 @@ def validate_scores_only(ai_scores: dict, criteria: dict) -> bool:
         
     expected_ids = set(criteria.keys())
     
-    # 1. Tự động điền 0 cho các tiêu chí bị thiếu thay vì báo lỗi
+    # Tự động điền 0 cho các tiêu chí bị thiếu thay vì báo lỗi
     for cid in expected_ids:
         if cid not in ai_scores:
             ai_scores[cid] = 0
             
     for crit_id, score in ai_scores.items():
         if crit_id not in expected_ids:
-            continue # Bỏ qua điểm thừa
-        # Ép kiểu về số nguyên
+            continue
         if type(score) is not int:
-            try:
-                ai_scores[crit_id] = int(score)
-            except:
-                ai_scores[crit_id] = 0
-        # Ép điểm trong khoảng 0-10
+            try: ai_scores[crit_id] = int(score)
+            except: ai_scores[crit_id] = 0
         if not (0 <= ai_scores[crit_id] <= 10):
             ai_scores[crit_id] = max(0, min(10, ai_scores[crit_id]))
             
@@ -49,7 +45,7 @@ def validate_full_report(ai_json: dict, main_criteria: dict, tech_criteria: dict
     all_criteria = {**main_criteria, **tech_criteria}
     validate_scores_only(ai_json["scores"], all_criteria)
 
-    # 2. Lọc lỗi (Bỏ qua nếu AI bịa mã lỗi không có trong rules)
+    # Lọc lỗi (Bỏ qua nếu AI bịa mã lỗi không có trong rules)
     errors = ai_json.get("errors", [])
     if not isinstance(errors, list): errors = []
     valid_errors = []
@@ -59,7 +55,7 @@ def validate_full_report(ai_json: dict, main_criteria: dict, tech_criteria: dict
                 valid_errors.append(err)
     ai_json["errors"] = valid_errors
 
-    # 3. Tự động map tên mục (Kể cả AI viết sai hoa/thường, thiếu dấu cách)
+    # Tự động map tên mục (Kể cả AI viết sai hoa/thường, thiếu dấu cách)
     rewrite = ai_json.get("rewrite", {})
     if not isinstance(rewrite, dict): rewrite = {}
     
@@ -72,7 +68,6 @@ def validate_full_report(ai_json: dict, main_criteria: dict, tech_criteria: dict
         
         for rec_sec, val in rewrite.items():
             norm_rec = re.sub(r'[^a-zA-Z0-9àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]', '', rec_sec.lower())
-            # Nếu tên mục AI trả về chứa từ khóa của mục chuẩn (VD: "1. Vai trò" chứa "vaitro")
             if norm_exp in norm_rec or norm_rec in norm_exp:
                 final_rewrite[exp_sec] = str(val)
                 break
