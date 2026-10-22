@@ -6,7 +6,6 @@
     <title>Trợ lý AI - Tối ưu hoá Prompt</title>
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23ec4899'/%3E%3Cstop offset='100%25' stop-color='%233b82f6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' rx='20' fill='url(%23g)'/%3E%3Ctext x='50' y='72' font-size='60' font-family='Arial,sans-serif' font-weight='bold' fill='white' text-anchor='middle'%3EP%3C/text%3E%3C/svg%3E">
     
-    <!-- SCRIPT CHỐNG NHÁY TRẮNG VÀ ĐỒNG BỘ THEME -->
     <script>
         if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             document.documentElement.classList.add('dark');
@@ -33,10 +32,17 @@
     </script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        body { overflow-x: hidden; transition: background-color 0.3s, color 0.3s; }
+        body { overflow-x: hidden; transition: background-color 0.15s ease, color 0.15s ease; }
+        
+        @media (prefers-reduced-motion: reduce) {
+            body, .glass-card, .glow-btn::before { transition: none !important; animation: none !important; }
+        }
+
         .dark-glow { background: radial-gradient(circle at 50% 0%, rgba(236,72,153,0.15) 0%, transparent 60%); }
-        .glass { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(8px); border: 1px solid rgba(0, 0, 0, 0.05); }
-        .dark .glass { background: rgba(30, 41, 59, 0.6); border: 1px solid rgba(255, 255, 255, 0.1); }
+        
+        .glass { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(4px); border: 1px solid rgba(0, 0, 0, 0.05); }
+        .dark .glass { background: rgba(30, 41, 59, 0.85); backdrop-filter: blur(4px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        
         .glass-card { transition: all 0.3s ease; }
         .glass-card:hover { border-color: rgba(236, 72, 153, 0.5); box-shadow: 0 0 30px rgba(236, 72, 153, 0.15); transform: translateY(-5px); }
         .dark .glass-card:hover { border-color: rgba(59, 130, 246, 0.4); box-shadow: 0 0 30px rgba(59, 130, 246, 0.15); }
@@ -57,15 +63,15 @@
 
     <!-- HEADER LANDING -->
     <header class="fixed top-0 left-0 w-full z-50 glass border-b border-slate-200 dark:border-white/10">
-        <div class="max-w-7xl mx-auto px-3 md:px-6 h-16 md:h-20 flex items-center justify-between">
+        <!-- Tăng khoảng cách 2 bên (px-4 thay vì px-3) để Header thoáng hơn -->
+        <div class="max-w-7xl mx-auto px-4 md:px-6 h-16 md:h-20 flex items-center justify-between">
             
-            <div class="flex items-center gap-1 md:gap-4 relative">
+            <div class="flex items-center gap-2 md:gap-4 relative">
                 <button id="btnMenuLanding" class="w-10 h-10 shrink-0 flex items-center justify-center rounded-full text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" /></svg>
                 </button>
                 
-                <div class="flex items-center gap-1.5 cursor-pointer" onclick="window.location.href='./landing.html'">
-                    <!-- ICON 3 NGÔI SAO -->
+                <div class="flex items-center gap-2 cursor-pointer" onclick="window.location.href='./landing.html'">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 text-brand-pink shrink-0">
                         <path fill-rule="evenodd" d="M9 4.5a.75.75 0 01.721.544l.813 2.846a3.75 3.75 0 002.576 2.576l2.846.813a.75.75 0 010 1.442l-2.846.813a3.75 3.75 0 00-2.576 2.576l-.813 2.846a.75.75 0 01-1.442 0l-.813-2.846a3.75 3.75 0 00-2.576-2.576l-2.846-.813a.75.75 0 010-1.442l2.846-.813A3.75 3.75 0 009 7.89l.813-2.846A.75.75 0 019 4.5zM18 1.5a.75.75 0 01.728.568l.258 1.036c.236.94.97 1.674 1.91 1.91l1.036.258a.75.75 0 010 1.456l-1.036.258c-.94.236-1.674.97-1.91 1.91l-.258 1.036a.75.75 0 01-1.456 0l-.258-1.036a2.625 2.625 0 00-1.91-1.91l-1.036-.258a.75.75 0 010-1.456l1.036-.258a2.625 2.625 0 001.91-1.91l.258-1.036A.75.75 0 0118 1.5zM16.5 15a.75.75 0 01.712.513l.394 1.183c.15.447.5.799.948.948l1.183.395a.75.75 0 010 1.422l-1.183.395c-.447.15-.799.5-.948.948l-.395 1.183a.75.75 0 01-1.422 0l-.395-1.183a1.5 1.5 0 00-.948-.948l-1.183-.395a.75.75 0 010-1.422l1.183-.395c.447-.15.799-.5.948-.948l.395-1.183A.75.75 0 0116.5 15z" clip-rule="evenodd" />
                     </svg>
@@ -98,8 +104,13 @@
             </div>
             
             <div class="flex items-center gap-2 md:gap-3 shrink-0">
-                <!-- NÚT ĐỔI THEME: KHUNG TRÒN + ICON SVG 3D -->
-                <button id="themeToggle" class="w-10 h-10 md:w-11 md:h-11 shrink-0 flex items-center justify-center rounded-full transition-all duration-300">
+                <button
+                    id="themeToggle"
+                    type="button"
+                    aria-label="Chuyển sang giao diện tối"
+                    title="Chuyển giao diện sáng/tối"
+                    class="w-10 h-10 md:w-11 md:h-11 shrink-0 flex items-center justify-center rounded-full transition-colors duration-150 bg-white border border-slate-200 shadow-sm hover:bg-slate-50 dark:bg-slate-800/80 dark:border-slate-600/50 dark:hover:bg-slate-700/80"
+                >
                     <!-- SVG sẽ được JS bơm vào -->
                 </button>
                 
@@ -110,19 +121,22 @@
         </div>
     </header>
 
-    <!-- HERO SECTION -->
+    <!-- HERO SECTION (ĐÃ SỬA LỖI BÓ CHỮ) -->
     <section class="relative pt-32 pb-20 md:pt-48 md:pb-32 px-4 md:px-6">
         <div class="max-w-4xl mx-auto text-center z-10 relative">
             <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full glass text-sm font-semibold text-brand-pink mb-8 animate-pulse-slow">
                 <span class="w-2 h-2 rounded-full bg-brand-pink"></span> Chuẩn mực mới cho Prompt Engineering
             </div>
-            <h1 class="text-4xl md:text-7xl font-extrabold text-slate-900 dark:text-white leading-tight mb-6">
-                Biến câu lệnh <br class="md:hidden"> thông thường <br> thành <span class="text-gradient">Prompt Chuyên Gia</span>
+            
+            <!-- SỬA H1: Bỏ thẻ br, thêm tracking-tight, giảm font-size mobile -->
+            <h1 class="text-[1.8rem] sm:text-4xl md:text-5xl lg:text-7xl font-extrabold text-slate-900 dark:text-white leading-[1.2] tracking-tight mb-6 px-2">
+                Biến câu lệnh thông thường thành <span class="text-gradient block mt-2">Prompt Chuyên Gia</span>
             </h1>
-            <p class="text-base md:text-xl text-slate-600 dark:text-slate-400 mb-10 max-w-2xl mx-auto leading-relaxed">
+            
+            <p class="text-base md:text-xl text-slate-600 dark:text-slate-400 mb-10 max-w-2xl mx-auto leading-relaxed px-4">
                 AI tự động phân tích, chấm điểm và tối ưu hóa câu lệnh của bạn theo cấu trúc <strong>11 mục</strong> chuẩn quốc tế. Không còn nỗi lo AI trả lời sai ý.
             </p>
-            <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-4 px-4">
                 <a href="./index.html" class="glow-btn w-full sm:w-auto px-8 py-4 rounded-full font-bold text-white bg-gradient-to-r from-brand-pink to-brand-blue transition-all transform hover:scale-105 flex items-center justify-center gap-2">
                     Bắt đầu đánh giá miễn phí
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
@@ -134,7 +148,7 @@
         </div>
 
         <!-- MOCKUP -->
-        <div class="max-w-5xl mx-auto mt-16 md:mt-20 relative z-10 animate-float">
+        <div class="max-w-5xl mx-auto mt-16 md:mt-20 relative z-10 animate-float px-4 md:px-0">
             <div class="absolute inset-0 bg-gradient-to-r from-brand-pink to-brand-blue rounded-3xl blur-2xl opacity-20 dark:opacity-40"></div>
             <div class="glass border border-slate-200 dark:border-white/10 rounded-3xl p-4 md:p-6 shadow-2xl relative bg-white/90 dark:bg-[#0b1120]/90">
                 <div class="flex items-center gap-2 mb-4 px-2">
@@ -207,10 +221,12 @@
                 <div class="glass-card glass rounded-3xl p-8">
                     <div class="w-14 h-14 rounded-2xl bg-green-500/10 dark:bg-green-500/20 flex items-center justify-center mb-6">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                        </svg>
-                    </div>
-                    <h3 class="text-xl font-bold mb-3 text-slate-900 dark:text-white">Thống kê thông minh</h3>
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 </ 01-2-2z" />
+                       section </svg>
+                    </>
+
+div>
+                    <h3 class="   text-xl font-bold mb-3 text-slate <-900 dark:text-white">Thống kfooterê thông minh</h3>
                     <p class="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">Theo dõi lịch sử và biểu đồ phân bố lỗi.</p>
                 </div>
             </div>
@@ -228,9 +244,7 @@
                 </div>
             </div>
         </div>
-    </section>
-
-    <footer class="border-t border-slate-200 dark:border-white/10 py-8 text-center text-slate-500 text-sm relative z-10"><p>© 2026 Trợ lý AI. Đội 2 - Nghiên cứu AI & Tư duy.</p></footer>
+    class="border-t border-slate-200 dark:border-white/10 py-8 text-center text-slate-500 text-sm relative z-10"><p>© 2026 Trợ lý AI. Đội 2 - Nghiên cứu AI & Tư duy.</p></footer>
 
     <script>
         const API_URL = "https://prompt-tx2e.onrender.com"; 
@@ -239,53 +253,35 @@
         const menuDropdownLanding = document.getElementById('menuDropdownLanding');
         let isMenuOpen = false;
 
-        // SVG MOON (LIGHT MODE) - Màu xanh đậm, có gradient và đốm sáng
         const moonSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-6 h-6">
-            <defs>
-                <linearGradient id="moonGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stop-color="#1e40af" />
-                    <stop offset="100%" stop-color="#0f172a" />
-                </linearGradient>
-            </defs>
+            <defs><linearGradient id="moonGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#1e40af" /><stop offset="100%" stop-color="#0f172a" /></linearGradient></defs>
             <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" fill="url(#moonGrad)"/>
-            <circle cx="14" cy="8" r="1.5" fill="#60a5fa" opacity="0.6"/>
-            <circle cx="10" cy="14" r="1" fill="#60a5fa" opacity="0.6"/>
+            <circle cx="14" cy="8" r="1.5" fill="#60a5fa" opacity="0.6"/><circle cx="10" cy="14" r="1" fill="#60a5fa" opacity="0.6"/>
         </svg>`;
 
-        // SVG SUN (DARK MODE) - Màu vàng cam 3D, có tia sáng
         const sunSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-6 h-6">
-            <defs>
-                <radialGradient id="sunGrad" cx="50%" cy="50%" r="50%">
-                    <stop offset="0%" stop-color="#fef08a" />
-                    <stop offset="70%" stop-color="#f59e0b" />
-                    <stop offset="100%" stop-color="#d97706" />
-                </radialGradient>
-            </defs>
+            <defs><radialGradient id="sunGrad" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#fef08a" /><stop offset="70%" stop-color="#f59e0b" /><stop offset="100%" stop-color="#d97706" /></radialGradient></defs>
             <path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round"/>
             <circle cx="12" cy="12" r="5.5" fill="url(#sunGrad)" />
             <ellipse cx="10" cy="10" rx="2" ry="1.5" fill="white" opacity="0.3" transform="rotate(-45 10 10)" />
         </svg>`;
 
         function applyTheme(dark) {
-            document.documentElement.classList.toggle('dark', dark); 
-            document.documentElement.classList.toggle('light', !dark);
+            const root = document.documentElement;
+            root.classList.toggle('dark', dark);
+            root.classList.toggle('light', !dark);
             
-            // Cập nhật Icon
             themeToggle.innerHTML = dark ? sunSVG : moonSVG;
+            themeToggle.setAttribute('aria-label', dark ? 'Chuyển sang giao diện sáng' : 'Chuyển sang giao diện tối');
             
-            // Cập nhật CSS cho Nút bấm
-            if (dark) {
-                themeToggle.className = "w-10 h-10 md:w-11 md:h-11 shrink-0 flex items-center justify-center rounded-full transition-all duration-300 bg-slate-800/80 border border-slate-600/50 shadow-sm hover:scale-105 hover:bg-slate-700/80";
-            } else {
-                themeToggle.className = "w-10 h-10 md:w-11 md:h-11 shrink-0 flex items-center justify-center rounded-full transition-all duration-300 bg-white border border-slate-200 shadow-sm hover:scale-105 hover:bg-slate-50";
-            }
-
             try { localStorage.setItem('theme', dark ? 'dark' : 'light'); } catch (e) {}
         }
         
         applyTheme(document.documentElement.classList.contains('dark'));
-        
-        themeToggle.addEventListener('click', () => applyTheme(!document.documentElement.classList.contains('dark')));
+        themeToggle.addEventListener('click', () => {
+            const isDark = document.documentElement.classList.contains('dark');
+            applyTheme(!isDark);
+        });
 
         btnMenuLanding.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -316,18 +312,9 @@
         async function checkAdminAccess() {
             try {
                 const res = await fetch(`${API_URL}/check_admin_ip`);
-                if (res.ok) { 
-                    document.getElementById('adminMenuDivider').style.display = 'block'; 
-                    document.getElementById('menuBtnAdmin').style.display = 'flex'; 
-                } 
-                else { 
-                    document.getElementById('adminMenuDivider').style.display = 'none'; 
-                    document.getElementById('menuBtnAdmin').style.display = 'none'; 
-                }
-            } catch (e) { 
-                document.getElementById('adminMenuDivider').style.display = 'none'; 
-                document.getElementById('menuBtnAdmin').style.display = 'none'; 
-            }
+                if (res.ok) { document.getElementById('adminMenuDivider').style.display = 'block'; document.getElementById('menuBtnAdmin').style.display = 'flex'; } 
+                else { document.getElementById('adminMenuDivider').style.display = 'none'; document.getElementById('menuBtnAdmin').style.display = 'none'; }
+            } catch (e) { document.getElementById('adminMenuDivider').style.display = 'none'; document.getElementById('menuBtnAdmin').style.display = 'none'; }
         }
         checkAdminAccess();
     </script>
