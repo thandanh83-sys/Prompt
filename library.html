@@ -113,16 +113,16 @@
                         <button id="themeToggleMenu" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors text-left">
                             <span id="themeIconMenu" class="w-5 h-5 flex items-center justify-center shrink-0"></span><span id="themeTextMenu">Chế độ Tối</span>
                         </button>
-                        <div id="adminMenuDivider" class="h-px bg-slate-100 dark:bg-slate-700/50 my-1 mx-2"></div>
-                        <a id="menuBtnAdmin" href="./admin.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-green-50 dark:hover:bg-green-900/20 text-sm font-semibold text-green-600 dark:text-green-400 transition-colors">Quản trị</a>
+                        <div id="adminMenuDivider" class="h-px bg-slate-100 dark:bg-slate-700/50 my-1 mx-2" style="display:none;"></div>
+                        <a id="menuBtnAdmin" href="./admin.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-green-50 dark:hover:bg-green-900/20 text-sm font-semibold text-green-600 dark:text-green-400 transition-colors" style="display:none;">Quản trị</a>
                     </div>
                 </div>
             </div>
             
-            <div class="flex items-center gap-1.5 min-w-0">
+            <a href="./index.html" aria-label="Về trang chủ" title="Về trang chủ" class="absolute left-1/2 -translate-x-1/2 flex items-center gap-1.5 min-w-0 no-underline rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-pink-500">
                 <svg class="brand-spark w-6 h-6 sm:w-7 sm:h-7" viewBox="0 0 24 24"><defs><linearGradient id="brandSparkGradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ec4899"/><stop offset="100%" stop-color="#3b82f6"/></linearGradient></defs><path class="brand-icon-gradient" d="M12 2L14.7 9.3 22 12l-7.3 2.7L12 22l-2.7-7.3L2 12l7.3-2.7L12 2Z"/></svg>
                 <span class="brand-text text-base sm:text-lg font-extrabold truncate">Trợ lý AI</span>
-            </div>
+            </a>
             
             <!-- KHU VỰC ĐĂNG NHẬP -->
             <div id="authContainer" class="flex items-center relative">
