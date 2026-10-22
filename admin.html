@@ -39,6 +39,11 @@
         
         .login-box-glow { box-shadow: 0 10px 40px -10px rgba(236, 72, 153, 0.2); }
         .dark .login-box-glow { box-shadow: 0 10px 40px -10px rgba(59, 130, 246, 0.2); }
+        
+        /* CSS CHO TAB */
+        .tab-btn { transition: all 0.2s; border-bottom: 2px solid transparent; }
+        .tab-btn.active { border-bottom-color: #ec4899; color: #ec4899; }
+        .dark .tab-btn.active { border-bottom-color: #3b82f6; color: #3b82f6; }
     </style>
 </head>
 
@@ -102,15 +107,9 @@
         <div id="adminLoginBox" class="glass-card login-box-glow bg-white/90 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700/60 shadow-2xl rounded-3xl p-8 max-w-sm w-full text-center relative overflow-hidden">
             <div class="absolute top-0 left-1/2 transform -translate-x-1/2 w-32 h-1 bg-gradient-to-r from-pink-500 to-blue-500 rounded-b-full opacity-80"></div>
             
-            <!-- ĐÃ THAY BẰNG LOGO CHỮ P -->
             <div class="w-20 h-20 mx-auto mb-5 rounded-2xl overflow-hidden shadow-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" class="w-full h-full">
-                    <defs>
-                        <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" stop-color="#ec4899"/>
-                            <stop offset="100%" stop-color="#3b82f6"/>
-                        </linearGradient>
-                    </defs>
+                    <defs><linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ec4899"/><stop offset="100%" stop-color="#3b82f6"/></linearGradient></defs>
                     <rect width="100" height="100" fill="url(#g)"/>
                     <text x="50" y="72" font-size="60" font-family="Arial,sans-serif" font-weight="bold" fill="white" text-anchor="middle">P</text>
                 </svg>
@@ -131,46 +130,76 @@
             </button>
         </div>
 
-        <!-- DASHBOARD -->
-        <div id="adminDashboard" class="space-y-5 mt-6 w-full" style="display: none;">
-            <div class="flex justify-between items-end mb-4">
-                <h3 class="font-bold text-2xl text-slate-800 dark:text-slate-200">Tổng quan Hệ thống</h3>
-                <button id="btnAdminLogout" class="px-4 py-2 rounded-lg text-xs font-bold bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/30 transition">Đăng xuất</button>
-            </div>
+        <!-- DASHBOARD (CÓ 2 TAB) -->
+        <div id="adminDashboard" class="w-full mt-6" style="display: none;">
             
-            <div class="grid grid-cols-3 gap-3 md:gap-4">
-                <div class="stat-card rounded-2xl p-4 flex flex-col justify-center items-center text-center">
-                    <p class="text-[10px] md:text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Lượt đánh giá</p>
-                    <p id="statTotal" class="text-3xl font-extrabold text-blue-500">0</p>
+            <!-- THANH ĐIỀU HƯỚNG TAB -->
+            <div class="flex justify-between items-center border-b border-slate-200 dark:border-slate-700/50 mb-6">
+                <div class="flex gap-6">
+                    <button id="tabBtnOverview" class="tab-btn active pb-3 text-sm md:text-base font-bold text-slate-500 dark:text-slate-400 hover:text-pink-500 dark:hover:text-blue-400" onclick="switchTab('overview')">
+                        📊 Tổng quan
+                    </button>
+                    <button id="tabBtnIpLogs" class="tab-btn pb-3 text-sm md:text-base font-bold text-slate-500 dark:text-slate-400 hover:text-pink-500 dark:hover:text-blue-400" onclick="switchTab('iplogs')">
+                        🌐 Lịch sử IP
+                    </button>
                 </div>
-                <div class="stat-card rounded-2xl p-4 flex flex-col justify-center items-center text-center">
-                    <p class="text-[10px] md:text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Điểm TB</p>
-                    <p id="statAvg" class="text-3xl font-extrabold text-pink-500">0.0</p>
+                <button id="btnAdminLogout" class="px-4 py-2 rounded-lg text-xs font-bold bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/30 transition mb-2">Đăng xuất</button>
+            </div>
+
+            <!-- TAB 1: TỔNG QUAN (Như cũ) -->
+            <div id="tabContentOverview" class="space-y-5">
+                <div class="grid grid-cols-3 gap-3 md:gap-4">
+                    <div class="stat-card rounded-2xl p-4 flex flex-col justify-center items-center text-center">
+                        <p class="text-[10px] md:text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Lượt đánh giá</p>
+                        <p id="statTotal" class="text-3xl font-extrabold text-blue-500">0</p>
+                    </div>
+                    <div class="stat-card rounded-2xl p-4 flex flex-col justify-center items-center text-center">
+                        <p class="text-[10px] md:text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Điểm TB</p>
+                        <p id="statAvg" class="text-3xl font-extrabold text-pink-500">0.0</p>
+                    </div>
+                    <div class="stat-card rounded-2xl p-4 flex flex-col justify-center items-center text-center">
+                        <p class="text-[10px] md:text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Prompt Sạch</p>
+                        <p id="statClean" class="text-3xl font-extrabold text-green-500">0%</p>
+                    </div>
                 </div>
-                <div class="stat-card rounded-2xl p-4 flex flex-col justify-center items-center text-center">
-                    <p class="text-[10px] md:text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Prompt Sạch</p>
-                    <p id="statClean" class="text-3xl font-extrabold text-green-500">0%</p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="stat-card rounded-2xl p-5"><p class="text-xs font-bold text-slate-500 mb-2 uppercase tracking-wide text-center">Top Lỗi Phổ Biến</p><div class="h-48 w-full flex justify-center"><canvas id="errorChart"></canvas></div></div>
+                    <div class="stat-card rounded-2xl p-5"><p class="text-xs font-bold text-slate-500 mb-2 uppercase tracking-wide text-center">Phân Bố Điểm Số</p><div class="h-48 w-full flex justify-center"><canvas id="scoreChart"></canvas></div></div>
+                </div>
+                
+                <div class="stat-card rounded-2xl overflow-hidden mt-6">
+                    <div class="px-5 py-4 border-b border-slate-200 dark:border-slate-700/50 bg-slate-50/50 dark:bg-slate-800/30 flex justify-between items-center">
+                        <p class="text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wide">Lịch sử gần đây</p>
+                    </div>
+                    <div class="overflow-x-auto max-h-[400px] overflow-y-auto">
+                        <table class="w-full text-xs text-left relative">
+                            <thead class="text-[10px] text-slate-400 uppercase bg-slate-100 dark:bg-slate-900/80 sticky top-0 z-10">
+                                <tr><th class="px-4 py-3 font-semibold">Thời gian</th><th class="px-4 py-3 font-semibold">Prompt</th><th class="px-4 py-3 font-semibold">Điểm</th><th class="px-4 py-3 font-semibold">Mã lỗi</th></tr>
+                            </thead>
+                            <tbody id="adminHistoryList"><tr><td colspan="4" class="text-center py-6 text-slate-500">Đang tải dữ liệu...</td></tr></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="stat-card rounded-2xl p-5"><p class="text-xs font-bold text-slate-500 mb-2 uppercase tracking-wide text-center">Top Lỗi Phổ Biến</p><div class="h-48 w-full flex justify-center"><canvas id="errorChart"></canvas></div></div>
-                <div class="stat-card rounded-2xl p-5"><p class="text-xs font-bold text-slate-500 mb-2 uppercase tracking-wide text-center">Phân Bố Điểm Số</p><div class="h-48 w-full flex justify-center"><canvas id="scoreChart"></canvas></div></div>
-            </div>
-            
-            <div class="stat-card rounded-2xl overflow-hidden mt-6">
-                <div class="px-5 py-4 border-b border-slate-200 dark:border-slate-700/50 bg-slate-50/50 dark:bg-slate-800/30 flex justify-between items-center">
-                    <p class="text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wide">Lịch sử gần đây</p>
-                </div>
-                <div class="overflow-x-auto max-h-[400px] overflow-y-auto">
-                    <table class="w-full text-xs text-left relative">
-                        <thead class="text-[10px] text-slate-400 uppercase bg-slate-100 dark:bg-slate-900/80 sticky top-0 z-10">
-                            <tr><th class="px-4 py-3 font-semibold">Thời gian</th><th class="px-4 py-3 font-semibold">Prompt</th><th class="px-4 py-3 font-semibold">Điểm</th><th class="px-4 py-3 font-semibold">Mã lỗi</th></tr>
-                        </thead>
-                        <tbody id="adminHistoryList"><tr><td colspan="4" class="text-center py-6 text-slate-500">Đang tải dữ liệu...</td></tr></tbody>
-                    </table>
+
+            <!-- TAB 2: LỊCH SỬ IP (Mới) -->
+            <div id="tabContentIpLogs" class="space-y-5" style="display: none;">
+                <div class="stat-card rounded-2xl overflow-hidden">
+                    <div class="px-5 py-4 border-b border-slate-200 dark:border-slate-700/50 bg-slate-50/50 dark:bg-slate-800/30 flex justify-between items-center">
+                        <p class="text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wide">Danh sách IP Đăng nhập</p>
+                    </div>
+                    <div class="overflow-x-auto max-h-[500px] overflow-y-auto">
+                        <table class="w-full text-xs text-left relative">
+                            <thead class="text-[10px] text-slate-400 uppercase bg-slate-100 dark:bg-slate-900/80 sticky top-0 z-10">
+                                <tr><th class="px-4 py-3 font-semibold">Thời gian</th><th class="px-4 py-3 font-semibold">Địa chỉ IP</th><th class="px-4 py-3 font-semibold">Thiết bị / Trình duyệt</th></tr>
+                            </thead>
+                            <tbody id="ipLogsList"><tr><td colspan="3" class="text-center py-6 text-slate-500">Đang tải dữ liệu...</td></tr></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
+
         </div>
     </main>
 
@@ -223,6 +252,23 @@
         }
         checkAdminAccess();
 
+        // --- LOGIC CHUYỂN TAB ---
+        window.switchTab = function(tabName) {
+            const btnOverview = $('tabBtnOverview');
+            const btnIpLogs = $('tabBtnIpLogs');
+            const contentOverview = $('tabContentOverview');
+            const contentIpLogs = $('tabContentIpLogs');
+
+            if (tabName === 'overview') {
+                btnOverview.classList.add('active'); btnIpLogs.classList.remove('active');
+                contentOverview.style.display = 'block'; contentIpLogs.style.display = 'none';
+            } else {
+                btnIpLogs.classList.add('active'); btnOverview.classList.remove('active');
+                contentIpLogs.style.display = 'block'; contentOverview.style.display = 'none';
+                fetchIpLogs(); // Gọi API lấy danh sách IP khi chuyển sang tab này
+            }
+        }
+
         // --- LOGIC ADMIN ---
         $('toggleAdminPassword').addEventListener('click', function() {
             const input = $('adminPassword');
@@ -240,6 +286,7 @@
                     adminToken = data.token; 
                     $('adminLoginBox').style.display = 'none'; 
                     $('adminDashboard').style.display = 'block'; 
+                    switchTab('overview'); // Mặc định mở tab tổng quan
                     fetchHistory(); 
                 } else { 
                     $('adminError').style.display = 'block'; 
@@ -273,6 +320,7 @@
             [chart1, chart2].forEach(c => { if (c) { c.options.plugins.legend.labels.color = textColor; c.options.scales.x.ticks.color = textColor; c.options.scales.y.ticks.color = textColor; c.update(); } });
         }
 
+        // Lấy lịch sử Prompt
         async function fetchHistory() {
             const tbody = $('adminHistoryList'); tbody.innerHTML = '<tr><td colspan="4" class="text-center py-6 text-slate-500 text-xs">Đang tải...</td></tr>';
             try {
@@ -327,6 +375,45 @@
                     });
                 }
             } catch (e) { tbody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-red-500 text-xs">Lỗi tải.</td></tr>'; }
+        }
+
+        // Lấy danh sách Lịch sử IP
+        async function fetchIpLogs() {
+            const tbody = $('ipLogsList'); 
+            tbody.innerHTML = '<tr><td colspan="3" class="text-center py-6 text-slate-500 text-xs">Đang tải...</td></tr>';
+            try {
+                const response = await fetch(`${API_URL}/admin/ip_logs`, { headers: { 'X-Admin-Token': adminToken } });
+                const data = await response.json();
+                if (response.ok && data.logs) {
+                    tbody.replaceChildren();
+                    if (data.logs.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="3" class="text-center py-4 text-slate-500 text-xs">Chưa có lịch sử đăng nhập.</td></tr>'; 
+                        return;
+                    }
+                    data.logs.forEach(log => {
+                        const tr = document.createElement('tr'); 
+                        tr.className = "border-b border-slate-100 dark:border-slate-700/50 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors";
+                        
+                        const tdTime = document.createElement('td'); 
+                        tdTime.className = "px-4 py-3 whitespace-nowrap text-[10px] text-slate-500"; 
+                        tdTime.textContent = new Date(log.login_time).toLocaleString('vi-VN', {hour: '2-digit', minute:'2-digit', day: '2-digit', month: '2-digit', year: 'numeric'});
+                        
+                        const tdIp = document.createElement('td'); 
+                        tdIp.className = "px-4 py-3 text-sm font-bold text-blue-600 dark:text-blue-400"; 
+                        tdIp.textContent = log.ip_address;
+                        
+                        const tdDevice = document.createElement('td'); 
+                        tdDevice.className = "px-4 py-3 text-xs text-slate-600 dark:text-slate-400 max-w-[200px] truncate"; 
+                        tdDevice.title = log.user_agent || "Không xác định";
+                        tdDevice.textContent = log.user_agent || "Không xác định";
+
+                        tr.appendChild(tdTime); tr.appendChild(tdIp); tr.appendChild(tdDevice); 
+                        tbody.appendChild(tr);
+                    });
+                }
+            } catch (e) {
+                tbody.innerHTML = '<tr><td colspan="3" class="text-center py-4 text-red-500 text-xs">Lỗi tải dữ liệu IP.</td></tr>';
+            }
         }
     </script>
 </body>
