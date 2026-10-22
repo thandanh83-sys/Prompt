@@ -21,7 +21,6 @@
         body { -webkit-tap-highlight-color: transparent; overflow-x: hidden; transition: background-color .15s ease, color .15s ease; background-color: #f8f7fc; overscroll-behavior-y: none; }
         .dark body { background-color: #0f172a; }
         
-        /* Hiệu ứng nền quầng sáng */
         .page-bg { position: fixed; inset: 0; z-index: -1; pointer-events: none; background: radial-gradient(ellipse at 18% 28%, rgba(229,112,196,.12), transparent 36%), radial-gradient(ellipse at 74% 52%, rgba(90,129,255,.10), transparent 40%), transparent; }
         .dark .page-bg { background: radial-gradient(ellipse at 18% 28%, rgba(164,55,130,.10), transparent 36%), radial-gradient(ellipse at 74% 52%, rgba(53,84,180,.12), transparent 40%), transparent; }
         
@@ -99,20 +98,28 @@
     <!-- NỘI DUNG ADMIN -->
     <main class="w-full max-w-5xl mx-auto px-4 sm:px-6 pt-32 md:pt-40 pb-32 flex-grow flex flex-col items-center">
         
-        <!-- KHUNG ĐĂNG NHẬP ĐÃ ĐƯỢC LÀM ĐẸP -->
+        <!-- KHUNG ĐĂNG NHẬP -->
         <div id="adminLoginBox" class="glass-card login-box-glow bg-white/90 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700/60 shadow-2xl rounded-3xl p-8 max-w-sm w-full text-center relative overflow-hidden">
-            <!-- Quầng sáng nhỏ trên cùng -->
             <div class="absolute top-0 left-1/2 transform -translate-x-1/2 w-32 h-1 bg-gradient-to-r from-pink-500 to-blue-500 rounded-b-full opacity-80"></div>
             
-            <div class="w-16 h-16 bg-gradient-to-br from-pink-100 to-blue-100 dark:from-pink-900/40 dark:to-blue-900/40 rounded-full flex items-center justify-center mx-auto mb-5 text-3xl shadow-inner">
-                🛡️
+            <!-- ĐÃ THAY BẰNG LOGO CHỮ P -->
+            <div class="w-20 h-20 mx-auto mb-5 rounded-2xl overflow-hidden shadow-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" class="w-full h-full">
+                    <defs>
+                        <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#ec4899"/>
+                            <stop offset="100%" stop-color="#3b82f6"/>
+                        </linearGradient>
+                    </defs>
+                    <rect width="100" height="100" fill="url(#g)"/>
+                    <text x="50" y="72" font-size="60" font-family="Arial,sans-serif" font-weight="bold" fill="white" text-anchor="middle">P</text>
+                </svg>
             </div>
             
             <h3 class="font-extrabold text-2xl mb-2 text-slate-800 dark:text-white tracking-tight">Đăng nhập Admin</h3>
-            <p class="text-xs text-slate-500 dark:text-slate-400 mb-6">Khu vực dành riêng cho quản trị viên hệ thống</p>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mb-6">Khu vực dành riêng cho quản trị viên</p>
 
             <div class="relative w-full mb-6">
-                <!-- Bắt sự kiện keypress trên input này -->
                 <input type="password" id="adminPassword" class="w-full p-4 pl-5 pr-12 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent text-slate-800 dark:text-slate-100 placeholder-slate-400 text-sm font-medium transition-all" placeholder="Nhập mật khẩu...">
                 <button type="button" id="toggleAdminPassword" class="absolute inset-y-0 right-0 pr-4 flex items-center text-xl text-slate-400 hover:text-pink-500 transition-colors cursor-pointer" title="Hiện/Ẩn mật khẩu">🐵</button>
             </div>
@@ -124,7 +131,7 @@
             </button>
         </div>
 
-        <!-- DASHBOARD (Ẩn mặc định, hiện khi login thành công) -->
+        <!-- DASHBOARD -->
         <div id="adminDashboard" class="space-y-5 mt-6 w-full" style="display: none;">
             <div class="flex justify-between items-end mb-4">
                 <h3 class="font-bold text-2xl text-slate-800 dark:text-slate-200">Tổng quan Hệ thống</h3>
@@ -222,7 +229,6 @@
             if (input.type === 'password') { input.type = 'text'; this.innerText = '🙈'; } else { input.type = 'password'; this.innerText = '🐵'; }
         });
 
-        // HÀM XỬ LÝ ĐĂNG NHẬP (TÁCH RA ĐỂ DÙNG CHUNG CHO NÚT VÀ PHÍM ENTER)
         async function handleLogin() {
             const pwd = $('adminPassword').value.trim(); if (!pwd) return;
             const btn = $('btnAdminLogin'); btn.disabled = true; btn.innerHTML = 'Đang kiểm tra...';
@@ -247,15 +253,9 @@
             }
         }
 
-        // Gắn sự kiện click cho nút
         $('btnAdminLogin').addEventListener('click', handleLogin);
-
-        // GẮN SỰ KIỆN ENTER CHO Ô INPUT MẬT KHẨU
         $('adminPassword').addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') {
-                e.preventDefault(); // Ngăn chặn hành vi mặc định nếu có
-                handleLogin();
-            }
+            if (e.key === 'Enter') { e.preventDefault(); handleLogin(); }
         });
 
         $('btnAdminLogout').addEventListener('click', () => {
