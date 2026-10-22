@@ -24,7 +24,7 @@
                 extend: {
                     fontFamily: { sans: ['Inter', 'sans-serif'] },
                     colors: { brand: { pink: '#ec4899', blue: '#3b82f6' } },
-                    animation: { 'float': 'float 6s ease-in-out infinite', 'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite' },
+                    animation: { 'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite' }, // Đã xóa float
                     keyframes: { float: { '0%, 100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-15px)' } } }
                 }
             }
@@ -63,7 +63,6 @@
 
     <!-- HEADER LANDING -->
     <header class="fixed top-0 left-0 w-full z-50 glass border-b border-slate-200 dark:border-white/10">
-        <!-- Tăng khoảng cách 2 bên (px-4 thay vì px-3) để Header thoáng hơn -->
         <div class="max-w-7xl mx-auto px-4 md:px-6 h-16 md:h-20 flex items-center justify-between">
             
             <div class="flex items-center gap-2 md:gap-4 relative">
@@ -121,14 +120,13 @@
         </div>
     </header>
 
-    <!-- HERO SECTION (ĐÃ SỬA LỖI BÓ CHỮ) -->
+    <!-- HERO SECTION -->
     <section class="relative pt-32 pb-20 md:pt-48 md:pb-32 px-4 md:px-6">
         <div class="max-w-4xl mx-auto text-center z-10 relative">
             <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full glass text-sm font-semibold text-brand-pink mb-8 animate-pulse-slow">
                 <span class="w-2 h-2 rounded-full bg-brand-pink"></span> Chuẩn mực mới cho Prompt Engineering
             </div>
             
-            <!-- SỬA H1: Bỏ thẻ br, thêm tracking-tight, giảm font-size mobile -->
             <h1 class="text-[1.8rem] sm:text-4xl md:text-5xl lg:text-7xl font-extrabold text-slate-900 dark:text-white leading-[1.2] tracking-tight mb-6 px-2">
                 Biến câu lệnh thông thường thành <span class="text-gradient block mt-2">Prompt Chuyên Gia</span>
             </h1>
@@ -147,8 +145,8 @@
             </div>
         </div>
 
-        <!-- MOCKUP -->
-        <div class="max-w-5xl mx-auto mt-16 md:mt-20 relative z-10 animate-float px-4 md:px-0">
+        <!-- MOCKUP (ĐÃ BỎ HIỆU ỨNG LƠ LỬNG ANIMATE-FLOAT) -->
+        <div class="max-w-5xl mx-auto mt-16 md:mt-20 relative z-10 px-4 md:px-0">
             <div class="absolute inset-0 bg-gradient-to-r from-brand-pink to-brand-blue rounded-3xl blur-2xl opacity-20 dark:opacity-40"></div>
             <div class="glass border border-slate-200 dark:border-white/10 rounded-3xl p-4 md:p-6 shadow-2xl relative bg-white/90 dark:bg-[#0b1120]/90">
                 <div class="flex items-center gap-2 mb-4 px-2">
@@ -221,12 +219,10 @@
                 <div class="glass-card glass rounded-3xl p-8">
                     <div class="w-14 h-14 rounded-2xl bg-green-500/10 dark:bg-green-500/20 flex items-center justify-center mb-6">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 </ 01-2-2z" />
-                       section </svg>
-                    </>
-
-div>
-                    <h3 class="   text-xl font-bold mb-3 text-slate <-900 dark:text-white">Thống kfooterê thông minh</h3>
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3 text-slate-900 dark:text-white">Thống kê thông minh</h3>
                     <p class="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">Theo dõi lịch sử và biểu đồ phân bố lỗi.</p>
                 </div>
             </div>
@@ -244,7 +240,10 @@ div>
                 </div>
             </div>
         </div>
-    class="border-t border-slate-200 dark:border-white/10 py-8 text-center text-slate-500 text-sm relative z-10"><p>© 2026 Trợ lý AI. Đội 2 - Nghiên cứu AI & Tư duy.</p></footer>
+    </section>
+
+    <!-- FIX LỖI: Thẻ footer đã được viết đúng chuẩn -->
+    <footer class="border-t border-slate-200 dark:border-white/10 py-8 text-center text-slate-500 text-sm relative z-10"><p>© 2026 Trợ lý AI. Đội 2 - Nghiên cứu AI & Tư duy.</p></footer>
 
     <script>
         const API_URL = "https://prompt-tx2e.onrender.com"; 
