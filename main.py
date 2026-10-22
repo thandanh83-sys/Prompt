@@ -17,7 +17,7 @@ from supabase import create_client, Client
 from slowapi import Limiter
 from slowapi.errors import RateLimitExceeded
 
-# Import các module tự viết
+# Import các module tự viết (đảm bảo các file này có trong cùng thư mục)
 import rules_v38
 from validator import validate_full_report, calculate_final_score, ReportValidationError
 
@@ -74,7 +74,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS,
     allow_origin_regex=r"https://.*\.vercel\.app",
-    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_methods=["GET", "POST", "DELETE", "OPTIONS"],
     allow_headers=["Content-Type", "X-Admin-Token"],
 )
 
@@ -130,11 +130,11 @@ def call_llm(system_prompt: str, user_prompt: str) -> str:
     try:
         logger.info("Đang gọi Groq...")
         resp = client.chat.completions.create(
-            model="openai/gpt-oss-120b", # Hoặc model bạn đang dùng
+            model="openai/gpt-oss-120b",
             messages=messages,
             response_format={"type": "json_object"},
             temperature=0.0,
-            timeout=30.0 # Thêm timeout để tránh treo server
+            timeout=30.0 
         )
         return resp.choices[0].message.content
     except Exception as e:
@@ -146,7 +146,7 @@ def call_llm(system_prompt: str, user_prompt: str) -> str:
             response = temp_model.generate_content(
                 user_prompt,
                 generation_config=genai.types.GenerationConfig(response_mime_type="application/json", temperature=0.0),
-                request_options={"timeout": 30} # Thêm timeout
+                request_options={"timeout": 30}
             )
             if not response.text: raise ValueError("Gemini trả về chuỗi rỗng.")
             logger.info("Gemini trả về thành công (Fallback).")
@@ -165,20 +165,36 @@ def bg_save_history(payload: dict):
     except Exception as e:
         logger.error(f"LỖI BACKGROUND: Không thể lưu lịch sử: {e}")
 
-# Biến toàn cục để tránh dọn dẹp DB quá thường xuyên
 LAST_CLEANUP_TIME = 0
 
 def bg_cleanup_history():
     global LAST_CLEANUP_TIME
     current_time = time.time()
-    if current_time - LAST_CLEANUP_TIME < 3600: # Chỉ chạy 1 tiếng 1 lần
+    
+    # Chỉ chạy 1 tiếng 1 lần để tránh spam DB
+    if current_time - LAST_CLEANUP_TIME < 3600: 
         return
         
     if not supabase: return
     try:
-        ten_days_ago = (datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=10)).isoformat()
-        supabase.table("history").delete().lt("created_at", ten_days_ago).execute()
-        logger.info("Đã dọn dẹp lịch sử cũ hơn 10 ngày.")
+        # 1. XÓA DỮ LIỆU CŨ HƠN 7 NGÀY
+        seven_days_ago = (datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=7)).isoformat()
+        supabase.table("history").delete().lt("created_at", seven_days_ago).execute()
+        logger.info("Đã dọn dẹp lịch sử cũ hơn 7 ngày.")
+
+        # 2. GIỚI HẠN SỐ LƯỢNG BẢN GHI (Giới hạn ở mức 500)
+        count_res = supabase.table("history").select("id", count="exact").limit(1).execute()
+        total_records = count_res.count
+
+        if total_records and total_records > 500:
+            records_to_delete_count = total_records - 400 
+            oldest_res = supabase.table("history").select("id").order("created_at", ascending=True).limit(records_to_delete_count).execute()
+            
+            if oldest_res.data:
+                ids_to_delete = [row["id"] for row in oldest_res.data]
+                supabase.table("history").delete().in_("id", ids_to_delete).execute()
+                logger.info(f"Đã xóa {records_to_delete_count} bản ghi cũ nhất do vượt quá 500 bản ghi.")
+
         LAST_CLEANUP_TIME = current_time
     except Exception as e:
         logger.warning(f"LỖI BACKGROUND: Không thể dọn dẹp lịch sử: {e}")
@@ -203,14 +219,12 @@ def get_top_prompts():
         logger.error(f"Lỗi lấy top prompts: {e}")
         return {"prompts": []}
 
-# --- API ĐĂNG NHẬP (ĐÃ THÊM LƯU LOG IP) ---
 @app.post("/login")
 @limiter.limit("5/minute")
 def admin_login(request: Request, req: LoginRequest, client_ip: str = Depends(verify_admin_ip)):
     if secrets.compare_digest(req.password, ADMIN_PASSWORD):
         if supabase:
             try:
-                # Lưu IP và User-Agent vào bảng admin_login_logs
                 supabase.table("admin_login_logs").insert({
                     "ip_address": client_ip,
                     "user_agent": request.headers.get("user-agent", "Unknown")
@@ -222,7 +236,6 @@ def admin_login(request: Request, req: LoginRequest, client_ip: str = Depends(ve
         return {"token": ADMIN_SECRET_TOKEN}
     raise HTTPException(status_code=401, detail="Sai mật khẩu")
 
-# --- API LẤY LỊCH SỬ IP ĐĂNG NHẬP ADMIN ---
 @app.get("/admin/ip_logs")
 def get_ip_logs(token: str = Depends(api_key_header), client_ip: str = Depends(verify_admin_ip)):
     if not token or not secrets.compare_digest(token, ADMIN_SECRET_TOKEN):
@@ -241,11 +254,24 @@ def get_history(token: str = Depends(api_key_header), client_ip: str = Depends(v
         raise HTTPException(status_code=401, detail="Không có quyền truy cập")
     if not supabase: return {"history": [], "message": "Supabase chưa được cấu hình"}
     try:
-        res = supabase.table("history").select("prompt, type, total_score, created_at, errors").order("created_at", desc=True).limit(100).execute()
+        res = supabase.table("history").select("id, prompt, type, total_score, created_at, errors").order("created_at", desc=True).limit(100).execute()
         return {"history": res.data}
     except Exception as e:
         logger.error(f"Lỗi lấy lịch sử: {e}")
         raise HTTPException(status_code=500, detail="Lỗi máy chủ")
+
+# --- API XÓA PROMPT (DÀNH CHO ADMIN) ---
+@app.delete("/admin/delete_prompt/{prompt_id}")
+def delete_prompt(prompt_id: int, token: str = Depends(api_key_header), client_ip: str = Depends(verify_admin_ip)):
+    if not token or not secrets.compare_digest(token, ADMIN_SECRET_TOKEN):
+        raise HTTPException(status_code=401, detail="Không có quyền truy cập")
+    if not supabase: raise HTTPException(status_code=500, detail="Chưa cấu hình DB")
+    try:
+        supabase.table("history").delete().eq("id", prompt_id).execute()
+        return {"status": "success", "message": "Đã xóa Prompt"}
+    except Exception as e:
+        logger.error(f"Lỗi xóa prompt: {e}")
+        raise HTTPException(status_code=500, detail="Lỗi khi xóa")
 
 @app.post("/evaluate")
 @limiter.limit(RATE_LIMIT)
