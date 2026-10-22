@@ -23,7 +23,7 @@
         body { -webkit-tap-highlight-color: transparent; overflow-x: hidden; transition: background-color .15s ease, color .15s ease; background-color: #f8f7fc; overscroll-behavior-y: none; }
         .dark body { background-color: #0f172a; }
         
-        /* Hiệu ứng nền phát sáng mạnh mẽ (Lấy cảm hứng Awwwards) */
+        /* Hiệu ứng nền phát sáng */
         .page-bg { 
             position: fixed; inset: 0; z-index: -1; pointer-events: none; 
             background: radial-gradient(circle at 50% -20%, rgba(236,72,153,.15) 0%, transparent 60%), 
@@ -34,7 +34,7 @@
                         radial-gradient(circle at 50% 120%, rgba(59,130,246,.15) 0%, transparent 50%); 
         }
 
-        /* ĐÃ BỎ HIỆU ỨNG KÍNH MỜ - Header nền đặc */
+        /* Header nền đặc */
         .app-header { background: #ffffff; border-color: rgba(0,0,0,.06); transition: all .2s; }
         .dark .app-header { background: #0f172a; border-color: rgba(255,255,255,.1); }
         
@@ -50,8 +50,8 @@
 
         /* Hiệu ứng thẻ tính năng */
         .feature-card { transition: all 0.3s ease; }
-        .feature-card:hover { transform: translateY(-5px); box-shadow: 0 20px 40px -10px rgba(0,0,0,0.1); border-color: rgba(236,72,153,0.3); }
-        .dark .feature-card:hover { box-shadow: 0 20px 40px -10px rgba(0,0,0,0.5); border-color: rgba(59,130,246,0.3); }
+        .feature-card:hover { transform: translateY(-4px); border-color: rgba(236,72,153,0.3); box-shadow: 0 10px 30px -10px rgba(0,0,0,0.1); }
+        .dark .feature-card:hover { border-color: rgba(59,130,246,0.3); box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5); }
     </style>
 
     <script>
@@ -132,16 +132,16 @@
                         </a>
                         <div class="h-px bg-slate-100 dark:bg-slate-700/50 my-1 mx-2"></div>
                         
-                        <!-- Nút Sáng Tối -->
+                        <!-- Nút Sáng Tối (Đã sửa icon đẹp hơn, bỏ khung vuông) -->
                         <button id="themeToggleMenu" class="w-full flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors text-left">
-                            <span id="themeIconMenu" class="w-6 h-6 flex items-center justify-center shrink-0"></span>
+                            <span id="themeIconMenu" class="w-5 h-5 flex items-center justify-center shrink-0"></span>
                             <span id="themeTextMenu">Chế độ Tối</span>
                         </button>
                         
                         <div id="adminMenuDivider" class="h-px bg-slate-100 dark:bg-slate-700/50 my-1 mx-2" style="display:none;"></div>
                         <a id="menuBtnAdmin" href="./admin.html" class="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-green-50 dark:hover:bg-green-900/20 text-sm font-semibold text-green-600 dark:text-green-400 transition-colors" style="display:none;">
                             <svg class="w-5 h-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                            Quản trị (Admin)
+                            Quản trị viên
                         </a>
                     </div>
                 </div>
@@ -153,7 +153,7 @@
                 </div>
             </div>
             
-            <!-- BÊN PHẢI: NÚT TRẢI NGHIỆM NGAY -->
+            <!-- BÊN PHẢI: NÚT TRẢI NGHIỆM NGAY (Chuyển đến landing.html) -->
             <a href="./landing.html" class="px-4 py-2 md:px-6 md:py-2.5 rounded-full text-xs md:text-sm font-bold text-white bg-gradient-to-r from-pink-500 to-blue-500 shadow-md hover:shadow-lg hover:scale-105 active:scale-95 transition-all whitespace-nowrap z-50">
                 Trải nghiệm ngay
             </a>
@@ -179,83 +179,86 @@
             </p>
             
             <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+                <!-- Chuyển đến landing.html -->
                 <a href="./landing.html" class="btn-glow w-full sm:w-auto px-10 py-4 rounded-full font-bold text-white bg-gradient-to-r from-pink-500 to-blue-500 transition-all flex items-center justify-center gap-2 text-lg">
                     Bắt đầu đánh giá miễn phí
                 </a>
-                <button id="btnOpenGuide" class="w-full sm:w-auto px-8 py-4 rounded-full font-bold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all flex items-center justify-center gap-2 text-lg">
+                <!-- Trượt xuống phần Features -->
+                <a href="#features" class="w-full sm:w-auto px-8 py-4 rounded-full font-bold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all flex items-center justify-center gap-2 text-lg">
                     Tìm hiểu thêm
-                </button>
+                </a>
             </div>
         </section>
 
-        <!-- FEATURES SECTION -->
-        <section class="w-full max-w-5xl mx-auto px-4 md:px-6 mb-24">
-            <div class="text-center mb-12">
-                <h2 class="text-3xl font-bold text-slate-900 dark:text-white mb-4">Tại sao chọn Trợ lý AI?</h2>
-                <p class="text-slate-500 dark:text-slate-400 max-w-xl mx-auto">Chúng tôi mang đến giải pháp toàn diện giúp bạn làm chủ nghệ thuật viết Prompt.</p>
-            </div>
+        <!-- FEATURES SECTION (CẬP NHẬT GIAO DIỆN DỌC GIỐNG ẢNH 2) -->
+        <section id="features" class="w-full max-w-2xl mx-auto px-4 md:px-6 mb-24 flex flex-col gap-6">
             
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <!-- Card 1 -->
-                <div class="feature-card bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-3xl p-8 relative overflow-hidden">
-                    <div class="w-14 h-14 rounded-2xl bg-pink-100 dark:bg-pink-900/30 flex items-center justify-center mb-6">
-                        <svg class="w-7 h-7 text-pink-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    </div>
-                    <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-3">Chấm điểm thông minh</h3>
-                    <p class="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">AI đánh giá Prompt của bạn dựa trên các tiêu chí chuyên môn, chỉ ra điểm mạnh và điểm cần khắc phục.</p>
+            <!-- Thẻ 1 -->
+            <div class="feature-card bg-[#1e293b] border border-slate-700/60 rounded-3xl p-6 md:p-8 flex flex-col gap-4">
+                <div class="w-14 h-14 rounded-2xl bg-pink-900/30 flex items-center justify-center">
+                    <svg class="w-7 h-7 text-pink-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                 </div>
-
-                <!-- Card 2 -->
-                <div class="feature-card bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-3xl p-8 relative overflow-hidden">
-                    <div class="w-14 h-14 rounded-2xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center mb-6">
-                        <svg class="w-7 h-7 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                    </div>
-                    <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-3">Tối ưu 11 mục</h3>
-                    <p class="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">Tự động cấu trúc lại Prompt của bạn theo chuẩn 11 mục quốc tế, giúp AI hiểu đúng ý định ngay từ lần đầu.</p>
-                </div>
-
-                <!-- Card 3 -->
-                <div class="feature-card bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-3xl p-8 relative overflow-hidden">
-                    <div class="w-14 h-14 rounded-2xl bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center mb-6">
-                        <svg class="w-7 h-7 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
-                    </div>
-                    <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-3">Thư viện cộng đồng</h3>
-                    <p class="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">Khám phá kho tàng Prompt chất lượng cao từ cộng đồng, sẵn sàng để bạn sao chép và sử dụng ngay lập tức.</p>
+                <div>
+                    <h3 class="text-2xl font-bold text-white mb-2">Chấm điểm thông minh</h3>
+                    <p class="text-slate-400 text-base leading-relaxed">AI đánh giá Prompt của bạn dựa trên các tiêu chí chuyên môn, chỉ ra điểm mạnh và điểm cần khắc phục.</p>
                 </div>
             </div>
+
+            <!-- Thẻ 2 -->
+            <div class="feature-card bg-[#1e293b] border border-slate-700/60 rounded-3xl p-6 md:p-8 flex flex-col gap-4">
+                <div class="w-14 h-14 rounded-2xl bg-blue-900/30 flex items-center justify-center">
+                    <svg class="w-7 h-7 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                </div>
+                <div>
+                    <h3 class="text-2xl font-bold text-white mb-2">Tối ưu 11 mục</h3>
+                    <p class="text-slate-400 text-base leading-relaxed">Tự động cấu trúc lại Prompt của bạn theo chuẩn 11 mục quốc tế, giúp AI hiểu đúng ý định ngay từ lần đầu.</p>
+                </div>
+            </div>
+
+            <!-- Thẻ 3 -->
+            <div class="feature-card bg-[#1e293b] border border-slate-700/60 rounded-3xl p-6 md:p-8 flex flex-col gap-4">
+                <div class="w-14 h-14 rounded-2xl bg-purple-900/30 flex items-center justify-center">
+                    <svg class="w-7 h-7 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+                </div>
+                <div>
+                    <h3 class="text-2xl font-bold text-white mb-2">Thư viện cộng đồng</h3>
+                    <p class="text-slate-400 text-base leading-relaxed">Khám phá kho tàng Prompt chất lượng cao từ cộng đồng, sẵn sàng để bạn sao chép và sử dụng ngay lập tức.</p>
+                </div>
+            </div>
+
         </section>
 
         <!-- HOW IT WORKS -->
-        <section class="w-full max-w-4xl mx-auto px-4 md:px-6 mb-24">
-            <div class="text-center mb-12">
-                <h2 class="text-3xl font-bold text-slate-900 dark:text-white mb-4">Quy trình 3 bước đơn giản</h2>
+        <section class="w-full max-w-3xl mx-auto px-4 md:px-6 mb-24 flex flex-col items-center">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-4">Quy trình 3 bước đơn giản</h2>
             </div>
             
-            <div class="flex flex-col md:flex-row items-center justify-center gap-8 md:gap-4 relative">
+            <div class="flex flex-col items-center gap-12 md:gap-16">
                 <!-- Step 1 -->
-                <div class="flex flex-col items-center text-center relative z-10 w-48">
-                    <div class="w-16 h-16 rounded-full bg-gradient-to-tr from-pink-500 to-blue-500 text-white flex items-center justify-center text-2xl font-bold mb-4 shadow-lg">1</div>
-                    <h4 class="font-bold text-slate-800 dark:text-white mb-2">Nhập Prompt</h4>
-                    <p class="text-sm text-slate-500 dark:text-slate-400">Dán câu lệnh thô của bạn vào.</p>
+                <div class="flex flex-col items-center text-center">
+                    <div class="w-24 h-24 md:w-28 md:h-28 rounded-full bg-gradient-to-br from-blue-400 via-purple-400 to-pink-500 flex items-center justify-center text-4xl md:text-5xl font-bold text-white mb-6 shadow-xl">1</div>
+                    <h4 class="text-2xl font-bold text-slate-800 dark:text-white mb-3">Nhập Prompt</h4>
+                    <p class="text-slate-500 dark:text-slate-400 text-base md:text-lg max-w-xs">Dán câu lệnh thô của bạn vào.</p>
                 </div>
-                <div class="hidden md:block w-full h-0.5 bg-slate-200 dark:bg-slate-700 relative top-[-20px] z-0"></div>
+
                 <!-- Step 2 -->
-                <div class="flex flex-col items-center text-center relative z-10 w-48">
-                    <div class="w-16 h-16 rounded-full bg-gradient-to-tr from-pink-500 to-blue-500 text-white flex items-center justify-center text-2xl font-bold mb-4 shadow-lg">2</div>
-                    <h4 class="font-bold text-slate-800 dark:text-white mb-2">AI Phân tích</h4>
-                    <p class="text-sm text-slate-500 dark:text-slate-400">Hệ thống chấm điểm và viết lại.</p>
+                <div class="flex flex-col items-center text-center">
+                    <div class="w-24 h-24 md:w-28 md:h-28 rounded-full bg-gradient-to-br from-blue-400 via-purple-400 to-pink-500 flex items-center justify-center text-4xl md:text-5xl font-bold text-white mb-6 shadow-xl">2</div>
+                    <h4 class="text-2xl font-bold text-slate-800 dark:text-white mb-3">AI Phân tích</h4>
+                    <p class="text-slate-500 dark:text-slate-400 text-base md:text-lg max-w-xs">Hệ thống chấm điểm và viết lại.</p>
                 </div>
-                <div class="hidden md:block w-full h-0.5 bg-slate-200 dark:bg-slate-700 relative top-[-20px] z-0"></div>
+
                 <!-- Step 3 -->
-                <div class="flex flex-col items-center text-center relative z-10 w-48">
-                    <div class="w-16 h-16 rounded-full bg-gradient-to-tr from-pink-500 to-blue-500 text-white flex items-center justify-center text-2xl font-bold mb-4 shadow-lg">3</div>
-                    <h4 class="font-bold text-slate-800 dark:text-white mb-2">Nhận kết quả</h4>
-                    <p class="text-sm text-slate-500 dark:text-slate-400">Sao chép Prompt 11 mục và dùng.</p>
+                <div class="flex flex-col items-center text-center">
+                    <div class="w-24 h-24 md:w-28 md:h-28 rounded-full bg-gradient-to-br from-blue-400 via-purple-400 to-pink-500 flex items-center justify-center text-4xl md:text-5xl font-bold text-white mb-6 shadow-xl">3</div>
+                    <h4 class="text-2xl font-bold text-slate-800 dark:text-white mb-3">Nhận kết quả</h4>
+                    <p class="text-slate-500 dark:text-slate-400 text-base md:text-lg max-w-xs">Sao chép Prompt 11 mục và dùng.</p>
                 </div>
             </div>
         </section>
 
-        <!-- BOTTOM CTA -->
+        <!-- BOTTOM CTA (Chuyển đến landing.html) -->
         <section class="w-full max-w-4xl mx-auto px-4 md:px-6 mb-10">
             <div class="bg-gradient-to-br from-slate-900 to-slate-800 dark:from-[#1e293b] dark:to-[#0f172a] rounded-3xl p-10 md:p-16 text-center relative overflow-hidden border border-slate-700">
                 <div class="absolute top-0 left-0 w-full h-full bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPgo8cmVjdCB3aWR0aD0iNCIgaGVpZ2h0PSI0IiBmaWxsPSIjZmZmIiBmaWxsLW9wYWNpdHk9IjAuMDUiLz4KPC9zdmc+')] opacity-20 pointer-events-none"></div>
@@ -273,48 +276,13 @@
         <p>© 2026 Trợ lý AI - Nghiên cứu AI & Tư duy.</p>
     </footer>
 
-    <!-- MODAL HƯỚNG DẪN -->
-    <div id="guideModal" class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm hidden opacity-0 transition-opacity duration-300">
-        <div class="bg-[#1e293b] border border-slate-700 rounded-3xl shadow-2xl w-full max-w-md p-6 relative transform scale-95 transition-transform duration-300" id="guideModalContent">
-            <button type="button" id="btnCloseGuide" class="absolute top-4 right-4 text-slate-400 hover:text-white bg-slate-800/50 hover:bg-slate-700 w-8 h-8 rounded-full flex items-center justify-center transition-colors">✕</button>
-            <h2 class="text-2xl font-extrabold text-center mb-8 text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-blue-500">Hướng dẫn sử dụng</h2>
-            
-            <div class="space-y-6 mb-8">
-                <div class="flex gap-4 items-start">
-                    <div class="w-8 h-8 rounded-full bg-blue-900/50 flex items-center justify-center text-blue-400 font-bold shrink-0">1</div>
-                    <div>
-                        <h4 class="font-bold text-white text-sm mb-1">Nhập ý tưởng của bạn</h4>
-                        <p class="text-xs text-slate-400">VD: "viết bài văn tả mẹ", "code web"</p>
-                    </div>
-                </div>
-                <div class="flex gap-4 items-start">
-                    <div class="w-8 h-8 rounded-full bg-pink-900/50 flex items-center justify-center text-pink-400 font-bold shrink-0">2</div>
-                    <div>
-                        <h4 class="font-bold text-white text-sm mb-1">AI chấm điểm</h4>
-                        <p class="text-xs text-slate-400">Chỉ ra điểm yếu và gợi ý tư duy</p>
-                    </div>
-                </div>
-                <div class="flex gap-4 items-start">
-                    <div class="w-8 rounded-full h-8 bg-purple-900/50 flex items-center justify-center text-purple-400 font-bold shrink-0">3</div>
-                    <div>
-                        <h4 class="font-bold text-white text-sm mb-1">Copy & Sử dụng</h4>
-                        <p class="text-xs text-slate-400">Dán Prompt vào ChatGPT/Claude</p>
-                    </div>
-                </div>
-            </div>
-            
-            <button id="btnStartApp" class="w-full py-3.5 rounded-2xl font-bold text-white bg-gradient-to-r from-pink-500 to-blue-500 shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-95 transition-all text-sm">
-                Đã hiểu, Bắt đầu
-            </button>
-        </div>
-    </div>
-
     <script>
         const API_URL = "https://prompt-tx2e.onrender.com"; 
         const $ = id => document.getElementById(id);
 
-        const moonSVG = `<div class="w-7 h-7 rounded-lg bg-white shadow-sm border border-slate-200 flex items-center justify-center overflow-hidden"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-5 h-5"><defs><linearGradient id="moonGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#1e3a8a" /><stop offset="100%" stop-color="#3b82f6" /></linearGradient></defs><path fill="url(#moonGrad)" d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path><circle cx="9" cy="9" r="0.5" fill="#93c5fd"/><circle cx="15" cy="15" r="0.5" fill="#93c5fd"/></svg></div>`;
-        const sunSVG = `<div class="w-7 h-7 rounded-lg bg-slate-800 shadow-sm border border-slate-600 flex items-center justify-center overflow-hidden"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-5 h-5"><defs><linearGradient id="sunGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#fef08a" /><stop offset="100%" stop-color="#f59e0b" /></linearGradient></defs><circle cx="12" cy="12" r="5" fill="url(#sunGrad)"></circle><path stroke="url(#sunGrad)" stroke-width="2" stroke-linecap="round" d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg></div>`;
+        // ICON SÁNG/TỐI ĐÃ SỬA (Bỏ khung trắng, chỉ lấy icon)
+        const moonSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-5 h-5 text-blue-400"><defs><linearGradient id="moonGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#60a5fa" /><stop offset="100%" stop-color="#3b82f6" /></linearGradient></defs><path fill="url(#moonGrad)" d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`;
+        const sunSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-5 h-5 text-yellow-500"><defs><linearGradient id="sunGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#fef08a" /><stop offset="100%" stop-color="#f59e0b" /></linearGradient></defs><circle cx="12" cy="12" r="5" fill="url(#sunGrad)"></circle><path stroke="url(#sunGrad)" stroke-width="2" stroke-linecap="round" d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>`;
 
         function applyTheme(dark) {
             document.documentElement.classList.toggle('dark', dark); document.documentElement.classList.toggle('light', !dark);
@@ -341,30 +309,6 @@
             } catch (e) { console.log("Lỗi check IP"); }
         }
         checkAdminAccess();
-
-        const guideModal = $('guideModal'); 
-        const guideContent = $('guideModalContent');
-        
-        function showGuide() { 
-            guideModal.classList.remove('hidden'); 
-            setTimeout(() => { 
-                guideModal.classList.remove('opacity-0'); 
-                guideContent.classList.remove('scale-95'); 
-                guideContent.classList.add('scale-100'); 
-            }, 10); 
-        }
-        function hideGuide() { 
-            guideModal.classList.add('opacity-0'); 
-            guideContent.classList.remove('scale-100'); 
-            guideContent.classList.add('scale-95'); 
-            setTimeout(() => { guideModal.classList.add('hidden'); }, 300); 
-            localStorage.setItem('hasSeenGuide', 'true'); 
-        }
-        
-        if (!localStorage.getItem('hasSeenGuide')) { setTimeout(showGuide, 1500); }
-        $('btnOpenGuide').addEventListener('click', showGuide);
-        $('btnCloseGuide').addEventListener('click', hideGuide);
-        $('btnStartApp').addEventListener('click', hideGuide);
     </script>
 </body>
 </html>
