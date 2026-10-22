@@ -28,6 +28,66 @@
         @media (max-width: 640px) { .menu-dropdown { width: min(260px, calc(100vw - 32px)); max-height: calc(100dvh - 88px); } }
         .glass-card { transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease; }
     </style>
+
+<script>
+/* Điều hướng độc lập với các thư viện ngoài để menu luôn hoạt động. */
+(function () {
+    function initPromptNavigation() {
+        const button = document.getElementById('btnHamburger');
+        const menu = document.getElementById('dropdownMenu');
+        if (!button || !menu || button.dataset.navigationReady === 'true') return;
+
+        button.dataset.navigationReady = 'true';
+        button.setAttribute('aria-controls', 'dropdownMenu');
+        button.setAttribute('aria-expanded', 'false');
+        button.setAttribute('aria-label', 'Mở menu điều hướng');
+
+        let isOpen = false;
+        function closeMenu() {
+            if (!isOpen) return;
+            isOpen = false;
+            button.setAttribute('aria-expanded', 'false');
+            button.setAttribute('aria-label', 'Mở menu điều hướng');
+            menu.classList.remove('opacity-100', 'scale-100');
+            menu.classList.add('opacity-0', 'scale-95');
+            window.setTimeout(function () {
+                if (!isOpen) menu.classList.add('hidden');
+            }, 200);
+        }
+        function openMenu() {
+            isOpen = true;
+            menu.classList.remove('hidden');
+            void menu.offsetWidth;
+            menu.classList.remove('opacity-0', 'scale-95');
+            menu.classList.add('opacity-100', 'scale-100');
+            button.setAttribute('aria-expanded', 'true');
+            button.setAttribute('aria-label', 'Đóng menu điều hướng');
+        }
+
+        button.addEventListener('click', function (event) {
+            event.preventDefault();
+            event.stopPropagation();
+            if (isOpen) closeMenu(); else openMenu();
+        });
+        document.addEventListener('click', function (event) {
+            if (isOpen && !menu.contains(event.target) && !button.contains(event.target)) closeMenu();
+        });
+        menu.addEventListener('click', function (event) {
+            const target = event.target instanceof Element ? event.target : null;
+            if (target && target.closest('a[href]')) closeMenu();
+        });
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape') closeMenu();
+        });
+    }
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initPromptNavigation, { once: true });
+    } else {
+        initPromptNavigation();
+    }
+})();
+</script>
+
 </head>
 
 <body class="antialiased min-h-screen relative text-slate-800 dark:text-slate-100 flex flex-col">
@@ -54,12 +114,13 @@
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
                             Thư viện
                         </a>
+                        <a href="./profile.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors">Trang cá nhân</a>
                         <div class="h-px bg-slate-100 dark:bg-slate-700/50 my-1 mx-2"></div>
                         <button id="themeToggleMenu" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors text-left">
                             <span id="themeIconMenu" class="w-5 h-5 flex items-center justify-center shrink-0"></span><span id="themeTextMenu">Chế độ Tối</span>
                         </button>
-                        <div id="adminMenuDivider" class="h-px bg-slate-100 dark:bg-slate-700/50 my-1 mx-2" style="display:none;"></div>
-                        <a id="menuBtnAdmin" href="./admin.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-green-50 dark:hover:bg-green-900/20 text-sm font-semibold text-green-600 dark:text-green-400 transition-colors" style="display:none;">Quản trị</a>
+                        <div id="adminMenuDivider" class="h-px bg-slate-100 dark:bg-slate-700/50 my-1 mx-2"></div>
+                        <a id="menuBtnAdmin" href="./admin.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-green-50 dark:hover:bg-green-900/20 text-sm font-semibold text-green-600 dark:text-green-400 transition-colors">Quản trị</a>
                     </div>
                 </div>
             </div>
@@ -115,7 +176,7 @@
         const SUPABASE_URL = "https://egncrbearrwfoslryuga.supabase.co";
         // ĐÃ ĐIỀN KEY CỦA BẠN VÀO ĐÂY
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVnbmNyYmVhcnJ3Zm9zbHJ5dWdhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI1MDk2MzgsImV4cCI6MjEwODA4NTYzOH0.jX8rz7Fk5wIqdbDqb6ZwKUiMs-wggVRj-dLk2dqlYFM";
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const supabase = window.supabase?.createClient ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
         const $ = id => document.getElementById(id);
         const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
 
@@ -123,17 +184,7 @@
         const sunSVG = `<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364-.707-.707M6.343 6.343l-.707-.707m12.728 0-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>`;
 
         // MENU & THEME
-        let isMenuOpen = false;
-        $('btnHamburger').addEventListener('click', (e) => {
-            e.stopPropagation(); isMenuOpen = !isMenuOpen;
-            if (isMenuOpen) { $('dropdownMenu').classList.remove('hidden'); setTimeout(() => { $('dropdownMenu').classList.remove('opacity-0', 'scale-95'); $('dropdownMenu').classList.add('opacity-100', 'scale-100'); }, 10); } 
-            else { $('dropdownMenu').classList.remove('opacity-100', 'scale-100'); $('dropdownMenu').classList.add('opacity-0', 'scale-95'); setTimeout(() => { $('dropdownMenu').classList.add('hidden'); }, 200); }
-        });
-        document.addEventListener('click', (e) => {
-            if (isMenuOpen && !$('dropdownMenu').contains(e.target) && e.target !== $('btnHamburger')) {
-                isMenuOpen = false; $('dropdownMenu').classList.remove('opacity-100', 'scale-100'); $('dropdownMenu').classList.add('opacity-0', 'scale-95'); setTimeout(() => { $('dropdownMenu').classList.add('hidden'); }, 200);
-            }
-        });
+        // Menu được xử lý độc lập ở đầu trang để không phụ thuộc các thư viện ngoài.
         function applyTheme(dark) {
             document.documentElement.classList.toggle('dark', dark); document.documentElement.classList.toggle('light', !dark);
             $('themeIconMenu').innerHTML = dark ? sunSVG : moonSVG; $('themeTextMenu').textContent = dark ? 'Chế độ Sáng' : 'Chế độ Tối';
