@@ -24,7 +24,7 @@
                 extend: {
                     fontFamily: { sans: ['Inter', 'sans-serif'] },
                     colors: { brand: { pink: '#ec4899', blue: '#3b82f6' } },
-                    animation: { 'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite' }, // Đã xóa float
+                    animation: { 'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite' },
                     keyframes: { float: { '0%, 100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-15px)' } } }
                 }
             }
@@ -32,6 +32,7 @@
     </script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
+        /* TỐI ƯU HÓA HIỆU NĂNG */
         body { overflow-x: hidden; transition: background-color 0.15s ease, color 0.15s ease; }
         
         @media (prefers-reduced-motion: reduce) {
@@ -40,18 +41,24 @@
 
         .dark-glow { background: radial-gradient(circle at 50% 0%, rgba(236,72,153,0.15) 0%, transparent 60%); }
         
-        .glass { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(4px); border: 1px solid rgba(0, 0, 0, 0.05); }
-        .dark .glass { background: rgba(30, 41, 59, 0.85); backdrop-filter: blur(4px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        /* 1. BỎ GLASS: Chuyển sang nền đặc, bỏ backdrop-filter */
+        .glass { background: #ffffff; border: 1px solid rgba(0, 0, 0, 0.06); }
+        .dark .glass { background: #1e293b; border: 1px solid rgba(255, 255, 255, 0.1); }
         
         .glass-card { transition: all 0.3s ease; }
         .glass-card:hover { border-color: rgba(236, 72, 153, 0.5); box-shadow: 0 0 30px rgba(236, 72, 153, 0.15); transform: translateY(-5px); }
         .dark .glass-card:hover { border-color: rgba(59, 130, 246, 0.4); box-shadow: 0 0 30px rgba(59, 130, 246, 0.15); }
+        
         .text-gradient { background: linear-gradient(to right, #ec4899, #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        
         .glow-btn { position: relative; }
         .glow-btn::before { content: ''; position: absolute; inset: -2px; background: linear-gradient(45deg, #ec4899, #3b82f6); border-radius: inherit; z-index: -1; filter: blur(8px); opacity: 0.7; transition: opacity 0.3s; }
         .glow-btn:hover::before { opacity: 1; }
-        .orb { position: absolute; border-radius: 50%; filter: blur(60px); z-index: -2; opacity: 0.15; }
-        .dark .orb { opacity: 0.3; }
+        
+        /* 2. GIẢM HIỆU ỨNG ORBS: Bỏ filter blur, giảm opacity */
+        .orb { position: absolute; border-radius: 50%; z-index: -2; opacity: 0.08; filter: none; }
+        .dark .orb { opacity: 0.12; }
+        
         .menu-dropdown { transition: all 0.2s ease-in-out; transform-origin: top left; }
     </style>
 </head>
@@ -139,16 +146,16 @@
                     Bắt đầu đánh giá miễn phí
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
                 </a>
-                <a href="#features" class="w-full sm:w-auto px-8 py-4 rounded-full font-bold text-slate-700 dark:text-slate-300 glass hover:bg-white dark:hover:bg-white/5 transition-all">
+                <a href="#features" class="w-full sm:w-auto px-8 py-4 rounded-full font-bold text-slate-700 dark:text-slate-300 glass hover:bg-slate-50 dark:hover:bg-slate-800 transition-all">
                     Tìm hiểu thêm
                 </a>
             </div>
         </div>
 
-        <!-- MOCKUP (ĐÃ BỎ HIỆU ỨNG LƠ LỬNG ANIMATE-FLOAT) -->
+        <!-- MOCKUP -->
         <div class="max-w-5xl mx-auto mt-16 md:mt-20 relative z-10 px-4 md:px-0">
-            <div class="absolute inset-0 bg-gradient-to-r from-brand-pink to-brand-blue rounded-3xl blur-2xl opacity-20 dark:opacity-40"></div>
-            <div class="glass border border-slate-200 dark:border-white/10 rounded-3xl p-4 md:p-6 shadow-2xl relative bg-white/90 dark:bg-[#0b1120]/90">
+            <div class="absolute inset-0 bg-gradient-to-r from-brand-pink to-brand-blue rounded-3xl opacity-20 dark:opacity-40"></div>
+            <div class="glass border border-slate-200 dark:border-white/10 rounded-3xl p-4 md:p-6 shadow-2xl relative bg-white dark:bg-[#0b1120]">
                 <div class="flex items-center gap-2 mb-4 px-2">
                     <div class="w-3 h-3 rounded-full bg-red-500"></div>
                     <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
@@ -242,7 +249,6 @@
         </div>
     </section>
 
-    <!-- FIX LỖI: Thẻ footer đã được viết đúng chuẩn -->
     <footer class="border-t border-slate-200 dark:border-white/10 py-8 text-center text-slate-500 text-sm relative z-10"><p>© 2026 Trợ lý AI - Nghiên cứu AI & Tư duy.</p></footer>
 
     <script>
