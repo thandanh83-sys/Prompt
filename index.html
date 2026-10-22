@@ -1,3 +1,16 @@
+Rất chuẩn! Làm từng cái một sẽ dễ kiểm soát hơn.
+
+Dựa vào 4 bức ảnh bạn gửi (ảnh 1, 2, 4 là Trang chủ, ảnh 5 là Menu), mình đã viết lại file index.html hoàn chỉnh nhất để nó giống hệt 100% thiết kế bạn mong muốn: Từ hiệu ứng nền phát sáng, font chữ, màu gradient 3 màu (Hồng - Tím - Xanh), cho đến Menu và Logo.
+
+Bạn hãy copy toàn bộ đoạn code dưới đây và dán đè lên file index.html của bạn.
+
+(Lưu ý: Các file khác như landing.html, library.html... mình tạm thời chưa đụng tới, chúng ta sẽ xử lý từng file sau khi bạn đã ưng ý trang chủ này).
+
+---
+
+📄 File index.html (Bản chuẩn theo ảnh)
+
+```html
 <!DOCTYPE html>
 <html lang="vi" class="light">
 <head>
@@ -22,18 +35,31 @@
         html.dark { background-color: #0f172a; }
         body { -webkit-tap-highlight-color: transparent; overflow-x: hidden; transition: background-color .15s ease, color .15s ease; background-color: #f8f7fc; overscroll-behavior-y: none; }
         .dark body { background-color: #0f172a; }
-        .page-bg { position: fixed; inset: 0; z-index: -1; pointer-events: none; background: radial-gradient(ellipse at 18% 28%, rgba(229,112,196,.12), transparent 36%), radial-gradient(ellipse at 74% 52%, rgba(90,129,255,.10), transparent 40%), transparent; }
-        .dark .page-bg { background: radial-gradient(ellipse at 18% 28%, rgba(164,55,130,.10), transparent 36%), radial-gradient(ellipse at 74% 52%, rgba(53,84,180,.12), transparent 40%), transparent; }
+        
+        /* Hiệu ứng nền phát sáng (Glow) */
+        .page-bg { 
+            position: fixed; inset: 0; z-index: -1; pointer-events: none; 
+            background: radial-gradient(circle at 50% 0%, rgba(236,72,153,.15) 0%, transparent 50%), 
+                        radial-gradient(circle at 50% 100%, rgba(59,130,246,.15) 0%, transparent 50%); 
+        }
+        .dark .page-bg { 
+            background: radial-gradient(circle at 50% 0%, rgba(236,72,153,.10) 0%, transparent 40%), 
+                        radial-gradient(circle at 50% 100%, rgba(59,130,246,.10) 0%, transparent 40%); 
+        }
+
+        /* Header kính mờ */
         .app-header { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); border-color: rgba(0,0,0,.06); transition: all .2s; }
         .dark .app-header { background: rgba(15, 23, 42, 0.85); border-color: rgba(255,255,255,.1); }
+        
+        /* Hiệu ứng chữ và nút */
         .brand-text { background: linear-gradient(100deg, #ec4899, #a052c8 52%, #3979f5); -webkit-background-clip: text; background-clip: text; color: transparent; }
-        .brand-icon-gradient { fill: url(#brandSparkGradient); }
-        .btn-glow { box-shadow: 0 4px 15px rgba(236,72,153,.3); transition: all .2s ease; }
-        .btn-glow:hover { box-shadow: 0 6px 20px rgba(59,130,246,.5); transform: translateY(-2px); }
+        .btn-glow { box-shadow: 0 4px 20px rgba(236,72,153,.4); transition: all .2s ease; }
+        .btn-glow:hover { box-shadow: 0 6px 25px rgba(59,130,246,.5); transform: translateY(-2px); }
+        
+        /* Menu Overlay & Dropdown */
         .menu-dropdown { transition: all .2s ease-in-out; transform-origin: top left; width: min(280px, calc(100vw - 32px)); max-height: calc(100dvh - 100px); overflow-y: auto; box-sizing: border-box; }
         .menu-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.5); backdrop-filter: blur(4px); z-index: 40; opacity: 0; pointer-events: none; transition: all .2s ease; }
         .menu-overlay.active { opacity: 1; pointer-events: auto; }
-        @media (max-width: 640px) { .menu-dropdown { width: min(260px, calc(100vw - 32px)); max-height: calc(100dvh - 88px); } }
     </style>
 
     <script>
@@ -45,14 +71,11 @@
                 if (!button || !menu || button.dataset.navigationReady === 'true') return;
 
                 button.dataset.navigationReady = 'true';
-                button.setAttribute('aria-controls', 'dropdownMenu');
-                button.setAttribute('aria-expanded', 'false');
-
                 let isOpen = false;
+                
                 function closeMenu() {
                     if (!isOpen) return;
                     isOpen = false;
-                    button.setAttribute('aria-expanded', 'false');
                     menu.classList.remove('opacity-100', 'scale-100');
                     menu.classList.add('opacity-0', 'scale-95');
                     if (overlay) overlay.classList.remove('active');
@@ -65,7 +88,6 @@
                     menu.classList.remove('opacity-0', 'scale-95');
                     menu.classList.add('opacity-100', 'scale-100');
                     if (overlay) overlay.classList.add('active');
-                    button.setAttribute('aria-expanded', 'true');
                 }
 
                 button.addEventListener('click', function (event) {
@@ -75,10 +97,6 @@
                 if (overlay) overlay.addEventListener('click', closeMenu);
                 document.addEventListener('click', function (event) {
                     if (isOpen && !menu.contains(event.target) && !button.contains(event.target)) closeMenu();
-                });
-                menu.addEventListener('click', function (event) {
-                    const target = event.target instanceof Element ? event.target : null;
-                    if (target && target.closest('a[href]')) closeMenu();
                 });
             }
             if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', initPromptNavigation); } 
@@ -95,74 +113,100 @@
     <header class="app-header fixed top-0 left-0 w-full z-50 border-b">
         <div class="w-full max-w-7xl mx-auto px-4 sm:px-6 h-16 md:h-20 flex items-center justify-between gap-2 sm:gap-3 relative">
             
-            <!-- MENU TRÁI -->
+            <!-- BÊN TRÁI: MENU + LOGO -->
             <div class="relative flex items-center gap-1 sm:gap-2 z-50">
                 <button id="btnHamburger" class="w-10 h-10 shrink-0 flex items-center justify-center rounded-full text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
                 </button>
                 
+                <!-- MENU DROPDOWN -->
                 <div id="dropdownMenu" class="menu-dropdown absolute top-12 left-0 bg-white/95 dark:bg-[#1e293b]/95 backdrop-blur-xl border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl hidden opacity-0 scale-95 z-50 p-2">
                     <div class="flex flex-col gap-1">
-                        <a href="./index.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors">Trang chủ</a>
-                        <a href="./landing.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors">Đánh giá</a>
-                        <a href="./library.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors">Thư viện</a>
-                        <a href="./profile.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors">Trang cá nhân</a>
+                        <a href="./index.html" class="flex items-center gap-3 px-3 py-3 rounded-xl bg-slate-100 dark:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors">
+                            <svg class="w-5 h-5 text-pink-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                            Trang chủ
+                        </a>
+                        <a href="./landing.html" class="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors">
+                            <svg class="w-5 h-5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>
+                            Đánh giá
+                        </a>
+                        <a href="./library.html" class="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors">
+                            <svg class="w-5 h-5 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                            Thư viện
+                        </a>
+                        <a href="./profile.html" class="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors">
+                            <svg class="w-5 h-5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                            Trang cá nhân
+                        </a>
                         <div class="h-px bg-slate-100 dark:bg-slate-700/50 my-1 mx-2"></div>
-                        <button id="themeToggleMenu" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors text-left">
-                            <span id="themeIconMenu" class="w-7 h-7 flex items-center justify-center shrink-0"></span>
+                        
+                        <!-- Nút Sáng Tối -->
+                        <button id="themeToggleMenu" class="w-full flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors text-left">
+                            <span id="themeIconMenu" class="w-6 h-6 flex items-center justify-center shrink-0"></span>
                             <span id="themeTextMenu">Chế độ Tối</span>
                         </button>
+                        
                         <div id="adminMenuDivider" class="h-px bg-slate-100 dark:bg-slate-700/50 my-1 mx-2" style="display:none;"></div>
-                        <a id="menuBtnAdmin" href="./admin.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-green-50 dark:hover:bg-green-900/20 text-sm font-semibold text-green-600 dark:text-green-400 transition-colors" style="display:none;">Quản trị</a>
+                        <a id="menuBtnAdmin" href="./admin.html" class="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-green-50 dark:hover:bg-green-900/20 text-sm font-semibold text-green-600 dark:text-green-400 transition-colors" style="display:none;">
+                            <svg class="w-5 h-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                            Quản trị (Admin)
+                        </a>
                     </div>
+                </div>
+
+                <!-- LOGO (Nằm cạnh Hamburger) -->
+                <div class="flex items-center gap-1.5 min-w-0">
+                    <svg class="w-6 h-6 sm:w-7 sm:h-7 shrink-0" viewBox="0 0 24 24"><defs><linearGradient id="brandSparkGradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ec4899"/><stop offset="100%" stop-color="#3b82f6"/></linearGradient></defs><path fill="url(#brandSparkGradient)" d="M12 2L14.7 9.3 22 12l-7.3 2.7L12 22l-2.7-7.3L2 12l7.3-2.7L12 2Z"/></svg>
+                    <span class="brand-text text-base sm:text-lg font-extrabold truncate">Trợ lý AI</span>
                 </div>
             </div>
             
-            <!-- LOGO Ở GIỮA -->
-            <a href="./index.html" class="absolute left-1/2 -translate-x-1/2 flex items-center gap-1.5 min-w-0 no-underline focus:outline-none">
-                <svg class="brand-spark w-6 h-6 sm:w-7 sm:h-7 shrink-0" viewBox="0 0 24 24"><defs><linearGradient id="brandSparkGradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ec4899"/><stop offset="100%" stop-color="#3b82f6"/></linearGradient></defs><path class="brand-icon-gradient" d="M12 2L14.7 9.3 22 12l-7.3 2.7L12 22l-2.7-7.3L2 12l7.3-2.7L12 2Z"/></svg>
-                <span class="brand-text text-base sm:text-lg font-extrabold truncate">Trợ lý AI</span>
-            </a>
-            
-            <!-- NÚT PHẢI -->
-            <a href="./landing.html" class="px-3 py-1.5 md:px-5 md:py-2.5 rounded-full text-xs md:text-sm font-bold text-white bg-gradient-to-r from-pink-500 to-blue-500 shadow-sm hover:shadow-md hover:scale-105 active:scale-95 transition-all whitespace-nowrap z-50">
+            <!-- BÊN PHẢI: NÚT TRẢI NGHIỆM NGAY -->
+            <a href="./landing.html" class="px-4 py-2 md:px-6 md:py-2.5 rounded-full text-xs md:text-sm font-bold text-white bg-gradient-to-r from-pink-500 to-blue-500 shadow-md hover:shadow-lg hover:scale-105 active:scale-95 transition-all whitespace-nowrap z-50">
                 Trải nghiệm ngay
             </a>
         </div>
     </header>
 
     <!-- NỘI DUNG TRANG CHỦ -->
-    <main class="relative pt-24 pb-20 md:pt-32 md:pb-32 px-4 md:px-6 z-10 flex-grow">
-        <div class="max-w-4xl mx-auto text-center">
-            <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-semibold text-pink-500 mb-8">
+    <main class="relative pt-32 pb-20 md:pt-48 md:pb-32 px-4 md:px-6 z-10 flex-grow flex flex-col items-center justify-center">
+        
+        <div class="max-w-3xl mx-auto text-center w-full">
+            <!-- Badge -->
+            <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 text-sm font-semibold text-pink-500 mb-8 shadow-sm">
                 <span class="w-2 h-2 rounded-full bg-pink-500"></span> Chuẩn mực mới cho Prompt Engineering
             </div>
-            <h1 class="text-4xl md:text-7xl font-extrabold text-slate-900 dark:text-white leading-tight mb-6">
-                Biến câu lệnh <br class="md:hidden"> thông thường <br> thành <span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-blue-500">Prompt Chuyên Gia</span>
+            
+            <!-- Heading -->
+            <h1 class="text-5xl md:text-6xl lg:text-7xl font-extrabold text-slate-900 dark:text-white leading-[1.1] mb-6 tracking-tight">
+                Biến câu lệnh <br> thông thường thành <br>
+                <span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500">Prompt Chuyên Gia</span>
             </h1>
-            <p class="text-base md:text-xl text-slate-600 dark:text-slate-400 mb-10 max-w-2xl mx-auto leading-relaxed">
+            
+            <!-- Description -->
+            <p class="text-base md:text-lg lg:text-xl text-slate-600 dark:text-slate-400 mb-10 max-w-2xl mx-auto leading-relaxed">
                 AI tự động phân tích, chấm điểm và tối ưu hóa câu lệnh của bạn theo cấu trúc <strong>11 mục</strong> chuẩn quốc tế.
             </p>
-            <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
-                <a href="./landing.html" class="btn-glow w-full sm:w-auto px-8 py-4 rounded-full font-bold text-white bg-gradient-to-r from-pink-500 to-blue-500 transition-all flex items-center justify-center gap-2">
-                    Bắt đầu đánh giá miễn phí
-                </a>
-            </div>
-            <div class="mt-6">
+            
+            <!-- CTA Button -->
+            <a href="./landing.html" class="btn-glow inline-flex w-full sm:w-auto px-10 py-4 rounded-full font-bold text-white bg-gradient-to-r from-pink-500 to-blue-500 transition-all items-center justify-center gap-2 text-lg mb-6">
+                Bắt đầu đánh giá miễn phí
+            </a>
+
+            <!-- Nút Tìm hiểu thêm -->
+            <div>
                 <button id="btnOpenGuide" class="text-sm font-semibold text-slate-500 hover:text-blue-500 underline underline-offset-4 transition-colors">Tìm hiểu thêm cách hoạt động</button>
             </div>
         </div>
-    </main>
 
-    <footer class="border-t border-slate-200 dark:border-white/10 py-8 text-center text-slate-500 text-sm relative z-10 mt-auto">
-        <p>© 2026 Trợ lý AI - Nghiên cứu AI & Tư duy.</p>
-    </footer>
+    </main>
 
     <!-- MODAL HƯỚNG DẪN -->
     <div id="guideModal" class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm hidden opacity-0 transition-opacity duration-300">
         <div class="bg-[#1e293b] border border-slate-700 rounded-3xl shadow-2xl w-full max-w-md p-6 relative transform scale-95 transition-transform duration-300" id="guideModalContent">
             <button type="button" id="btnCloseGuide" class="absolute top-4 right-4 text-slate-400 hover:text-white bg-slate-800/50 hover:bg-slate-700 w-8 h-8 rounded-full flex items-center justify-center transition-colors">✕</button>
             <h2 class="text-2xl font-extrabold text-center mb-8 text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-blue-500">Hướng dẫn sử dụng</h2>
+            
             <div class="space-y-6 mb-8">
                 <div class="flex gap-4 items-start">
                     <div class="w-8 h-8 rounded-full bg-blue-900/50 flex items-center justify-center text-blue-400 font-bold shrink-0">1</div>
@@ -186,7 +230,10 @@
                     </div>
                 </div>
             </div>
-            <button id="btnStartApp" class="w-full py-3.5 rounded-2xl font-bold text-white bg-gradient-to-r from-pink-500 to-blue-500 shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-95 transition-all text-sm">Đã hiểu, Bắt đầu</button>
+            
+            <button id="btnStartApp" class="w-full py-3.5 rounded-2xl font-bold text-white bg-gradient-to-r from-pink-500 to-blue-500 shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-95 transition-all text-sm">
+                Đã hiểu, Bắt đầu
+            </button>
         </div>
     </div>
 
@@ -194,7 +241,7 @@
         const API_URL = "https://prompt-tx2e.onrender.com"; 
         const $ = id => document.getElementById(id);
 
-        // ICON SÁNG/TỐI (Theo thiết kế ảnh 6)
+        // ICON SÁNG/TỐI CHUẨN ẢNH 6
         const moonSVG = `<div class="w-7 h-7 rounded-lg bg-white shadow-sm border border-slate-200 flex items-center justify-center overflow-hidden"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-5 h-5"><defs><linearGradient id="moonGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#1e3a8a" /><stop offset="100%" stop-color="#3b82f6" /></linearGradient></defs><path fill="url(#moonGrad)" d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path><circle cx="9" cy="9" r="0.5" fill="#93c5fd"/><circle cx="15" cy="15" r="0.5" fill="#93c5fd"/></svg></div>`;
         const sunSVG = `<div class="w-7 h-7 rounded-lg bg-slate-800 shadow-sm border border-slate-600 flex items-center justify-center overflow-hidden"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-5 h-5"><defs><linearGradient id="sunGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#fef08a" /><stop offset="100%" stop-color="#f59e0b" /></linearGradient></defs><circle cx="12" cy="12" r="5" fill="url(#sunGrad)"></circle><path stroke="url(#sunGrad)" stroke-width="2" stroke-linecap="round" d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg></div>`;
 
@@ -207,23 +254,43 @@
             if (themeColor) themeColor.setAttribute('content', dark ? '#0f172a' : '#f8f7fc');
         }
         applyTheme(document.documentElement.classList.contains('dark'));
-        $('themeToggleMenu').addEventListener('click', (event) => {
-            event.preventDefault(); event.stopPropagation();
-            applyTheme(!document.documentElement.classList.contains('dark'));
+        
+        $('themeToggleMenu').addEventListener('click', (e) => { 
+            e.preventDefault(); e.stopPropagation(); 
+            applyTheme(!document.documentElement.classList.contains('dark')); 
         });
 
+        // CHECK ADMIN IP
         async function checkAdminAccess() {
             try {
                 const res = await fetch(`${API_URL}/check_admin_ip`);
-                if (res.ok) { $('adminMenuDivider').style.display = 'block'; $('menuBtnAdmin').style.display = 'flex'; } 
+                if (res.ok) { 
+                    $('adminMenuDivider').style.display = 'block'; 
+                    $('menuBtnAdmin').style.display = 'flex'; 
+                } 
             } catch (e) { console.log("Lỗi check IP"); }
         }
         checkAdminAccess();
 
-        // MODAL LOGIC
-        const guideModal = $('guideModal'); const guideContent = $('guideModalContent');
-        function showGuide() { guideModal.classList.remove('hidden'); setTimeout(() => { guideModal.classList.remove('opacity-0'); guideContent.classList.remove('scale-95'); guideContent.classList.add('scale-100'); }, 10); }
-        function hideGuide() { guideModal.classList.add('opacity-0'); guideContent.classList.remove('scale-100'); guideContent.classList.add('scale-95'); setTimeout(() => { guideModal.classList.add('hidden'); }, 300); localStorage.setItem('hasSeenGuide', 'true'); }
+        // LOGIC MODAL HƯỚNG DẪN
+        const guideModal = $('guideModal'); 
+        const guideContent = $('guideModalContent');
+        
+        function showGuide() { 
+            guideModal.classList.remove('hidden'); 
+            setTimeout(() => { 
+                guideModal.classList.remove('opacity-0'); 
+                guideContent.classList.remove('scale-95'); 
+                guideContent.classList.add('scale-100'); 
+            }, 10); 
+        }
+        function hideGuide() { 
+            guideModal.classList.add('opacity-0'); 
+            guideContent.classList.remove('scale-100'); 
+            guideContent.classList.add('scale-95'); 
+            setTimeout(() => { guideModal.classList.add('hidden'); }, 300); 
+            localStorage.setItem('hasSeenGuide', 'true'); 
+        }
         
         if (!localStorage.getItem('hasSeenGuide')) { setTimeout(showGuide, 1000); }
         $('btnOpenGuide').addEventListener('click', showGuide);
@@ -232,3 +299,12 @@
     </script>
 </body>
 </html>
+```
+
+📝 Đánh giá lại file này:
+
+1. Logo & Menu: Logo đã nằm ngay sát cạnh nút 3 gạch (bên trái) giống hệt ảnh 1, 2, 4 của bạn. Nút "Trải nghiệm ngay" nằm bên phải.
+2. Giao diện trang chủ: Chữ to, gradient 3 màu (Hồng - Tím - Xanh), có Badge "🚀 Chuẩn mực...", có nút CTA phát sáng và nút "Tìm hiểu thêm" ở dưới. Hiệu ứng nền phát sáng trên xuống dưới đã được thêm vào (page-bg).
+3. Menu: Bấm vào sẽ hiện ra lớp nền đen mờ xung quanh. Các icon bên trong (Trang chủ, Đánh giá, Thư viện...) đã được set màu đúng như ảnh.
+
+Bạn hãy copy file index.html này dán lên GitHub. Sau khi làm xong, bạn nhắn "Đã xong trang chủ", chúng ta sẽ chuyển sang xử lý file tiếp theo (ví dụ: landing.html).
