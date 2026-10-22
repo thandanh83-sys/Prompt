@@ -1,16 +1,3 @@
-Rất chuẩn! Làm từng cái một sẽ dễ kiểm soát hơn.
-
-Dựa vào 4 bức ảnh bạn gửi (ảnh 1, 2, 4 là Trang chủ, ảnh 5 là Menu), mình đã viết lại file index.html hoàn chỉnh nhất để nó giống hệt 100% thiết kế bạn mong muốn: Từ hiệu ứng nền phát sáng, font chữ, màu gradient 3 màu (Hồng - Tím - Xanh), cho đến Menu và Logo.
-
-Bạn hãy copy toàn bộ đoạn code dưới đây và dán đè lên file index.html của bạn.
-
-(Lưu ý: Các file khác như landing.html, library.html... mình tạm thời chưa đụng tới, chúng ta sẽ xử lý từng file sau khi bạn đã ưng ý trang chủ này).
-
----
-
-📄 File index.html (Bản chuẩn theo ảnh)
-
-```html
 <!DOCTYPE html>
 <html lang="vi" class="light">
 <head>
@@ -31,20 +18,20 @@ Bạn hãy copy toàn bộ đoạn code dưới đây và dán đè lên file in
     <script>tailwind.config = { darkMode: 'class' }</script>
 
     <style>
-        html { background-color: #f8f7fc; transition: background-color .15s ease; min-height: 100vh; }
+        html { background-color: #f8f7fc; transition: background-color .15s ease; min-height: 100vh; scroll-behavior: smooth; }
         html.dark { background-color: #0f172a; }
         body { -webkit-tap-highlight-color: transparent; overflow-x: hidden; transition: background-color .15s ease, color .15s ease; background-color: #f8f7fc; overscroll-behavior-y: none; }
         .dark body { background-color: #0f172a; }
         
-        /* Hiệu ứng nền phát sáng (Glow) */
+        /* Hiệu ứng nền phát sáng mạnh mẽ (Lấy cảm hứng Awwwards) */
         .page-bg { 
             position: fixed; inset: 0; z-index: -1; pointer-events: none; 
-            background: radial-gradient(circle at 50% 0%, rgba(236,72,153,.15) 0%, transparent 50%), 
-                        radial-gradient(circle at 50% 100%, rgba(59,130,246,.15) 0%, transparent 50%); 
+            background: radial-gradient(circle at 50% -20%, rgba(236,72,153,.15) 0%, transparent 60%), 
+                        radial-gradient(circle at 50% 120%, rgba(59,130,246,.1) 0%, transparent 50%); 
         }
         .dark .page-bg { 
-            background: radial-gradient(circle at 50% 0%, rgba(236,72,153,.10) 0%, transparent 40%), 
-                        radial-gradient(circle at 50% 100%, rgba(59,130,246,.10) 0%, transparent 40%); 
+            background: radial-gradient(circle at 50% -20%, rgba(236,72,153,.15) 0%, transparent 60%), 
+                        radial-gradient(circle at 50% 120%, rgba(59,130,246,.15) 0%, transparent 50%); 
         }
 
         /* Header kính mờ */
@@ -53,13 +40,18 @@ Bạn hãy copy toàn bộ đoạn code dưới đây và dán đè lên file in
         
         /* Hiệu ứng chữ và nút */
         .brand-text { background: linear-gradient(100deg, #ec4899, #a052c8 52%, #3979f5); -webkit-background-clip: text; background-clip: text; color: transparent; }
-        .btn-glow { box-shadow: 0 4px 20px rgba(236,72,153,.4); transition: all .2s ease; }
+        .btn-glow { box-shadow: 0 4px 20px rgba(236,72,153,.3); transition: all .2s ease; }
         .btn-glow:hover { box-shadow: 0 6px 25px rgba(59,130,246,.5); transform: translateY(-2px); }
         
         /* Menu Overlay & Dropdown */
         .menu-dropdown { transition: all .2s ease-in-out; transform-origin: top left; width: min(280px, calc(100vw - 32px)); max-height: calc(100dvh - 100px); overflow-y: auto; box-sizing: border-box; }
         .menu-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.5); backdrop-filter: blur(4px); z-index: 40; opacity: 0; pointer-events: none; transition: all .2s ease; }
         .menu-overlay.active { opacity: 1; pointer-events: auto; }
+
+        /* Hiệu ứng thẻ tính năng (Lấy cảm hứng từ Mobbin, Godly) */
+        .feature-card { transition: all 0.3s ease; }
+        .feature-card:hover { transform: translateY(-5px); box-shadow: 0 20px 40px -10px rgba(0,0,0,0.1); border-color: rgba(236,72,153,0.3); }
+        .dark .feature-card:hover { box-shadow: 0 20px 40px -10px rgba(0,0,0,0.5); border-color: rgba(59,130,246,0.3); }
     </style>
 
     <script>
@@ -154,7 +146,7 @@ Bạn hãy copy toàn bộ đoạn code dưới đây và dán đè lên file in
                     </div>
                 </div>
 
-                <!-- LOGO (Nằm cạnh Hamburger) -->
+                <!-- LOGO -->
                 <div class="flex items-center gap-1.5 min-w-0">
                     <svg class="w-6 h-6 sm:w-7 sm:h-7 shrink-0" viewBox="0 0 24 24"><defs><linearGradient id="brandSparkGradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ec4899"/><stop offset="100%" stop-color="#3b82f6"/></linearGradient></defs><path fill="url(#brandSparkGradient)" d="M12 2L14.7 9.3 22 12l-7.3 2.7L12 22l-2.7-7.3L2 12l7.3-2.7L12 2Z"/></svg>
                     <span class="brand-text text-base sm:text-lg font-extrabold truncate">Trợ lý AI</span>
@@ -168,38 +160,118 @@ Bạn hãy copy toàn bộ đoạn code dưới đây và dán đè lên file in
         </div>
     </header>
 
-    <!-- NỘI DUNG TRANG CHỦ -->
-    <main class="relative pt-32 pb-20 md:pt-48 md:pb-32 px-4 md:px-6 z-10 flex-grow flex flex-col items-center justify-center">
+    <!-- NỘI DUNG TRANG CHỦ (NÂNG CẤP) -->
+    <main class="relative pt-32 pb-20 md:pt-40 md:pb-32 z-10 flex-grow flex flex-col items-center">
         
-        <div class="max-w-3xl mx-auto text-center w-full">
-            <!-- Badge -->
+        <!-- HERO SECTION -->
+        <section class="w-full max-w-4xl mx-auto px-4 md:px-6 text-center mb-24">
             <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 text-sm font-semibold text-pink-500 mb-8 shadow-sm">
-                <span class="w-2 h-2 rounded-full bg-pink-500"></span> Chuẩn mực mới cho Prompt Engineering
+                <span class="w-2 h-2 rounded-full bg-pink-500 animate-pulse"></span> Chuẩn mực mới cho Prompt Engineering
             </div>
             
-            <!-- Heading -->
             <h1 class="text-5xl md:text-6xl lg:text-7xl font-extrabold text-slate-900 dark:text-white leading-[1.1] mb-6 tracking-tight">
                 Biến câu lệnh <br> thông thường thành <br>
                 <span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500">Prompt Chuyên Gia</span>
             </h1>
             
-            <!-- Description -->
             <p class="text-base md:text-lg lg:text-xl text-slate-600 dark:text-slate-400 mb-10 max-w-2xl mx-auto leading-relaxed">
-                AI tự động phân tích, chấm điểm và tối ưu hóa câu lệnh của bạn theo cấu trúc <strong>11 mục</strong> chuẩn quốc tế.
+                AI tự động phân tích, chấm điểm và tối ưu hóa câu lệnh của bạn theo cấu trúc <strong>11 mục</strong> chuẩn quốc tế. Không còn nỗi lo AI trả lời sai ý.
             </p>
             
-            <!-- CTA Button -->
-            <a href="./landing.html" class="btn-glow inline-flex w-full sm:w-auto px-10 py-4 rounded-full font-bold text-white bg-gradient-to-r from-pink-500 to-blue-500 transition-all items-center justify-center gap-2 text-lg mb-6">
-                Bắt đầu đánh giá miễn phí
-            </a>
-
-            <!-- Nút Tìm hiểu thêm -->
-            <div>
-                <button id="btnOpenGuide" class="text-sm font-semibold text-slate-500 hover:text-blue-500 underline underline-offset-4 transition-colors">Tìm hiểu thêm cách hoạt động</button>
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+                <a href="./landing.html" class="btn-glow w-full sm:w-auto px-10 py-4 rounded-full font-bold text-white bg-gradient-to-r from-pink-500 to-blue-500 transition-all flex items-center justify-center gap-2 text-lg">
+                    Bắt đầu đánh giá miễn phí
+                </a>
+                <button id="btnOpenGuide" class="w-full sm:w-auto px-8 py-4 rounded-full font-bold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all flex items-center justify-center gap-2 text-lg">
+                    Tìm hiểu thêm
+                </button>
             </div>
-        </div>
+        </section>
+
+        <!-- FEATURES SECTION (Lấy cảm hứng từ Godly, Mobbin) -->
+        <section class="w-full max-w-5xl mx-auto px-4 md:px-6 mb-24">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-slate-900 dark:text-white mb-4">Tại sao chọn Trợ lý AI?</h2>
+                <p class="text-slate-500 dark:text-slate-400 max-w-xl mx-auto">Chúng tôi mang đến giải pháp toàn diện giúp bạn làm chủ nghệ thuật viết Prompt.</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Card 1 -->
+                <div class="feature-card bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-3xl p-8 relative overflow-hidden">
+                    <div class="w-14 h-14 rounded-2xl bg-pink-100 dark:bg-pink-900/30 flex items-center justify-center mb-6">
+                        <svg class="w-7 h-7 text-pink-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-3">Chấm điểm thông minh</h3>
+                    <p class="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">AI đánh giá Prompt của bạn dựa trên các tiêu chí chuyên môn, chỉ ra điểm mạnh và điểm cần khắc phục.</p>
+                </div>
+
+                <!-- Card 2 -->
+                <div class="feature-card bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-3xl p-8 relative overflow-hidden">
+                    <div class="w-14 h-14 rounded-2xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center mb-6">
+                        <svg class="w-7 h-7 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-3">Tối ưu 11 mục</h3>
+                    <p class="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">Tự động cấu trúc lại Prompt của bạn theo chuẩn 11 mục quốc tế, giúp AI hiểu đúng ý định ngay từ lần đầu.</p>
+                </div>
+
+                <!-- Card 3 -->
+                <div class="feature-card bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-3xl p-8 relative overflow-hidden">
+                    <div class="w-14 h-14 rounded-2xl bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center mb-6">
+                        <svg class="w-7 h-7 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-3">Thư viện cộng đồng</h3>
+                    <p class="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">Khám phá kho tàng Prompt chất lượng cao từ cộng đồng, sẵn sàng để bạn sao chép và sử dụng ngay lập tức.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- HOW IT WORKS (Lấy cảm hứng từ Lapa Ninja, Framer) -->
+        <section class="w-full max-w-4xl mx-auto px-4 md:px-6 mb-24">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold text-slate-900 dark:text-white mb-4">Quy trình 3 bước đơn giản</h2>
+            </div>
+            
+            <div class="flex flex-col md:flex-row items-center justify-center gap-8 md:gap-4 relative">
+                <!-- Step 1 -->
+                <div class="flex flex-col items-center text-center relative z-10 w-48">
+                    <div class="w-16 h-16 rounded-full bg-gradient-to-tr from-pink-500 to-blue-500 text-white flex items-center justify-center text-2xl font-bold mb-4 shadow-lg">1</div>
+                    <h4 class="font-bold text-slate-800 dark:text-white mb-2">Nhập Prompt</h4>
+                    <p class="text-sm text-slate-500 dark:text-slate-400">Dán câu lệnh thô của bạn vào.</p>
+                </div>
+                <div class="hidden md:block w-full h-0.5 bg-slate-200 dark:bg-slate-700 relative top-[-20px] z-0"></div>
+                <!-- Step 2 -->
+                <div class="flex flex-col items-center text-center relative z-10 w-48">
+                    <div class="w-16 h-16 rounded-full bg-gradient-to-tr from-pink-500 to-blue-500 text-white flex items-center justify-center text-2xl font-bold mb-4 shadow-lg">2</div>
+                    <h4 class="font-bold text-slate-800 dark:text-white mb-2">AI Phân tích</h4>
+                    <p class="text-sm text-slate-500 dark:text-slate-400">Hệ thống chấm điểm và viết lại.</p>
+                </div>
+                <div class="hidden md:block w-full h-0.5 bg-slate-200 dark:bg-slate-700 relative top-[-20px] z-0"></div>
+                <!-- Step 3 -->
+                <div class="flex flex-col items-center text-center relative z-10 w-48">
+                    <div class="w-16 h-16 rounded-full bg-gradient-to-tr from-pink-500 to-blue-500 text-white flex items-center justify-center text-2xl font-bold mb-4 shadow-lg">3</div>
+                    <h4 class="font-bold text-slate-800 dark:text-white mb-2">Nhận kết quả</h4>
+                    <p class="text-sm text-slate-500 dark:text-slate-400">Sao chép Prompt 11 mục và dùng.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- BOTTOM CTA (Lấy cảm hứng từ Refero) -->
+        <section class="w-full max-w-4xl mx-auto px-4 md:px-6 mb-10">
+            <div class="bg-gradient-to-br from-slate-900 to-slate-800 dark:from-[#1e293b] dark:to-[#0f172a] rounded-3xl p-10 md:p-16 text-center relative overflow-hidden border border-slate-700">
+                <div class="absolute top-0 left-0 w-full h-full bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPgo8cmVjdCB3aWR0aD0iNCIgaGVpZ2h0PSI0IiBmaWxsPSIjZmZmIiBmaWxsLW9wYWNpdHk9IjAuMDUiLz4KPC9zdmc+')] opacity-20 pointer-events-none"></div>
+                <h2 class="text-3xl md:text-4xl font-bold text-white mb-6 relative z-10">Sẵn sàng nâng cấp Prompt của bạn?</h2>
+                <p class="text-slate-300 mb-8 max-w-xl mx-auto relative z-10">Trải nghiệm ngay công cụ đánh giá Prompt thông minh nhất.</p>
+                <a href="./landing.html" class="inline-flex items-center gap-2 px-8 py-4 rounded-full font-bold text-white bg-gradient-to-r from-pink-500 to-blue-500 shadow-lg hover:scale-105 transition-transform relative z-10">
+                    Vào ứng dụng ngay 🚀
+                </a>
+            </div>
+        </section>
 
     </main>
+
+    <footer class="border-t border-slate-200 dark:border-white/10 py-8 text-center text-slate-500 text-sm relative z-10 mt-auto">
+        <p>© 2026 Trợ lý AI - Nghiên cứu AI & Tư duy.</p>
+    </footer>
 
     <!-- MODAL HƯỚNG DẪN -->
     <div id="guideModal" class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm hidden opacity-0 transition-opacity duration-300">
@@ -292,19 +364,10 @@ Bạn hãy copy toàn bộ đoạn code dưới đây và dán đè lên file in
             localStorage.setItem('hasSeenGuide', 'true'); 
         }
         
-        if (!localStorage.getItem('hasSeenGuide')) { setTimeout(showGuide, 1000); }
+        if (!localStorage.getItem('hasSeenGuide')) { setTimeout(showGuide, 1500); }
         $('btnOpenGuide').addEventListener('click', showGuide);
         $('btnCloseGuide').addEventListener('click', hideGuide);
         $('btnStartApp').addEventListener('click', hideGuide);
     </script>
 </body>
 </html>
-```
-
-📝 Đánh giá lại file này:
-
-1. Logo & Menu: Logo đã nằm ngay sát cạnh nút 3 gạch (bên trái) giống hệt ảnh 1, 2, 4 của bạn. Nút "Trải nghiệm ngay" nằm bên phải.
-2. Giao diện trang chủ: Chữ to, gradient 3 màu (Hồng - Tím - Xanh), có Badge "🚀 Chuẩn mực...", có nút CTA phát sáng và nút "Tìm hiểu thêm" ở dưới. Hiệu ứng nền phát sáng trên xuống dưới đã được thêm vào (page-bg).
-3. Menu: Bấm vào sẽ hiện ra lớp nền đen mờ xung quanh. Các icon bên trong (Trang chủ, Đánh giá, Thư viện...) đã được set màu đúng như ảnh.
-
-Bạn hãy copy file index.html này dán lên GitHub. Sau khi làm xong, bạn nhắn "Đã xong trang chủ", chúng ta sẽ chuyển sang xử lý file tiếp theo (ví dụ: landing.html).
