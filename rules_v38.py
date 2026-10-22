@@ -9,7 +9,6 @@ TYPE_TABLE = "TABLE"
 TYPE_STEM = "STEM"
 TYPE_EMPTY = "EMPTY"
 TYPE_IMAGE = "IMAGE"
-TYPE_GENERAL = "GENERAL" # <-- THÊM MỚI: Loại tổng quát cho mọi lĩnh vực
 
 TECH_ROLE_PLAY = "ROLE_PLAY"
 TECH_FEW_SHOT = "FEW_SHOT"
@@ -29,16 +28,6 @@ VALID_ERROR_CODES = {
     "E01": "Trộn lĩnh vực", "E02": "Thuật ngữ không nhất quán", "E03": "Thiếu tính đặc thù lĩnh vực"
 }
 
-# --- BỘ TIÊU CHÍ TỔNG QUÁT (Áp dụng cho mọi lĩnh vực mới) ---
-CRITERIA_GENERAL = {
-    "G01": {"name": "Mục tiêu rõ ràng", "weight": 1.5, "rubric": "0-2: Không có mục tiêu. 5-6: Mục tiêu mơ hồ. 7-10: Mục tiêu rõ ràng, đo lường được."},
-    "G02": {"name": "Bối cảnh và Đối tượng", "weight": 1.2, "rubric": "0-2: Thiếu bối cảnh. 5-6: Bối cảnh chung chung. 7-10: Bối cảnh chi tiết, xác định rõ đối tượng."},
-    "G03": {"name": "Ràng buộc và Định dạng", "weight": 1.2, "rubric": "0-2: Không có ràng buộc. 5-6: Ràng buộc lỏng lẻo. 7-10: Ràng buộc chặt chẽ, định dạng đầu ra rõ ràng."},
-    "G04": {"name": "Tính chuyên môn", "weight": 1.0, "rubric": "0-2: Sai kiến thức cơ bản. 5-6: Kiến thức chấp nhận được. 7-10: Sử dụng thuật ngữ chuyên ngành chính xác."},
-    "G05": {"name": "Ví dụ và Dẫn chứng", "weight": 1.0, "rubric": "0-2: Không có ví dụ. 5-6: Có ví dụ nhưng sơ sài. 7-10: Ví dụ minh họa xuất sắc."}
-}
-
-# --- BỘ TIÊU CHÍ CŨ (Giữ nguyên) ---
 CRITERIA_PROMPT = {
     "P01": {"name": "Độ rõ nhiệm vụ", "weight": 1.2, "rubric": "0-2: Không có động từ hành động. 3-4: Động từ mơ hồ. 5-6: Rõ hành động. 7-10: Rõ hành động, rõ kết quả."},
     "P02": {"name": "Đối tượng tác động", "weight": 1.2, "rubric": "0-2: Không có đối tượng. 3-4: Đối tượng chung chung. 5-6: Đối tượng cụ thể. 7-10: Đối tượng rất chi tiết."},
@@ -155,20 +144,15 @@ def validate_config(main_criteria: dict, tech_criteria: dict):
             raise ConfigurationError(f"Trọng số của '{k}' không hợp lệ.")
 
 def get_criteria_by_type(classification: dict) -> dict:
-    main_task = classification.get("main_task", TYPE_GENERAL)
+    main_task = classification.get("main_task", TYPE_PROMPT)
     techniques = classification.get("techniques", [])
     
     mapping = {
-        TYPE_PROMPT: CRITERIA_PROMPT, 
-        TYPE_TEMPLATE: CRITERIA_TEMPLATE,
-        TYPE_PROMPT_META: CRITERIA_PROMPT_META, 
-        TYPE_TABLE: CRITERIA_TABLE,
-        TYPE_STEM: CRITERIA_STEM, 
-        TYPE_IMAGE: CRITERIA_PROMPT, 
-        TYPE_EMPTY: {},
-        TYPE_GENERAL: CRITERIA_GENERAL # <-- Fallback cho lĩnh vực mới
+        TYPE_PROMPT: CRITERIA_PROMPT, TYPE_TEMPLATE: CRITERIA_TEMPLATE,
+        TYPE_PROMPT_META: CRITERIA_PROMPT_META, TYPE_TABLE: CRITERIA_TABLE,
+        TYPE_STEM: CRITERIA_STEM, TYPE_IMAGE: CRITERIA_PROMPT, TYPE_EMPTY: {}
     }
-    main_criteria = mapping.get(main_task, CRITERIA_GENERAL).copy()
+    main_criteria = mapping.get(main_task, CRITERIA_PROMPT).copy()
 
     tech_criteria = {}
     if TECH_ROLE_PLAY in techniques: tech_criteria.update(CRITERIA_ROLE_PLAY)
@@ -216,5 +200,4 @@ def classify_prompt(prompt_text: str) -> dict:
     if any(kw in lower_text for kw in ["đánh giá prompt", "viết prompt", "sửa prompt", "chấm điểm prompt", "tạo prompt"]): 
         return {"main_task": TYPE_PROMPT_META, "techniques": techniques}
     
-    # Nếu không khớp bất kỳ loại cụ thể nào -> Trả về GENERAL
-    return {"main_task": TYPE_GENERAL, "techniques": techniques}
+    return {"main_task": TYPE_PROMPT, "techniques": techniques}
