@@ -54,13 +54,10 @@
                         <a href="./index.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors">Trang chủ</a>
                         <a href="./landing.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors">Đánh giá</a>
                         <a href="./library.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors">Thư viện</a>
-                        
                         <div class="h-px bg-slate-100 dark:bg-slate-700/50 my-1 mx-2"></div>
-                        
                         <button id="themeToggleMenu" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors text-left">
                             <span id="themeIconMenu" class="w-5 h-5 flex items-center justify-center shrink-0"></span><span id="themeTextMenu">Chế độ Tối</span>
                         </button>
-
                         <div id="adminMenuDivider" class="h-px bg-slate-100 dark:bg-slate-700/50 my-1 mx-2" style="display:none;"></div>
                         <a id="menuBtnAdmin" href="./admin.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-green-50 dark:bg-green-900/20 text-sm font-semibold text-green-600 dark:text-green-400 transition-colors" style="display:none;">Quản trị</a>
                     </div>
@@ -147,20 +144,23 @@
 
     <!-- SCRIPT -->
     <script>
-        const API_URL = "https://prompt-tx2e.onrender.com"; 
+        const API_URL = "https://prompt-tx2e.onrender.com";
         const $ = id => document.getElementById(id);
+        const escapeHtml = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
         let adminToken = null;
-        let chart1 = null; let chart2 = null;
+        let chart1 = null, chart2 = null;
 
         const ERROR_NAMES = { "A01": "Lỗi chính tả", "A02": "Thiếu dấu câu", "A03": "Lặp lại", "B01": "Thiếu cấu trúc", "B02": "Mục không logic", "B03": "Sai phân cấp", "B04": "Chưa định dạng", "C01": "Đối tượng chưa rõ", "C02": "Thiếu bối cảnh", "C03": "Chung chung", "C04": "Thiếu ví dụ", "D01": "Mâu thuẫn", "D02": "Bất khả thi", "D03": "Vai trò sai", "E01": "Trộn lĩnh vực", "E02": "Thuật ngữ lộn xộn", "E03": "Thiếu đặc thù" };
 
         const moonSVG = `<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-blue-900" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>`;
         const sunSVG = `<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364-.707-.707M6.343 6.343l-.707-.707m12.728 0-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>`;
 
+        // MENU
         let isMenuOpen = false;
         $('btnHamburger').addEventListener('click', (e) => {
             e.stopPropagation(); isMenuOpen = !isMenuOpen;
-            if (isMenuOpen) { $('dropdownMenu').classList.remove('hidden'); setTimeout(() => { $('dropdownMenu').classList.remove('opacity-0', 'scale-95'); $('dropdownMenu').classList.add('opacity-100', 'scale-100'); }, 10); } 
+            if (isMenuOpen) { $('dropdownMenu').classList.remove('hidden'); setTimeout(() => { $('dropdownMenu').classList.remove('opacity-0', 'scale-95'); $('dropdownMenu').classList.add('opacity-100', 'scale-100'); }, 10); }
             else { $('dropdownMenu').classList.remove('opacity-100', 'scale-100'); $('dropdownMenu').classList.add('opacity-0', 'scale-95'); setTimeout(() => { $('dropdownMenu').classList.add('hidden'); }, 200); }
         });
         document.addEventListener('click', (e) => {
@@ -169,92 +169,228 @@
             }
         });
 
+        // THEME
         function applyTheme(dark) {
             document.documentElement.classList.toggle('dark', dark); document.documentElement.classList.toggle('light', !dark);
             $('themeIconMenu').innerHTML = dark ? sunSVG : moonSVG; $('themeTextMenu').textContent = dark ? 'Chế độ Sáng' : 'Chế độ Tối';
             localStorage.setItem('theme', dark ? 'dark' : 'light');
             const themeColor = document.querySelector('meta[name="theme-color"]'); if (themeColor) themeColor.setAttribute('content', dark ? '#0f172a' : '#f8f7fc');
-            if (chart1 && chart2) updateChartsTheme(dark);
+            if (chart1 || chart2) updateChartsTheme(dark);
         }
         applyTheme(document.documentElement.classList.contains('dark'));
         $('themeToggleMenu').addEventListener('click', () => applyTheme(!document.documentElement.classList.contains('dark')));
 
+        // CHECK IP ADMIN
         async function checkAdminAccess() {
             try {
                 const res = await fetch(`${API_URL}/check_admin_ip`);
-                if (res.ok) { $('adminMenuDivider').style.display = 'block'; $('menuBtnAdmin').style.display = 'flex'; } 
+                if (res.ok) { $('adminMenuDivider').style.display = 'block'; $('menuBtnAdmin').style.display = 'flex'; }
                 else { alert("Bạn không có quyền truy cập trang này."); window.location.href = "./index.html"; }
-            } catch (e) { console.log("Lỗi check IP"); window.location.href = "./index.html"; }
+            } catch { window.location.href = "./index.html"; }
         }
         checkAdminAccess();
 
+        // TABS
         window.switchTab = function(tabName) {
-            const btnOverview = $('tabBtnOverview'); const btnIpLogs = $('tabBtnIpLogs');
-            const contentOverview = $('tabContentOverview'); const contentIpLogs = $('tabContentIpLogs');
+            const btnOverview = $('tabBtnOverview'), btnIpLogs = $('tabBtnIpLogs');
+            const contentOverview = $('tabContentOverview'), contentIpLogs = $('tabContentIpLogs');
             if (tabName === 'overview') {
                 btnOverview.classList.add('active'); btnIpLogs.classList.remove('active');
                 contentOverview.style.display = 'block'; contentIpLogs.style.display = 'none';
             } else {
                 btnIpLogs.classList.add('active'); btnOverview.classList.remove('active');
                 contentIpLogs.style.display = 'block'; contentOverview.style.display = 'none';
-                fetchIpLogs(); 
+                fetchIpLogs();
             }
-        }
+        };
 
+        // PASSWORD TOGGLE
         $('toggleAdminPassword').addEventListener('click', function() {
             const input = $('adminPassword');
             if (input.type === 'password') { input.type = 'text'; this.innerText = '🙈'; } else { input.type = 'password'; this.innerText = '🐵'; }
         });
 
+        // LOGIN
         async function handleLogin() {
             const pwd = $('adminPassword').value.trim(); if (!pwd) return;
             const btn = $('btnAdminLogin'); btn.disabled = true; btn.innerHTML = 'Đang kiểm tra...';
             try {
                 const response = await fetch(`${API_URL}/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: pwd }) });
                 const data = await response.json();
-                if (response.ok && data.token) { adminToken = data.token; $('adminLoginBox').style.display = 'none'; $('adminDashboard').style.display = 'block'; switchTab('overview'); fetchHistory(); } 
-                else { $('adminError').style.display = 'block'; $('adminError').textContent = data.detail || "Sai mật khẩu."; btn.disabled = false; btn.innerHTML = 'Đăng nhập ngay'; }
-            } catch (e) { $('adminError').style.display = 'block'; $('adminError').textContent = "Lỗi kết nối Server."; btn.disabled = false; btn.innerHTML = 'Đăng nhập ngay'; }
+                if (response.ok && data.token) {
+                    adminToken = data.token;
+                    sessionStorage.setItem('adminToken', adminToken);
+                    $('adminLoginBox').style.display = 'none'; $('adminDashboard').style.display = 'block';
+                    switchTab('overview'); fetchHistory();
+                } else {
+                    $('adminError').style.display = 'block'; $('adminError').textContent = data.detail || "Sai mật khẩu.";
+                    btn.disabled = false; btn.innerHTML = 'Đăng nhập ngay';
+                }
+            } catch {
+                $('adminError').style.display = 'block'; $('adminError').textContent = "Lỗi kết nối Server.";
+                btn.disabled = false; btn.innerHTML = 'Đăng nhập ngay';
+            }
         }
-
         $('btnAdminLogin').addEventListener('click', handleLogin);
-        $('adminPassword').addEventListener('keypress', function (e) { if (e.key === 'Enter') { e.preventDefault(); handleLogin(); } });
+        $('adminPassword').addEventListener('keypress', (e) => { if (e.key === 'Enter') { e.preventDefault(); handleLogin(); } });
 
+        // LOGOUT
         $('btnAdminLogout').addEventListener('click', () => {
-            adminToken = null; $('adminLoginBox').style.display = 'block'; $('adminDashboard').style.display = 'none'; $('adminPassword').value = ''; $('adminError').style.display = 'none'; $('btnAdminLogin').disabled = false; $('btnAdminLogin').innerHTML = 'Đăng nhập ngay';
+            adminToken = null; sessionStorage.removeItem('adminToken');
+            $('adminLoginBox').style.display = 'block'; $('adminDashboard').style.display = 'none';
+            $('adminPassword').value = ''; $('adminError').style.display = 'none';
+            $('btnAdminLogin').disabled = false; $('btnAdminLogin').innerHTML = 'Đăng nhập ngay';
+            if (chart1) { chart1.destroy(); chart1 = null; } if (chart2) { chart2.destroy(); chart2 = null; }
         });
 
+        // CHART THEME
         function updateChartsTheme(isDark) {
             const textColor = isDark ? '#94a3b8' : '#64748b';
             [chart1, chart2].forEach(c => { if (c) { c.options.plugins.legend.labels.color = textColor; c.options.scales.x.ticks.color = textColor; c.options.scales.y.ticks.color = textColor; c.update(); } });
         }
 
+        // DELETE PROMPT
         window.deletePrompt = async function(id) {
             if (!confirm("Bạn có chắc chắn muốn xóa prompt này không?")) return;
             try {
                 const res = await fetch(`${API_URL}/admin/delete_prompt/${id}`, { method: 'DELETE', headers: { 'X-Admin-Token': adminToken } });
-                if (res.ok) { fetchHistory(); } else { alert("Lỗi khi xóa prompt!"); }
-            } catch (e) { alert("Lỗi kết nối!"); }
-        }
+                if (res.ok) fetchHistory(); else alert("Lỗi khi xóa prompt!");
+            } catch { alert("Lỗi kết nối!"); }
+        };
 
+        // FETCH HISTORY
         async function fetchHistory() {
-            const tbody = $('adminHistoryList'); tbody.innerHTML = '<tr><td colspan="5" class="text-center py-6 text-slate-500 text-xs">Đang tải...</td></tr>';
+            const tbody = $('adminHistoryList');
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center py-6 text-slate-500 text-xs">Đang tải...</td></tr>';
             try {
                 const response = await fetch(`${API_URL}/history`, { method: 'GET', headers: { 'X-Admin-Token': adminToken } });
                 const data = await response.json();
-                if (response.ok && data.history) {
-                    tbody.replaceChildren();
-                    let totalScore = 0, cleanCount = 0, errorCounts = {}, scoreDist = { '0-3': 0, '4-6': 0, '7-8': 0, '9-10': 0 };
-                    data.history.forEach(item => {
-                        totalScore += item.total_score;
-                        if (!item.errors || item.errors.length === 0) cleanCount++;
-                        if (item.errors) { item.errors.forEach(e => { errorCounts[e.code] = (errorCounts[e.code] || 0) + 1; }); }
-                        let s = item.total_score; if (s <= 3) scoreDist['0-3']++; else if (s <= 6) scoreDist['4-6']++; else if (s <= 8) scoreDist['7-8']++; else scoreDist['9-10']++;
-                    });
-                    
-                    if (data.history.length > 0) {
-                        $('statTotal').textContent = data.history.length; $('statAvg').textContent = (totalScore / data.history.length).toFixed(1); $('statClean').textContent = `${Math.round((cleanCount / data.history.length) * 100)}%`;
-                    }
+                if (!response.ok || !data.history) { tbody.innerHTML = '<tr><td colspan="5" class="text-center py-6 text-red-500 text-xs">Lỗi tải dữ liệu.</td></tr>'; return; }
 
-                    if (chart1) chart1.destroy(); if (chart2) chart2.destroy();
-                    chart1 = new Chart($('errorChart').getContext('2d'), { type: 'doughnut', data: { labels: Object.keys(errorCounts).length ? Object.keys(errorCounts).map(c=>ERROR_NAMES[c]||c) : ['Sạch'], datasets: [{ data: Object.values
+                tbody.replaceChildren();
+                let totalScore = 0, cleanCount = 0;
+                const errorCounts = {};
+                const scoreDist = { '0-3': 0, '4-6': 0, '7-8': 0, '9-10': 0 };
+
+                data.history.forEach(item => {
+                    totalScore += item.total_score;
+                    if (!item.errors || item.errors.length === 0) cleanCount++;
+                    (item.errors || []).forEach(e => { errorCounts[e.code] = (errorCounts[e.code] || 0) + 1; });
+                    const s = item.total_score;
+                    if (s <= 3) scoreDist['0-3']++; else if (s <= 6) scoreDist['4-6']++; else if (s <= 8) scoreDist['7-8']++; else scoreDist['9-10']++;
+                });
+
+                const n = data.history.length;
+                if (n > 0) {
+                    $('statTotal').textContent = n;
+                    $('statAvg').textContent = (totalScore / n).toFixed(1);
+                    $('statClean').textContent = `${Math.round((cleanCount / n) * 100)}%`;
+                } else {
+                    $('statTotal').textContent = '0'; $('statAvg').textContent = '0.0'; $('statClean').textContent = '0%';
+                }
+
+                // Render table rows
+                if (n === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="text-center py-6 text-slate-500 text-xs">Chưa có dữ liệu.</td></tr>';
+                } else {
+                    data.history.forEach(item => {
+                        const tr = document.createElement('tr');
+                        tr.className = 'border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/40';
+                        const errBadges = (item.errors || []).map(e =>
+                            `<span class="inline-block px-1.5 py-0.5 mr-1 mb-1 rounded text-[9px] font-bold bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300">${escapeHtml(e.code)}</span>`
+                        ).join('') || '<span class="text-green-600 text-[10px] font-bold">Sạch</span>';
+                        tr.innerHTML = `
+                            <td class="px-4 py-2 text-[11px] text-slate-500 whitespace-nowrap">${new Date(item.created_at).toLocaleString('vi-VN')}</td>
+                            <td class="px-4 py-2 max-w-xs"><div class="line-clamp-2 text-[11px] text-slate-700 dark:text-slate-300">${escapeHtml(item.prompt)}</div></td>
+                            <td class="px-4 py-2"><span class="font-bold text-pink-500">${item.total_score}</span></td>
+                            <td class="px-4 py-2">${errBadges}</td>
+                            <td class="px-4 py-2 text-center"><button onclick="deletePrompt('${escapeHtml(String(item.id))}')" class="text-red-500 hover:text-red-700 text-sm" title="Xóa">🗑</button></td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                }
+
+                // Chart 1: Top errors (doughnut)
+                if (chart1) chart1.destroy();
+                const errLabels = Object.keys(errorCounts).length ? Object.keys(errorCounts).map(c => ERROR_NAMES[c] || c) : ['Không có lỗi'];
+                const errData = Object.keys(errorCounts).length ? Object.values(errorCounts) : [1];
+                const palette = ['#ec4899','#3b82f6','#22c55e','#f59e0b','#8b5cf6','#ef4444','#06b6d4','#84cc16','#f97316','#6366f1'];
+                chart1 = new Chart($('errorChart').getContext('2d'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: errLabels,
+                        datasets: [{ data: errData, backgroundColor: palette, borderWidth: 0 }]
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false, cutout: '60%',
+                        plugins: { legend: { position: 'bottom', labels: { color: document.documentElement.classList.contains('dark') ? '#94a3b8' : '#64748b', font: { size: 10 }, boxWidth: 10 } } }
+                    }
+                });
+
+                // Chart 2: Score distribution (bar)
+                if (chart2) chart2.destroy();
+                chart2 = new Chart($('scoreChart').getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: ['0-3', '4-6', '7-8', '9-10'],
+                        datasets: [{
+                            label: 'Số prompt',
+                            data: [scoreDist['0-3'], scoreDist['4-6'], scoreDist['7-8'], scoreDist['9-10']],
+                            backgroundColor: ['#ef4444', '#f59e0b', '#3b82f6', '#22c55e'],
+                            borderRadius: 6, borderSkipped: false
+                        }]
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            x: { ticks: { color: document.documentElement.classList.contains('dark') ? '#94a3b8' : '#64748b', font: { size: 10 } }, grid: { display: false } },
+                            y: { beginAtZero: true, ticks: { color: document.documentElement.classList.contains('dark') ? '#94a3b8' : '#64748b', font: { size: 10 }, precision: 0 }, grid: { color: 'rgba(148,163,184,.15)' } }
+                        }
+                    }
+                });
+            } catch (e) {
+                console.error(e);
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center py-6 text-red-500 text-xs">Lỗi kết nối Server.</td></tr>';
+            }
+        }
+
+        // FETCH IP LOGS
+        async function fetchIpLogs() {
+            const tbody = $('ipLogsList');
+            tbody.innerHTML = '<tr><td colspan="3" class="text-center py-6 text-slate-500 text-xs">Đang tải...</td></tr>';
+            try {
+                const res = await fetch(`${API_URL}/admin/ip_logs`, { headers: { 'X-Admin-Token': adminToken } });
+                const data = await res.json();
+                if (!res.ok || !data.logs) { tbody.innerHTML = '<tr><td colspan="3" class="text-center py-6 text-red-500 text-xs">Lỗi tải dữ liệu IP.</td></tr>'; return; }
+                if (data.logs.length === 0) { tbody.innerHTML = '<tr><td colspan="3" class="text-center py-6 text-slate-500 text-xs">Chưa có log nào.</td></tr>'; return; }
+                tbody.replaceChildren();
+                data.logs.forEach(log => {
+                    const tr = document.createElement('tr');
+                    tr.className = 'border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/40';
+                    tr.innerHTML = `
+                        <td class="px-4 py-2 text-[11px] text-slate-500 whitespace-nowrap">${new Date(log.created_at || log.timestamp).toLocaleString('vi-VN')}</td>
+                        <td class="px-4 py-2 text-[11px] font-mono text-slate-700 dark:text-slate-300">${escapeHtml(log.ip || '—')}</td>
+                        <td class="px-4 py-2 text-[11px] text-slate-600 dark:text-slate-400">${escapeHtml(log.user_agent || '—')}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } catch {
+                tbody.innerHTML = '<tr><td colspan="3" class="text-center py-6 text-red-500 text-xs">Lỗi kết nối Server.</td></tr>';
+            }
+        }
+
+        // TỰ ĐỘNG ĐĂNG NHẬP LẠI NẾU CÓ TOKEN TRONG SESSION
+        (function autoRestore() {
+            const t = sessionStorage.getItem('adminToken');
+            if (t) {
+                adminToken = t;
+                $('adminLoginBox').style.display = 'none';
+                $('adminDashboard').style.display = 'block';
+                switchTab('overview');
+                fetchHistory();
+            }
+        })();
+    </script>
+</body>
+</html>
