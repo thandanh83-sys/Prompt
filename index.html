@@ -32,6 +32,10 @@
         .btn-glow:hover { box-shadow: 0 6px 20px rgba(59,130,246,.5); transform: translateY(-2px); }
         .menu-dropdown { transition: all .2s ease-in-out; transform-origin: top left; width: min(280px, calc(100vw - 32px)); max-height: calc(100dvh - 100px); overflow-y: auto; overflow-x: hidden; box-sizing: border-box; }
         @media (max-width: 640px) { .menu-dropdown { width: min(260px, calc(100vw - 32px)); max-height: calc(100dvh - 88px); } }
+        
+        .glass-card { transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease; }
+        .glass-card:hover { border-color: rgba(236, 72, 153, 0.4); box-shadow: 0 10px 40px -10px rgba(236, 72, 153, 0.15); transform: translateY(-4px); }
+        .dark .glass-card:hover { border-color: rgba(59, 130, 246, 0.4); box-shadow: 0 10px 40px -10px rgba(59, 130, 246, 0.2); }
     </style>
 </head>
 
@@ -87,7 +91,7 @@
                 <span class="brand-text text-lg sm:text-xl font-extrabold truncate">Trợ lý AI</span>
             </div>
             
-            <!-- NÚT TRẢI NGHIỆM NGAY (THAY CHO KHOẢNG TRỐNG) -->
+            <!-- NÚT TRẢI NGHIỆM NGAY -->
             <a href="./landing.html" class="px-3 py-1.5 md:px-5 md:py-2.5 rounded-full text-xs md:text-sm font-bold text-white bg-gradient-to-r from-pink-500 to-blue-500 shadow-md hover:scale-105 transition-transform whitespace-nowrap">
                 Trải nghiệm ngay
             </a>
@@ -112,7 +116,94 @@
                 </a>
             </div>
         </div>
+
+        <!-- MOCKUP GIAO DIỆN -->
+        <div class="max-w-5xl mx-auto mt-16 md:mt-24 relative z-10">
+            <div class="absolute inset-0 bg-gradient-to-r from-pink-500 to-blue-500 rounded-3xl blur-2xl opacity-20 dark:opacity-30"></div>
+            <div class="bg-white dark:bg-[#0f172a] border border-slate-200 dark:border-slate-800 rounded-3xl p-4 md:p-6 shadow-2xl relative">
+                <div class="flex items-center gap-2 mb-4 px-2">
+                    <div class="w-3 h-3 rounded-full bg-red-500"></div>
+                    <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
+                    <div class="w-3 h-3 rounded-full bg-green-500"></div>
+                    <div class="ml-4 h-6 w-64 bg-slate-200 dark:bg-white/5 rounded-md"></div>
+                </div>
+                <div class="space-y-6">
+                    <div class="bg-slate-50 dark:bg-[#0b1120] border border-slate-200 dark:border-white/10 rounded-2xl p-6 relative">
+                        <p class="text-slate-400 dark:text-slate-500 text-sm">Mô tả điều bạn muốn AI thực hiện...</p>
+                    </div>
+                    <div class="w-full h-14 bg-gradient-to-r from-pink-500 to-blue-500 rounded-2xl flex items-center justify-center text-white font-bold text-lg shadow-md">Đánh giá & Viết lại</div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-slate-50 dark:bg-[#0b1120] border border-slate-200 dark:border-white/10 rounded-2xl p-6">
+                            <p class="text-xs text-slate-500 font-bold mb-2">ĐIỂM TỔNG</p>
+                            <div class="flex items-baseline gap-2"><span class="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-blue-500">8.5</span><span class="text-slate-400 dark:text-slate-500">/ 10</span></div>
+                            <div class="w-full bg-slate-200 dark:bg-slate-800 h-2 rounded-full mt-4"><div class="bg-gradient-to-r from-pink-500 to-blue-500 h-2 rounded-full w-[85%]"></div></div>
+                        </div>
+                        <div class="bg-slate-50 dark:bg-[#0b1120] border border-slate-200 dark:border-white/10 rounded-2xl p-6">
+                            <p class="text-xs text-slate-500 font-bold mb-2">PHÂN LOẠI</p>
+                            <span class="px-4 py-1.5 rounded-full text-xs font-bold text-white bg-blue-500 shadow-sm">TEMPLATE</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </main>
+
+    <!-- TÍNH NĂNG -->
+    <section id="features" class="py-24 relative z-10">
+        <div class="max-w-7xl mx-auto px-4 md:px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-4">Giải pháp toàn diện từ <span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-blue-500">Trợ lý AI</span></h2>
+                <p class="text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">Chúng tôi không chỉ chấm điểm, chúng tôi dạy bạn cách tư duy để viết ra những câu lệnh hoàn hảo nhất.</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="glass-card bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/50 rounded-3xl p-8">
+                    <div class="w-14 h-14 rounded-2xl bg-pink-500/10 flex items-center justify-center mb-6">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 text-pink-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3 text-slate-900 dark:text-white">Chấm điểm Đa chiều</h3>
+                    <p class="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">Phân tích khắt khe dựa trên 14+ tiêu chí.</p>
+                </div>
+                
+                <div class="glass-card bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/50 rounded-3xl p-8">
+                    <div class="w-14 h-14 rounded-2xl bg-blue-500/10 flex items-center justify-center mb-6">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3 text-slate-900 dark:text-white">Gợi ý tư duy</h3>
+                    <p class="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">Đưa ra câu hỏi gợi mở để bạn tự hoàn thiện.</p>
+                </div>
+                
+                <div class="glass-card bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/50 rounded-3xl p-8">
+                    <div class="w-14 h-14 rounded-2xl bg-purple-500/10 flex items-center justify-center mb-6">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" /></svg>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3 text-slate-900 dark:text-white">Viết lại chuẩn 11 mục</h3>
+                    <p class="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">Tự động cấu trúc lại format chuyên nghiệp.</p>
+                </div>
+                
+                <div class="glass-card bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/50 rounded-3xl p-8">
+                    <div class="w-14 h-14 rounded-2xl bg-green-500/10 flex items-center justify-center mb-6">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3 text-slate-900 dark:text-white">Thống kê thông minh</h3>
+                    <p class="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">Theo dõi lịch sử và biểu đồ phân bố lỗi.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- BOTTOM CTA -->
+    <section class="py-24 relative z-10">
+        <div class="max-w-4xl mx-auto px-4 md:px-6">
+            <div class="bg-white dark:bg-slate-800 rounded-3xl p-10 md:p-16 text-center relative overflow-hidden border border-slate-200 dark:border-slate-700">
+                <div class="absolute inset-0 bg-gradient-to-r from-pink-500/10 to-blue-500/10 dark:from-pink-500/20 dark:to-blue-500/20"></div>
+                <div class="relative z-10">
+                    <h2 class="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-6">Sẵn sàng nâng cấp Prompt của bạn?</h2>
+                    <a href="./landing.html" class="btn-glow inline-block px-10 py-4 rounded-full font-bold text-white bg-gradient-to-r from-pink-500 to-blue-500 transition-all transform hover:scale-105 shadow-lg">Vào ứng dụng ngay 🚀</a>
+                </div>
+            </div>
+        </div>
+    </section>
 
     <footer class="border-t border-slate-200 dark:border-white/10 py-8 text-center text-slate-500 text-sm relative z-10 mt-auto">
         <p>© 2026 Trợ lý AI - Nghiên cứu AI & Tư duy.</p>
@@ -139,7 +230,6 @@
             }
         });
 
-        // XỬ LÝ THEME TRONG MENU
         function applyTheme(dark) {
             document.documentElement.classList.toggle('dark', dark); document.documentElement.classList.toggle('light', !dark);
             document.getElementById('themeIconMenu').innerHTML = dark ? sunSVG : moonSVG;
