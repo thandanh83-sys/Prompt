@@ -248,4 +248,61 @@
                 $('criteriaList').replaceChildren();
                 Object.entries(r.details).forEach(([name, score]) => {
                     const row = document.createElement('div'); 
-                    row.innerHTML = `<div class="flex justify-between items-start mb-1.5"><span class="text-[10px] font-semibold text-slate-600 dark:text-slate-400 leading-tight pr-1 line-clamp-2">${name}</span><span class="text-xs font-bold">${score}</span
+                    row.innerHTML = `<div class="flex justify-between items-start mb-1.5"><span class="text-[10px] font-semibold text-slate-600 dark:text-slate-400 leading-tight pr-1 line-clamp-2">${name}</span><span class="text-xs font-bold">${score}</span></div><div class="w-full bg-slate-100 dark:bg-slate-700/50 rounded-full h-1.5"><div class="h-1.5 rounded-full bg-gradient-to-r from-pink-500 to-blue-500" style="width: ${score * 10}%"></div></div>`;
+                    $('criteriaList').appendChild(row);
+                });
+                
+                $('userErrorList').replaceChildren();
+                if (r.errors?.length > 0) {
+                    r.errors.forEach(err => {
+                        const errName = ERROR_NAMES[err.code] || "Lỗi chưa xác định";
+                        let evidenceText = "";
+                        if (err.evidence && err.evidence !== "Toàn bộ" && err.evidence !== "Toàn bộ prompt" && err.evidence !== errName) {
+                            evidenceText = `<p class="text-slate-500 mt-1.5 text-[11px] leading-relaxed">Trích dẫn: <i>"${err.evidence}"</i></p>`;
+                        }
+
+                        // SỬA LẠI GIAO DIỆN: ĐƯA NHÃN SANG BÊN PHẢI CÙNG HÀNG VỚI TÊN LỖI
+                        const li = document.createElement('li'); 
+                        li.className = 'mb-3 p-3.5 bg-slate-50 dark:bg-slate-900/30 rounded-xl border border-slate-100 dark:border-slate-700/50 text-xs';
+                        li.innerHTML = `
+                            <div class="flex justify-between items-center w-full mb-1">
+                                <p class="font-bold text-slate-800 dark:text-slate-200 text-sm">${errName}</p>
+                                <span class="text-[9px] font-bold bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400 px-1.5 py-0.5 rounded-md uppercase tracking-wider whitespace-nowrap">Cần cải thiện</span>
+                            </div>
+                            ${evidenceText}
+                        `;
+                        $('userErrorList').appendChild(li);
+                    });
+                } else { 
+                    $('userErrorList').innerHTML = '<li class="text-green-600 dark:text-green-400 text-xs font-semibold p-3.5 bg-green-50 dark:bg-green-900/20 rounded-xl">Tuyệt vời! Không phát hiện lỗi nào.</li>'; 
+                }
+
+                $('rewriteList').replaceChildren();
+                SECTION_NAMES.forEach(sec => {
+                    const item = document.createElement('div'); item.className = 'mb-4 last:mb-0'; 
+                    item.innerHTML = `<p class="font-bold text-pink-500 mb-1 text-[11px] uppercase">${sec}</p><p class="text-slate-700 dark:text-slate-300 whitespace-pre-wrap text-sm leading-relaxed">${r.rewrite[sec] || ''}</p>`;
+                    $('rewriteList').appendChild(item);
+                });
+                
+                $('resultArea').style.display = 'block';
+                setTimeout(() => { $('resultArea').scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 100);
+                
+            } catch (e) { 
+                $('errorMsg').textContent = e.message || "Đã xảy ra lỗi."; $('errorMsg').style.display = 'block'; 
+            } finally { 
+                clearInterval(timer); btn.disabled = false; spinner.classList.add('hidden'); btnText.textContent = 'Đánh giá & Viết lại'; 
+            }
+        });
+
+        $('btnCopyAll').addEventListener('click', async () => {
+            if (!lastResult) return; let text = ""; 
+            SECTION_NAMES.forEach(sec => { text += `${sec}:\n${lastResult.rewrite[sec] || ''}\n\n`; });
+            try {
+                await copyTextToClipboard(text); showToast("Đã sao chép!", "success");
+                const btnText = $('copyBtnText'); btnText.textContent = 'Đã chép!'; btnText.classList.add('text-green-500');
+                setTimeout(() => { btnText.textContent = 'Sao chép'; btnText.classList.remove('text-green-500'); }, 2000);
+            } catch (e) { showToast("Không thể sao chép.", "error"); }
+        });
+    </script>
+</body>
+</html>
