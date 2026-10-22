@@ -65,7 +65,7 @@
                 </button>
                 
                 <div class="flex items-center gap-1.5 cursor-pointer" onclick="window.location.href='./landing.html'">
-                    <!-- ICON 3 NGÔI SAO CHUẨN THEO ẢNH 3 -->
+                    <!-- ICON 3 NGÔI SAO -->
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 text-brand-pink shrink-0">
                         <path fill-rule="evenodd" d="M9 4.5a.75.75 0 01.721.544l.813 2.846a3.75 3.75 0 002.576 2.576l2.846.813a.75.75 0 010 1.442l-2.846.813a3.75 3.75 0 00-2.576 2.576l-.813 2.846a.75.75 0 01-1.442 0l-.813-2.846a3.75 3.75 0 00-2.576-2.576l-2.846-.813a.75.75 0 010-1.442l2.846-.813A3.75 3.75 0 009 7.89l.813-2.846A.75.75 0 019 4.5zM18 1.5a.75.75 0 01.728.568l.258 1.036c.236.94.97 1.674 1.91 1.91l1.036.258a.75.75 0 010 1.456l-1.036.258c-.94.236-1.674.97-1.91 1.91l-.258 1.036a.75.75 0 01-1.456 0l-.258-1.036a2.625 2.625 0 00-1.91-1.91l-1.036-.258a.75.75 0 010-1.456l1.036-.258a2.625 2.625 0 001.91-1.91l.258-1.036A.75.75 0 0118 1.5zM16.5 15a.75.75 0 01.712.513l.394 1.183c.15.447.5.799.948.948l1.183.395a.75.75 0 010 1.422l-1.183.395c-.447.15-.799.5-.948.948l-.395 1.183a.75.75 0 01-1.422 0l-.395-1.183a1.5 1.5 0 00-.948-.948l-1.183-.395a.75.75 0 010-1.422l1.183-.395c.447-.15.799-.5.948-.948l.395-1.183A.75.75 0 0116.5 15z" clip-rule="evenodd" />
                     </svg>
@@ -98,8 +98,8 @@
             </div>
             
             <div class="flex items-center gap-2 md:gap-3 shrink-0">
-                <!-- NÚT ĐỔI THEME: KHUNG TRÒN + ICON SVG NÉT MẢNH (GIỐNG ẢNH) -->
-                <button id="themeToggle" class="w-10 h-10 md:w-11 md:h-11 shrink-0 flex items-center justify-center rounded-full bg-slate-200/80 dark:bg-slate-800/80 border border-slate-300/50 dark:border-slate-600/50 shadow-sm hover:scale-105 hover:bg-slate-300/80 dark:hover:bg-slate-700/80 transition-all">
+                <!-- NÚT ĐỔI THEME: KHUNG TRÒN + ICON SVG 3D -->
+                <button id="themeToggle" class="w-10 h-10 md:w-11 md:h-11 shrink-0 flex items-center justify-center rounded-full transition-all duration-300">
                     <!-- SVG sẽ được JS bơm vào -->
                 </button>
                 
@@ -239,14 +239,47 @@
         const menuDropdownLanding = document.getElementById('menuDropdownLanding');
         let isMenuOpen = false;
 
-        // ICON SVG NÉT MẢNH
-        const sunSVG = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" /></svg>`;
-        const moonSVG = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z" /></svg>`;
+        // SVG MOON (LIGHT MODE) - Màu xanh đậm, có gradient và đốm sáng
+        const moonSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-6 h-6">
+            <defs>
+                <linearGradient id="moonGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#1e40af" />
+                    <stop offset="100%" stop-color="#0f172a" />
+                </linearGradient>
+            </defs>
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" fill="url(#moonGrad)"/>
+            <circle cx="14" cy="8" r="1.5" fill="#60a5fa" opacity="0.6"/>
+            <circle cx="10" cy="14" r="1" fill="#60a5fa" opacity="0.6"/>
+        </svg>`;
+
+        // SVG SUN (DARK MODE) - Màu vàng cam 3D, có tia sáng
+        const sunSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-6 h-6">
+            <defs>
+                <radialGradient id="sunGrad" cx="50%" cy="50%" r="50%">
+                    <stop offset="0%" stop-color="#fef08a" />
+                    <stop offset="70%" stop-color="#f59e0b" />
+                    <stop offset="100%" stop-color="#d97706" />
+                </radialGradient>
+            </defs>
+            <path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round"/>
+            <circle cx="12" cy="12" r="5.5" fill="url(#sunGrad)" />
+            <ellipse cx="10" cy="10" rx="2" ry="1.5" fill="white" opacity="0.3" transform="rotate(-45 10 10)" />
+        </svg>`;
 
         function applyTheme(dark) {
             document.documentElement.classList.toggle('dark', dark); 
             document.documentElement.classList.toggle('light', !dark);
+            
+            // Cập nhật Icon
             themeToggle.innerHTML = dark ? sunSVG : moonSVG;
+            
+            // Cập nhật CSS cho Nút bấm
+            if (dark) {
+                themeToggle.className = "w-10 h-10 md:w-11 md:h-11 shrink-0 flex items-center justify-center rounded-full transition-all duration-300 bg-slate-800/80 border border-slate-600/50 shadow-sm hover:scale-105 hover:bg-slate-700/80";
+            } else {
+                themeToggle.className = "w-10 h-10 md:w-11 md:h-11 shrink-0 flex items-center justify-center rounded-full transition-all duration-300 bg-white border border-slate-200 shadow-sm hover:scale-105 hover:bg-slate-50";
+            }
+
             try { localStorage.setItem('theme', dark ? 'dark' : 'light'); } catch (e) {}
         }
         
