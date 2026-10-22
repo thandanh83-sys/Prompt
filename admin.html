@@ -246,7 +246,14 @@
         // CHART THEME
         function updateChartsTheme(isDark) {
             const textColor = isDark ? '#94a3b8' : '#64748b';
-            [chart1, chart2].forEach(c => { if (c) { c.options.plugins.legend.labels.color = textColor; c.options.scales.x.ticks.color = textColor; c.options.scales.y.ticks.color = textColor; c.update(); } });
+            [chart1, chart2].forEach(c => {
+                if (!c) return;
+                const legendLabels = c.options?.plugins?.legend?.labels;
+                if (legendLabels) legendLabels.color = textColor;
+                if (c.options?.scales?.x?.ticks) c.options.scales.x.ticks.color = textColor;
+                if (c.options?.scales?.y?.ticks) c.options.scales.y.ticks.color = textColor;
+                c.update();
+            });
         }
 
         // DELETE PROMPT
@@ -369,8 +376,8 @@
                     const tr = document.createElement('tr');
                     tr.className = 'border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/40';
                     tr.innerHTML = `
-                        <td class="px-4 py-2 text-[11px] text-slate-500 whitespace-nowrap">${new Date(log.created_at || log.timestamp).toLocaleString('vi-VN')}</td>
-                        <td class="px-4 py-2 text-[11px] font-mono text-slate-700 dark:text-slate-300">${escapeHtml(log.ip || '—')}</td>
+                        <td class="px-4 py-2 text-[11px] text-slate-500 whitespace-nowrap">${new Date(log.login_time || log.created_at || log.timestamp).toLocaleString('vi-VN')}</td>
+                        <td class="px-4 py-2 text-[11px] font-mono text-slate-700 dark:text-slate-300">${escapeHtml(log.ip_address || log.ip || '—')}</td>
                         <td class="px-4 py-2 text-[11px] text-slate-600 dark:text-slate-400">${escapeHtml(log.user_agent || '—')}</td>
                     `;
                     tbody.appendChild(tr);
@@ -381,14 +388,23 @@
         }
 
         // TỰ ĐỘNG ĐĂNG NHẬP LẠI NẾU CÓ TOKEN TRONG SESSION
-        (function autoRestore() {
+        (async function autoRestore() {
             const t = sessionStorage.getItem('adminToken');
-            if (t) {
+            if (!t) return;
+            try {
+                const response = await fetch(`${API_URL}/history`, { method: 'GET', headers: { 'X-Admin-Token': t } });
+                const data = await response.json();
+                if (!response.ok || !Array.isArray(data.history)) throw new Error('Phiên Admin không hợp lệ.');
                 adminToken = t;
                 $('adminLoginBox').style.display = 'none';
                 $('adminDashboard').style.display = 'block';
                 switchTab('overview');
-                fetchHistory();
+                await fetchHistory();
+            } catch {
+                adminToken = null;
+                sessionStorage.removeItem('adminToken');
+                $('adminLoginBox').style.display = 'block';
+                $('adminDashboard').style.display = 'none';
             }
         })();
     </script>
