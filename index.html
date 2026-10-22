@@ -139,7 +139,7 @@
                     </div>
                 </div>
 
-                <!-- LOGO (Sát bên trái như ảnh 4) -->
+                <!-- LOGO (Sát bên trái) -->
                 <a href="./index.html" class="flex items-center gap-1.5 min-w-0 no-underline focus:outline-none z-40">
                     <svg class="w-6 h-6 sm:w-7 sm:h-7 shrink-0" viewBox="0 0 24 24"><defs><linearGradient id="brandSparkGradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ec4899"/><stop offset="100%" stop-color="#3b82f6"/></linearGradient></defs><path fill="url(#brandSparkGradient)" d="M12 2L14.7 9.3 22 12l-7.3 2.7L12 22l-2.7-7.3L2 12l7.3-2.7L12 2Z"/></svg>
                     <span class="brand-text text-base sm:text-lg font-extrabold truncate">Trợ lý AI</span>
@@ -175,14 +175,15 @@
                 <a href="./landing.html" class="btn-glow w-full sm:w-auto px-10 py-4 rounded-full font-bold text-white bg-gradient-to-r from-pink-500 to-blue-500 transition-all flex items-center justify-center gap-2 text-lg">
                     Bắt đầu đánh giá miễn phí
                 </a>
-                <a href="#demo" class="w-full sm:w-auto px-8 py-4 rounded-full font-bold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all flex items-center justify-center gap-2 text-lg">
+                <!-- Nút này trượt xuống ID features -->
+                <a href="#features" class="w-full sm:w-auto px-8 py-4 rounded-full font-bold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all flex items-center justify-center gap-2 text-lg">
                     Tìm hiểu thêm
                 </a>
             </div>
         </section>
 
         <!-- MOCKUP DEMO SECTION (Giao diện y hệt ảnh 1) -->
-        <section id="demo" class="w-full max-w-2xl mx-auto px-4 md:px-6 mb-16">
+        <section class="w-full max-w-2xl mx-auto px-4 md:px-6 mb-16">
             <!-- Khung cửa sổ máy tính (Mockup) -->
             <div class="bg-[#0f172a] rounded-3xl border border-slate-800 shadow-2xl overflow-hidden">
                 
@@ -232,50 +233,50 @@
             </div>
         </section>
 
-        <!-- FEATURES SECTION (4 thẻ tính năng - Ảnh 2 & 3) -->
-        <section class="w-full max-w-2xl mx-auto px-4 md:px-6 mb-24 flex flex-col gap-6">
+        <!-- FEATURES SECTION (4 thẻ tính năng - Nơi nút "Tìm hiểu thêm" trượt đến) -->
+        <section id="features" class="w-full max-w-2xl mx-auto px-4 md:px-6 mb-24 flex flex-col gap-6">
             
             <!-- Thẻ 1 -->
-            <div class="feature-card bg-[#1e293b] border border-slate-700/60 rounded-3xl p-6 md:p-8 flex flex-col gap-4">
-                <div class="w-14 h-14 rounded-2xl bg-[#881337] flex items-center justify-center text-2xl md:text-3xl">
-                    🎯
+            <div class="feature-card bg-white dark:bg-[#1e293b] border border-slate-200 dark:border-slate-700/60 rounded-3xl p-6 md:p-8 flex flex-col gap-4">
+                <div class="w-14 h-14 rounded-2xl bg-pink-100 dark:bg-pink-900/30 flex items-center justify-center">
+                    <svg class="w-7 h-7 text-pink-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                 </div>
                 <div>
-                    <h3 class="text-2xl font-bold text-white mb-2">Chấm điểm Đa chiều</h3>
-                    <p class="text-slate-400 text-base leading-relaxed">Phân tích khắt khe dựa trên 14+ tiêu chí.</p>
+                    <h3 class="text-2xl font-bold text-slate-900 dark:text-white mb-2">Chấm điểm Đa chiều</h3>
+                    <p class="text-slate-600 dark:text-slate-400 text-base leading-relaxed">Phân tích khắt khe dựa trên 14+ tiêu chí.</p>
                 </div>
             </div>
 
             <!-- Thẻ 2 -->
-            <div class="feature-card bg-[#1e293b] border border-slate-700/60 rounded-3xl p-6 md:p-8 flex flex-col gap-4">
-                <div class="w-14 h-14 rounded-2xl bg-[#1e3a8a] flex items-center justify-center text-2xl md:text-3xl">
-                    🧠
+            <div class="feature-card bg-white dark:bg-[#1e293b] border border-slate-200 dark:border-slate-700/60 rounded-3xl p-6 md:p-8 flex flex-col gap-4">
+                <div class="w-14 h-14 rounded-2xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                    <svg class="w-7 h-7 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
                 </div>
                 <div>
-                    <h3 class="text-2xl font-bold text-white mb-2">Gợi ý tư duy</h3>
-                    <p class="text-slate-400 text-base leading-relaxed">Đưa ra câu hỏi gợi mở để bạn tự hoàn thiện.</p>
+                    <h3 class="text-2xl font-bold text-slate-900 dark:text-white mb-2">Gợi ý tư duy</h3>
+                    <p class="text-slate-600 dark:text-slate-400 text-base leading-relaxed">Đưa ra câu hỏi gợi mở để bạn tự hoàn thiện.</p>
                 </div>
             </div>
 
             <!-- Thẻ 3 -->
-            <div class="feature-card bg-[#1e293b] border border-slate-700/60 rounded-3xl p-6 md:p-8 flex flex-col gap-4">
-                <div class="w-14 h-14 rounded-2xl bg-[#4c1d95] flex items-center justify-center text-2xl md:text-3xl">
-                    ✨
+            <div class="feature-card bg-white dark:bg-[#1e293b] border border-slate-200 dark:border-slate-700/60 rounded-3xl p-6 md:p-8 flex flex-col gap-4">
+                <div class="w-14 h-14 rounded-2xl bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
+                    <svg class="w-7 h-7 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>
                 </div>
                 <div>
-                    <h3 class="text-2xl font-bold text-white mb-2">Viết lại chuẩn 11 mục</h3>
-                    <p class="text-slate-400 text-base leading-relaxed">Tự động cấu trúc lại format chuyên nghiệp.</p>
+                    <h3 class="text-2xl font-bold text-slate-900 dark:text-white mb-2">Viết lại chuẩn 11 mục</h3>
+                    <p class="text-slate-600 dark:text-slate-400 text-base leading-relaxed">Tự động cấu trúc lại format chuyên nghiệp.</p>
                 </div>
             </div>
 
             <!-- Thẻ 4 -->
-            <div class="feature-card bg-[#1e293b] border border-slate-700/60 rounded-3xl p-6 md:p-8 flex flex-col gap-4">
-                <div class="w-14 h-14 rounded-2xl bg-[#064e3b] flex items-center justify-center text-2xl md:text-3xl">
-                    📊
+            <div class="feature-card bg-white dark:bg-[#1e293b] border border-slate-200 dark:border-slate-700/60 rounded-3xl p-6 md:p-8 flex flex-col gap-4">
+                <div class="w-14 h-14 rounded-2xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+                    <svg class="w-7 h-7 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
                 </div>
                 <div>
-                    <h3 class="text-2xl font-bold text-white mb-2">Thống kê thông minh</h3>
-                    <p class="text-slate-400 text-base leading-relaxed">Theo dõi lịch sử và biểu đồ phân bố lỗi.</p>
+                    <h3 class="text-2xl font-bold text-slate-900 dark:text-white mb-2">Thống kê thông minh</h3>
+                    <p class="text-slate-600 dark:text-slate-400 text-base leading-relaxed">Theo dõi lịch sử và biểu đồ phân bố lỗi.</p>
                 </div>
             </div>
 
