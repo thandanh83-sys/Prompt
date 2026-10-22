@@ -2,7 +2,7 @@
 <html lang="vi" class="light">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Trợ lý tối ưu hoá Prompt</title>
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23ec4899'/%3E%3Cstop offset='100%25' stop-color='%233b82f6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' rx='20' fill='url(%23g)'/%3E%3Ctext x='50' y='72' font-size='60' font-family='Arial,sans-serif' font-weight='bold' fill='white' text-anchor='middle'%3EP%3C/text%3E%3C/svg%3E">
     
@@ -20,8 +20,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script> tailwind.config = { darkMode: 'class' } </script>
     <style>
-        body { -webkit-tap-highlight-color: transparent; overflow-x: hidden; animation: fadeIn 0.4s ease-in-out; transition: background-color 0.15s ease, color 0.15s ease; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        body { -webkit-tap-highlight-color: transparent; overflow-x: hidden; transition: background-color 0.15s ease, color 0.15s ease; }
         
         @media (prefers-reduced-motion: reduce) {
             body, .glass-card, .btn-glow { transition: none !important; animation: none !important; }
@@ -39,7 +38,17 @@
         ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
         ::-webkit-scrollbar-track { background: transparent; }
         
-        .dark-glow { background: radial-gradient(circle at 50% 0%, rgba(236,72,153,0.15) 0%, transparent 60%); }
+        .dark-glow { background: radial-gradient(circle at 50% 0%, rgba(236,72,153,0.10) 0%, transparent 60%); }
+
+        /* Header nền đặc để giảm repaint, đồng bộ landing.html */
+        .app-header { background: #ffffff; border-color: rgba(0, 0, 0, 0.06); }
+        .dark .app-header { background: #0f172a; border-color: rgba(255, 255, 255, 0.1); }
+
+        /* Gradient đồng bộ thương hiệu */
+        .brand-text { background: linear-gradient(to right, #ec4899, #3b82f6); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+        .brand-spark { flex-shrink: 0; }
+
+        @media (prefers-reduced-motion: reduce) { body { transition: none !important; } }
         .btn-glow { box-shadow: 0 4px 15px rgba(236, 72, 153, 0.3); }
         .btn-glow:hover { box-shadow: 0 6px 20px rgba(59, 130, 246, 0.5); transform: translateY(-1px); }
         .stat-card { background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.01) 100%); border: 1px solid rgba(255,255,255,0.1); }
@@ -60,8 +69,8 @@
 <body class="antialiased min-h-screen relative text-slate-800 dark:text-slate-100 transition-colors duration-300 bg-slate-50 dark:bg-slate-900 dark-glow flex flex-col">
 
     <!-- HEADER CỐ ĐỊNH -->
-    <header class="fixed top-0 left-0 w-full z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-700/50">
-        <div class="max-w-xl mx-auto px-4 md:px-4 h-16 flex items-center justify-between">
+    <header class="app-header fixed top-0 left-0 w-full z-50 border-b">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 md:h-20 flex items-center justify-between gap-3">
             
             <div class="relative flex items-center">
                 <button id="btnHamburger" class="w-10 h-10 shrink-0 flex items-center justify-center rounded-full text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
@@ -97,11 +106,12 @@
 
             <!-- GIỮA: LOGO (CHỮ GRADIENT GIỐNG LANDING) -->
             <div class="flex items-center gap-1.5 pointer-events-none whitespace-nowrap">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 text-brand-pink">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="url(#brandSparkGradient)" class="brand-spark w-6 h-6">
+                    <defs><linearGradient id="brandSparkGradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ec4899"/><stop offset="100%" stop-color="#3b82f6"/></linearGradient></defs>
                     <path fill-rule="evenodd" d="M9 4.5a.75.75 0 01.721.544l.813 2.846a3.75 3.75 0 002.576 2.576l2.846.813a.75.75 0 010 1.442l-2.846.813a3.75 3.75 0 00-2.576 2.576l-.813 2.846a.75.75 0 01-1.442 0l-.813-2.846a3.75 3.75 0 00-2.576-2.576l-2.846-.813a.75.75 0 010-1.442l2.846-.813A3.75 3.75 0 009 7.89l.813-2.846A.75.75 0 019 4.5zM18 1.5a.75.75 0 01.728.568l.258 1.036c.236.94.97 1.674 1.91 1.91l1.036.258a.75.75 0 010 1.456l-1.036.258c-.94.236-1.674.97-1.91 1.91l-.258 1.036a.75.75 0 01-1.456 0l-.258-1.036a2.625 2.625 0 00-1.91-1.91l-1.036-.258a.75.75 0 010-1.456l1.036-.258a2.625 2.625 0 001.91-1.91l.258-1.036A.75.75 0 0118 1.5zM16.5 15a.75.75 0 01.712.513l.394 1.183c.15.447.5.799.948.948l1.183.395a.75.75 0 010 1.422l-1.183.395c-.447.15-.799.5-.948.948l-.395 1.183a.75.75 0 01-1.422 0l-.395-1.183a1.5 1.5 0 00-.948-.948l-1.183-.395a.75.75 0 010-1.422l1.183-.395c.447-.15.799-.5.948-.948l.395-1.183A.75.75 0 0116.5 15z" clip-rule="evenodd" />
                 </svg>
                 <!-- Đã chuyển lại thành màu Gradient Hồng - Xanh -->
-                <div class="text-base md:text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-blue-500">Trợ lý AI</div>
+                <div class="brand-text text-base md:text-xl font-extrabold tracking-wide">Trợ lý AI</div>
             </div>
 
             <!-- PHẢI: NÚT THEME -->
@@ -118,10 +128,10 @@
     </header>
 
     <!-- NỘI DUNG CHÍNH -->
-    <div class="max-w-xl w-full mx-auto px-4 pt-24 pb-32 flex-grow flex flex-col" id="mainContainer">
+    <div class="w-full max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 md:pt-28 pb-32 flex-grow flex flex-col" id="mainContainer">
         <div class="text-center mb-8 px-2 sm:px-6">
             <h1 class="text-xl sm:text-2xl md:text-3xl font-extrabold mb-3 leading-tight flex items-center justify-center gap-1.5 sm:gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 sm:w-7 sm:h-7 text-brand-pink shrink-0">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 sm:w-7 sm:h-7 text-pink-500 shrink-0">
                     <path fill-rule="evenodd" d="M9 4.5a.75.75 0 01.721.544l.813 2.846a3.75 3.75 0 002.576 2.576l2.846.813a.75.75 0 010 1.442l-2.846.813a3.75 3.75 0 00-2.576 2.576l-.813 2.846a.75.75 0 01-1.442 0l-.813-2.846a3.75 3.75 0 00-2.576-2.576l-2.846-.813a.75.75 0 010-1.442l2.846-.813A3.75 3.75 0 009 7.89l.813-2.846A.75.75 0 019 4.5zM18 1.5a.75.75 0 01.728.568l.258 1.036c.236.94.97 1.674 1.91 1.91l1.036.258a.75.75 0 010 1.456l-1.036.258c-.94.236-1.674.97-1.91 1.91l-.258 1.036a.75.75 0 01-1.456 0l-.258-1.036a2.625 2.625 0 00-1.91-1.91l-1.036-.258a.75.75 0 010-1.456l1.036-.258a2.625 2.625 0 001.91-1.91l.258-1.036A.75.75 0 0118 1.5zM16.5 15a.75.75 0 01.712.513l.394 1.183c.15.447.5.799.948.948l1.183.395a.75.75 0 010 1.422l-1.183.395c-.447.15-.799.5-.948.948l-.395 1.183a.75.75 0 01-1.422 0l-.395-1.183a1.5 1.5 0 00-.948-.948l-1.183-.395a.75.75 0 010-1.422l1.183-.395c.447-.15.799-.5.948-.948l.395-1.183A.75.75 0 0116.5 15z" clip-rule="evenodd" />
                 </svg>
                 <span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-blue-500">Trợ lý tối ưu hoá Prompt</span>
