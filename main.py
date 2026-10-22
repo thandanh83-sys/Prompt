@@ -46,7 +46,9 @@ api_key_header = APIKeyHeader(name="X-Admin-Token", auto_error=False)
 # Cấu hình CORS
 DEFAULT_ORIGINS = ["https://thandanh83-sys.github.io"]
 env_origins = os.environ.get("ALLOWED_ORIGINS", "")
-ALLOWED_ORIGINS = [o.strip() for o in env_origins.split(",") if o.strip()] or DEFAULT_ORIGINS
+configured_origins = [origin.strip() for origin in env_origins.split(",") if origin.strip()]
+# Always keep the deployed GitHub Pages origin allowlisted, while retaining any configured origins.
+ALLOWED_ORIGINS = list(dict.fromkeys([*DEFAULT_ORIGINS, *configured_origins]))
 
 def get_client_ip(request: Request) -> str:
     forwarded = request.headers.get("x-forwarded-for")
