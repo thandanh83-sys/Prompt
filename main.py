@@ -17,7 +17,6 @@ from supabase import create_client, Client
 from slowapi import Limiter
 from slowapi.errors import RateLimitExceeded
 
-# Import các module tự viết
 import rules_v38
 from validator import validate_full_report, calculate_final_score, ReportValidationError
 
@@ -87,7 +86,6 @@ if GEMINI_API_KEY:
 else:
     gemini_model = None
 
-# BẠN HÃY ĐẢM BẢO BIẾN MÔI TRƯỜNG SUPABASE_KEY TRÊN RENDER LÀ SERVICE_ROLE
 supabase_url = os.environ.get("SUPABASE_URL", "")
 supabase_key = os.environ.get("SUPABASE_KEY", "")
 supabase: Client = create_client(supabase_url, supabase_key) if supabase_url and supabase_key else None
@@ -279,8 +277,11 @@ def evaluate(request: Request, req: PromptRequest, background_tasks: BackgroundT
         error_codes_desc = "\n".join([f"- {k}: {v}" for k, v in rules_v38.VALID_ERROR_CODES.items()])
         scores_example = ", ".join([f'"{k}": 8' for k in all_criteria.keys()])
 
+        # Cập nhật Prompt cho AI hiểu đang đánh giá loại nào
+        task_name = "một lĩnh vực TỔNG QUÁT (Hãy đánh giá dựa trên tính chuyên môn, logic và cấu trúc)" if main_task == rules_v38.TYPE_GENERAL else f"loại {main_task}"
+
         system_prompt = f"""
-Bạn là Chuyên gia Prompt Engineering. Đánh giá và viết lại câu lệnh của người dùng theo form 11 mục.
+Bạn là Chuyên gia Prompt Engineering. Đánh giá và viết lại câu lệnh của người dùng (được xác định thuộc {task_name}).
 
 BƯỚC 1: XÁC ĐỊNH LĨNH VỰC & CHUYÊN GIA.
 BƯỚC 2: VIẾT LẠI PROMPT THEO ĐÚNG CẤU TRÚC JSON SAU (Sử dụng \\n để xuống dòng trong nội dung):
