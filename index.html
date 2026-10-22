@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Thêm theme-color để đồng bộ thanh trạng thái -->
+    <meta name="theme-color" content="#f8f7fc">
     <title>Trợ lý AI - Tối ưu hoá Prompt</title>
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23ec4899'/%3E%3Cstop offset='100%25' stop-color='%233b82f6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' rx='20' fill='url(%23g)'/%3E%3Ctext x='50' y='72' font-size='60' font-family='Arial,sans-serif' font-weight='bold' fill='white' text-anchor='middle'%3EP%3C/text%3E%3C/svg%3E">
 
@@ -20,9 +22,31 @@
     <script>tailwind.config = { darkMode: 'class' }</script>
 
     <style>
-        body { -webkit-tap-highlight-color: transparent; overflow-x: hidden; transition: background-color .15s ease, color .15s ease; }
-        .page-bg { position: fixed; inset: 0; z-index: -1; pointer-events: none; background: radial-gradient(ellipse at 18% 28%, rgba(229,112,196,.12), transparent 36%), radial-gradient(ellipse at 74% 52%, rgba(90,129,255,.10), transparent 40%), #f8f7fc; }
-        .dark .page-bg { background: radial-gradient(ellipse at 18% 28%, rgba(164,55,130,.10), transparent 36%), radial-gradient(ellipse at 74% 52%, rgba(53,84,180,.12), transparent 40%), #0f172a; }
+        /* FIX LỖI DẢI TRẮNG: Set màu nền cho cả thẻ html và ngăn kéo giãn */
+        html { 
+            background-color: #f8f7fc; 
+            transition: background-color .15s ease; 
+            min-height: 100vh;
+            min-height: 100dvh;
+        }
+        html.dark { 
+            background-color: #0f172a; 
+        }
+
+        body { 
+            -webkit-tap-highlight-color: transparent; 
+            overflow-x: hidden; 
+            transition: background-color .15s ease, color .15s ease; 
+            background-color: #f8f7fc;
+            overscroll-behavior-y: none; /* Ngăn hiệu ứng kéo giãn lộ nền trắng */
+        }
+        .dark body { 
+            background-color: #0f172a; 
+        }
+        
+        .page-bg { position: fixed; inset: 0; z-index: -1; pointer-events: none; background: radial-gradient(ellipse at 18% 28%, rgba(229,112,196,.12), transparent 36%), radial-gradient(ellipse at 74% 52%, rgba(90,129,255,.10), transparent 40%), transparent; }
+        .dark .page-bg { background: radial-gradient(ellipse at 18% 28%, rgba(164,55,130,.10), transparent 36%), radial-gradient(ellipse at 74% 52%, rgba(53,84,180,.12), transparent 40%), transparent; }
+        
         .app-header { background: #fff; border-color: rgba(0,0,0,.06); }
         .dark .app-header { background: #0f172a; border-color: rgba(255,255,255,.1); }
         .brand-spark { flex-shrink: 0; }
@@ -91,7 +115,7 @@
                 <span class="brand-text text-base sm:text-lg font-extrabold truncate">Trợ lý AI</span>
             </div>
             
-            <!-- NÚT TRẢI NGHIỆM NGAY (ĐÃ THU NHỎ LẠI VỪA VẶN) -->
+            <!-- NÚT TRẢI NGHIỆM NGAY -->
             <a href="./landing.html" class="px-3 py-1.5 md:px-5 md:py-2.5 rounded-full text-xs md:text-sm font-bold text-white bg-gradient-to-r from-pink-500 to-blue-500 shadow-sm hover:shadow-md hover:scale-105 active:scale-95 transition-all whitespace-nowrap">
                 Trải nghiệm ngay
             </a>
@@ -235,6 +259,10 @@
             document.getElementById('themeIconMenu').innerHTML = dark ? sunSVG : moonSVG;
             document.getElementById('themeTextMenu').textContent = dark ? 'Chế độ Sáng' : 'Chế độ Tối';
             localStorage.setItem('theme', dark ? 'dark' : 'light');
+            
+            // FIX: Đổi màu thanh trạng thái (theme-color)
+            const themeColor = document.querySelector('meta[name="theme-color"]');
+            if (themeColor) themeColor.setAttribute('content', dark ? '#0f172a' : '#f8f7fc');
         }
         applyTheme(document.documentElement.classList.contains('dark'));
         document.getElementById('themeToggleMenu').addEventListener('click', () => applyTheme(!document.documentElement.classList.contains('dark')));
