@@ -5,80 +5,400 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#f8f7fc">
   <title>Trợ lý AI — Tối ưu hoá Prompt</title>
+
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23ec4899'/%3E%3Cstop offset='100%25' stop-color='%233b82f6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' rx='20' fill='url(%23g)'/%3E%3Ctext x='50' y='72' font-size='60' font-family='Arial,sans-serif' font-weight='bold' fill='white' text-anchor='middle'%3EP%3C/text%3E%3C/svg%3E">
+
   <script src="https://cdn.tailwindcss.com"></script>
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <script>
+    try {
+      if (localStorage.getItem('theme') === 'dark') {
+        document.documentElement.classList.add('dark');
+      }
+    } catch (_) {}
+  </script>
+
   <style>
-    :root{--ink:#10172b;--muted:#46516a;--panel:rgba(255,255,255,.72);--line:rgba(120,130,160,.18)}
-    *{box-sizing:border-box}
-    html{scroll-behavior:smooth;scroll-padding-top:90px}
-    body{margin:0;font-family:Inter,system-ui,sans-serif;color:var(--ink);background:#f8f7fc;overflow-x:hidden}
-    body.dark{--ink:#edf1ff;--muted:#bdc6dc;--panel:rgba(20,29,49,.78);--line:rgba(180,195,225,.15);background:#111a2b}
-    .page-bg{position:fixed;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(ellipse at 18% 28%,rgba(229,112,196,.27),transparent 36%),radial-gradient(ellipse at 74% 52%,rgba(90,129,255,.22),transparent 40%),radial-gradient(ellipse at 46% 82%,rgba(179,112,255,.17),transparent 35%)}
-    body.dark .page-bg{background:radial-gradient(ellipse at 18% 28%,rgba(164,55,130,.19),transparent 36%),radial-gradient(ellipse at 74% 52%,rgba(53,84,180,.22),transparent 40%)}
-    .glass{background:var(--panel);border:1px solid var(--line);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
-    .ink{color:var(--ink)} .muted{color:var(--muted)}
-    .gradient-text{background:linear-gradient(100deg,#e34da5,#8d63d6 48%,#3679f6);-webkit-background-clip:text;background-clip:text;color:transparent}
-    .gradient-btn{background:linear-gradient(105deg,#e743a3,#a052c8 52%,#3979f5);box-shadow:0 12px 30px rgba(176,74,183,.28)}
-    .gradient-btn:hover{filter:brightness(1.04);transform:translateY(-1px)}
-    .sidebar{position:fixed;z-index:60;inset:0 auto 0 0;width:min(330px,88vw);background:#1b2a3e;color:#e7edf8;transform:translateX(-105%);transition:transform .25s ease;box-shadow:18px 0 50px rgba(0,0,0,.22);padding:18px 0}
-    .sidebar.open{transform:translateX(0)}
-    .side-link{display:flex;align-items:center;gap:22px;padding:18px 25px;color:#e7edf8;text-decoration:none;font-size:20px;font-weight:650;min-height:76px}
-    .side-link:hover,.side-link:focus-visible{background:rgba(255,255,255,.08);outline:none}
-    .side-link svg{width:34px;height:34px;flex:none;stroke:currentColor;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
-    .side-divider{height:1px;background:rgba(226,235,250,.12);margin:16px 0}
-    .overlay{position:fixed;z-index:50;inset:0;background:rgba(8,14,26,.48);opacity:0;visibility:hidden;transition:.2s}
-    .overlay.show{opacity:1;visibility:visible}
-    .theme-toggle{width:54px;height:54px;border-radius:50%;background:var(--panel);border:1px solid var(--line);box-shadow:0 8px 24px rgba(25,30,60,.12);font-size:23px}
-    @media(min-width:768px){.hero-title{font-size:clamp(3rem,5.2vw,5rem)}.side-link{font-size:21px}}
-    @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
+    :root {
+      color-scheme: light;
+      --ink: #10172b;
+      --muted: #46516a;
+      --panel: #ffffff;
+      --line: rgba(120, 130, 160, .22);
+      --page: #f8f7fc;
+    }
+
+    html.dark {
+      color-scheme: dark;
+      --ink: #edf1ff;
+      --muted: #bdc6dc;
+      --panel: #172238;
+      --line: rgba(180, 195, 225, .16);
+      --page: #111a2b;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      scroll-padding-top: 90px;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, system-ui, sans-serif;
+      color: var(--ink);
+      background: var(--page);
+      overflow-x: hidden;
+      transition: background-color .15s ease, color .15s ease;
+    }
+
+    .page-bg {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(ellipse at 18% 28%, rgba(229,112,196,.12), transparent 36%),
+        radial-gradient(ellipse at 74% 52%, rgba(90,129,255,.10), transparent 40%);
+    }
+
+    html.dark .page-bg {
+      background:
+        radial-gradient(ellipse at 18% 28%, rgba(164,55,130,.10), transparent 36%),
+        radial-gradient(ellipse at 74% 52%, rgba(53,84,180,.12), transparent 40%);
+    }
+
+    header,
+    main,
+    footer {
+      position: relative;
+      z-index: 1;
+    }
+
+    .glass {
+      background: var(--panel);
+      border: 1px solid var(--line);
+    }
+
+    .ink {
+      color: var(--ink);
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .gradient-text {
+      background: linear-gradient(100deg, #e34da5, #8d63d6 48%, #3679f6);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .gradient-btn {
+      background: linear-gradient(105deg, #e743a3, #a052c8 52%, #3979f5);
+      box-shadow: 0 5px 14px rgba(125, 78, 190, .16);
+    }
+
+    .gradient-btn:hover {
+      filter: brightness(1.04);
+      transform: translateY(-1px);
+    }
+
+    .gradient-btn:focus-visible,
+    .theme-toggle:focus-visible,
+    .menu-button:focus-visible,
+    .side-link:focus-visible {
+      outline: 2px solid #e743a3;
+      outline-offset: 3px;
+    }
+
+    .sparkle-gradient {
+      display: inline-flex;
+      flex: none;
+      width: 1.35em;
+      height: 1.35em;
+      vertical-align: middle;
+    }
+
+    /* CẬP NHẬT CSS SIDEBAR THEO YÊU CẦU CỦA BẠN */
+    .sidebar {
+      position: fixed;
+      z-index: 60;
+      inset: 0 auto 0 0;
+      width: min(290px, calc(100vw - 24px));
+      max-width: calc(100vw - 24px);
+      height: 100vh;
+      height: 100dvh;
+      overflow-y: auto;
+      overflow-x: hidden;
+      overscroll-behavior: contain;
+      box-sizing: border-box;
+      -webkit-overflow-scrolling: touch;
+      background: #1b2a3e;
+      color: #e7edf8;
+      transform: translateX(-105%);
+      transition: transform .2s ease;
+      padding: 18px 0;
+    }
+
+    .sidebar.open {
+      transform: translateX(0);
+    }
+
+    .side-link {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 15px 20px;
+      min-height: 58px;
+      color: #e7edf8;
+      text-decoration: none;
+      font-size: 16px;
+      font-weight: 650;
+      overflow-wrap: anywhere;
+    }
+
+    .side-link:hover,
+    .side-link:focus-visible {
+      background: rgba(255,255,255,.08);
+    }
+
+    .side-link svg {
+      width: 26px;
+      height: 26px;
+      flex: none;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .side-divider {
+      height: 1px;
+      background: rgba(226,235,250,.12);
+      margin: 12px 0;
+    }
+
+    .overlay {
+      position: fixed;
+      z-index: 50;
+      inset: 0;
+      background: rgba(8,14,26,.45);
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity .15s ease, visibility .15s ease;
+    }
+
+    .overlay.show {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .theme-toggle {
+      width: 46px;
+      height: 46px;
+      flex: none;
+      border-radius: 50%;
+      background: var(--panel);
+      color: var(--ink);
+      border: 1px solid var(--line);
+      font-size: 21px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .feature-card {
+      transition: border-color .15s ease, transform .15s ease;
+    }
+
+    .feature-card:hover {
+      border-color: rgba(164, 82, 200, .45);
+      transform: translateY(-2px);
+    }
+
+    .intro-pill {
+      color: #c44896;
+    }
+
+    html.dark .intro-pill {
+      color: #f0a0d2;
+    }
+
+    @media (min-width: 768px) {
+      .hero-title {
+        font-size: clamp(3rem, 5.2vw, 5rem);
+      }
+
+      .side-link {
+        font-size: 17px;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .hero-title {
+        font-size: clamp(2.15rem, 9vw, 3.25rem);
+      }
+
+      .theme-toggle {
+        width: 42px;
+        height: 42px;
+      }
+
+      .sidebar {
+        width: min(270px, calc(100vw - 24px));
+        padding: 12px 0;
+      }
+
+      .side-link {
+        min-height: 52px;
+        padding: 13px 17px;
+        gap: 13px;
+        font-size: 16px;
+        overflow-wrap: anywhere;
+      }
+    }
+
+    @media (min-width: 641px) {
+      .sidebar {
+        width: 290px;
+        padding: 18px 0;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        transition: none !important;
+        animation: none !important;
+      }
+    }
   </style>
 </head>
+
 <body>
-  <div class="page-bg"></div>
+  <div class="page-bg" aria-hidden="true"></div>
   <div id="overlay" class="overlay" aria-hidden="true"></div>
+
   <aside id="sidebar" class="sidebar" aria-label="Menu điều hướng" aria-hidden="true">
-    <div class="px-6 pb-5 text-lg font-extrabold tracking-wide">✨ Trợ lý AI</div>
-    <a class="side-link" href="./landing.html"><svg style="color:#ff2fa5" viewBox="0 0 24 24"><path d="m3 10 9-8 9 8"/><path d="M5 9v12h14V9M9 21v-7h6v7"/></svg><span>Trang chủ</span></a>
-    <a class="side-link" href="./index.html"><svg style="color:#168bff" viewBox="0 0 24 24"><path d="m12 2.5 3 6.1 6.7 1-4.8 4.7 1.1 6.7L12 17.8l-6 3.2 1.1-6.7-4.8-4.7 6.7-1z"/></svg><span>Đánh giá</span></a>
-    <a class="side-link" href="./index.html#library"><svg style="color:#bd55ff" viewBox="0 0 24 24"><path d="M12 5C8.5 2.8 4.8 3 2 4v16c3-1.2 6.7-1.2 10 1 3.3-2.2 7-2.2 10-1V4c-2.8-1-6.5-1.2-10 1Z"/><path d="M12 5v16"/></svg><span>Thư viện</span></a>
+    <div class="flex items-center gap-3 px-5 pb-5 text-lg font-extrabold tracking-wide">
+      <svg class="sparkle-gradient" viewBox="0 0 24 24" aria-hidden="true">
+        <defs>
+          <linearGradient id="sideSparkGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#ec4899"/>
+            <stop offset="100%" stop-color="#3b82f6"/>
+          </linearGradient>
+        </defs>
+        <path fill="url(#sideSparkGradient)" d="M12 2 14.8 9.2 22 12l-7.2 2.8L12 22l-2.8-7.2L2 12l7.2-2.8L12 2Z"/>
+      </svg>
+      <span>Trợ lý AI</span>
+    </div>
+
+    <a class="side-link" href="./landing.html">
+      <svg style="color:#ff55b5" viewBox="0 0 24 24">
+        <path d="m3 10 9-8 9 8"/>
+        <path d="M5 9v12h14V9M9 21v-7h6v7"/>
+      </svg>
+      <span>Trang chủ</span>
+    </a>
+
+    <a class="side-link" href="./index.html">
+      <svg style="color:#4da0ff" viewBox="0 0 24 24">
+        <path d="m12 2.5 3 6.1 6.7 1-4.8 4.7 1.1 6.7L12 17.8l-6 3.2 1.1-6.7-4.8-4.7 6.7-1z"/>
+      </svg>
+      <span>Đánh giá</span>
+    </a>
+
+    <a class="side-link" href="./index.html#library">
+      <svg style="color:#bd75ff" viewBox="0 0 24 24">
+        <path d="M12 5C8.5 2.8 4.8 3 2 4v16c3-1.2 6.7-1.2 10 1 3.3-2.2 7-2.2 10-1V4c-2.8-1-6.5-1.2-10 1Z"/>
+        <path d="M12 5v16"/>
+      </svg>
+      <span>Thư viện</span>
+    </a>
+
     <div class="side-divider"></div>
-    <a class="side-link" href="./index.html#admin"><svg style="color:#00d66b" viewBox="0 0 24 24"><path d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Z"/><path d="m19.4 13.5 1.1 1.8-2 3.4-2.1-.4a8 8 0 0 1-1.5.9l-.7 2.1h-4l-.7-2.1a8 8 0 0 1-1.5-.9l-2.1.4-2-3.4L5 13.5a8 8 0 0 1 0-1.8l-1.1-1.8 2-3.4 2.1.4a8 8 0 0 1 1.5-.9l.7-2.1h4l.7 2.1a8 8 0 0 1 1.5.9l2.1-.4 2 3.4-1.1 1.8a8 8 0 0 1 0 1.8Z"/></svg><span>Quản trị (Admin)</span></a>
+
+    <a class="side-link" href="./index.html#admin">
+      <svg style="color:#38df91" viewBox="0 0 24 24">
+        <path d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7Z"/>
+        <path d="m19.4 13.5 1.1 1.8-2 3.4-2.1-.4a8 8 0 0 1-1.5.9l-.7 2.1h-4l-.7-2.1a8 8 0 0 1-1.5-.9l-2.1.4-2-3.4L5 13.5a8 8 0 0 1 0-1.8l-1.1-1.8 2-3.4 2.1.4a8 8 0 0 1 1.5-.9l.7-2.1h4l.7 2.1a8 8 0 0 1 1.5.9l2.1-.4 2 3.4-1.1 1.8a8 8 0 0 1 0 1.8Z"/>
+      </svg>
+      <span>Quản trị (Admin)</span>
+    </a>
   </aside>
 
   <header class="glass sticky top-0 z-40 border-b" style="border-color:var(--line)">
-    <div class="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-4 sm:px-6">
-      <div class="flex min-w-0 items-center gap-3">
-        <button id="menuButton" class="rounded-xl p-2 ink hover:bg-black/5" aria-label="Mở menu" aria-controls="sidebar" aria-expanded="false">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+    <div class="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6 sm:py-4">
+      <div class="flex min-w-0 items-center gap-2 sm:gap-3">
+        <button id="menuButton" class="menu-button rounded-xl p-2 ink hover:bg-black/5 dark:hover:bg-white/5" aria-label="Mở menu" aria-controls="sidebar" aria-expanded="false" type="button">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
+            <path d="M4 6h16M4 12h16M4 18h16"/>
+          </svg>
         </button>
-        <a href="./landing.html" class="ink truncate text-xl font-extrabold sm:text-2xl">✨ Trợ lý AI</a>
+
+        <a href="./landing.html" class="ink flex min-w-0 items-center gap-2 truncate text-lg font-extrabold sm:text-2xl">
+          <svg class="sparkle-gradient" viewBox="0 0 24 24" aria-hidden="true">
+            <defs>
+              <linearGradient id="headerSparkGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#ec4899"/>
+                <stop offset="100%" stop-color="#3b82f6"/>
+              </linearGradient>
+            </defs>
+            <path fill="url(#headerSparkGradient)" d="M12 2 14.8 9.2 22 12l-7.2 2.8L12 22l-2.8-7.2L2 12l7.2-2.8L12 2Z"/>
+          </svg>
+          <span>Trợ lý AI</span>
+        </a>
       </div>
-      <a href="./index.html" class="gradient-btn rounded-full px-4 py-3 text-center text-sm font-bold text-white transition sm:px-7 sm:text-base">Trải nghiệm ngay</a>
+
+      <a href="./index.html" class="gradient-btn rounded-full px-3 py-3 text-center text-xs font-bold text-white transition sm:px-7 sm:text-base">
+        Trải nghiệm ngay
+      </a>
     </div>
   </header>
 
   <main>
-    <section class="mx-auto max-w-7xl px-5 pb-16 pt-10 sm:px-8 sm:pb-24 sm:pt-16">
+    <section class="mx-auto max-w-7xl px-5 pb-16 pt-8 sm:px-8 sm:pb-24 sm:pt-12">
       <div class="flex justify-end">
-        <button id="themeButton" class="theme-toggle" aria-label="Chuyển giao diện sáng tối" title="Chuyển giao diện">🌙</button>
+        <button id="themeButton" class="theme-toggle" aria-label="Chuyển giao diện sáng tối" title="Chuyển giao diện" type="button">🌙</button>
       </div>
+
       <div class="mx-auto max-w-4xl text-center">
-        <div class="glass mb-8 inline-flex items-center gap-3 rounded-full px-5 py-3 text-sm font-bold sm:text-lg" style="color:#d65aa8">
-          <span class="h-3 w-3 rounded-full" style="background:#e66bb4"></span>
+        <div class="glass intro-pill mb-8 inline-flex items-center gap-3 rounded-full px-4 py-3 text-sm font-bold sm:px-5 sm:text-lg">
+          <span class="h-3 w-3 flex-none rounded-full" style="background:#e66bb4"></span>
           Chuẩn hóa quy trình tối ưu Prompt
         </div>
-        <h1 class="hero-title text-4xl font-extrabold leading-[1.14] tracking-tight sm:text-6xl">
-          Biến câu lệnh thông thường thành <span class="gradient-text">Prompt Chuyên Gia</span>
+
+        <h1 class="hero-title text-4xl font-extrabold leading-tight tracking-tight sm:text-6xl">
+          Biến câu lệnh thông thường thành
+          <span class="gradient-text">Prompt Chuyên Gia</span>
         </h1>
-        <p class="muted mx-auto mt-7 max-w-3xl text-lg leading-8 sm:mt-9 sm:text-2xl sm:leading-10">
+
+        <p class="muted mx-auto mt-6 max-w-3xl text-base leading-7 sm:mt-9 sm:text-2xl sm:leading-10">
           Trợ lý AI giúp phân tích, chấm điểm và đề xuất cách cải thiện câu lệnh theo cấu trúc <strong>11 mục</strong>, để yêu cầu của bạn rõ ràng và dễ sử dụng hơn.
         </p>
-        <div class="mx-auto mt-10 flex max-w-xl flex-col gap-4 sm:mt-12">
-          <a href="./index.html" class="gradient-btn flex items-center justify-center gap-4 rounded-full px-6 py-5 text-lg font-extrabold text-white transition sm:text-xl">Bắt đầu đánh giá miễn phí <span aria-hidden="true">→</span></a>
-          <a href="#features" class="glass ink rounded-full px-6 py-5 text-lg font-bold transition hover:-translate-y-0.5 sm:text-xl">Tìm hiểu thêm</a>
+
+        <div class="mx-auto mt-8 flex max-w-xl flex-col gap-4 sm:mt-12">
+          <a href="./index.html" class="gradient-btn flex items-center justify-center gap-3 rounded-full px-5 py-4 text-base font-extrabold text-white transition sm:px-6 sm:py-5 sm:text-xl">
+            Bắt đầu đánh giá miễn phí <span aria-hidden="true">→</span>
+          </a>
+
+          <a href="#features" class="glass ink rounded-full px-6 py-4 text-base font-bold transition hover:-translate-y-0.5 sm:py-5 sm:text-xl">
+            Tìm hiểu thêm
+          </a>
         </div>
       </div>
     </section>
@@ -87,37 +407,53 @@
       <div class="mx-auto mb-10 max-w-2xl text-center">
         <p class="gradient-text text-sm font-extrabold uppercase tracking-[.18em]">Tính năng</p>
         <h2 class="ink mt-3 text-3xl font-extrabold sm:text-4xl">Rõ ràng hơn trong từng câu lệnh</h2>
-        <p class="muted mt-4 text-base leading-7 sm:text-lg">Hỗ trợ bạn xem lại prompt và nhận gợi ý có cấu trúc trước khi sử dụng.</p>
+        <p class="muted mt-4 text-base leading-7 sm:text-lg">
+          Hỗ trợ bạn xem lại prompt và nhận gợi ý có cấu trúc trước khi sử dụng.
+        </p>
       </div>
-      <div class="grid gap-5 md:grid-cols-3">
-        <article class="glass rounded-3xl p-6 sm:p-7"><div class="mb-4 text-3xl" style="color:#e64fa8">✦</div><h3 class="ink text-xl font-extrabold">Đánh giá theo tiêu chí</h3><p class="muted mt-3 leading-7">Xem điểm số cùng các điểm mạnh và vấn đề cần cải thiện trong prompt.</p></article>
-        <article class="glass rounded-3xl p-6 sm:p-7"><div class="mb-4 text-3xl" style="color:#5d78f4">◎</div><h3 class="ink text-xl font-extrabold">Bản sửa 11 mục</h3><p class="muted mt-3 leading-7">Sắp xếp lại vai trò, bối cảnh, đầu vào, mục tiêu, yêu cầu và định dạng đầu ra.</p></article>
-        <article class="glass rounded-3xl p-6 sm:p-7"><div class="mb-4 text-3xl" style="color:#a653ee">▤</div><h3 class="ink text-xl font-extrabold">Lưu và xem lại</h3><p class="muted mt-3 leading-7">Truy cập ứng dụng để sử dụng các chức năng thư viện và lịch sử hiện có.</p></article>
-      </div>
-    </section>
 
-    <section id="how-it-works" class="mx-auto max-w-5xl px-5 py-12 sm:px-8 sm:py-16">
-      <div class="glass rounded-[2rem] p-7 sm:p-12">
-        <h2 class="ink text-center text-3xl font-extrabold sm:text-4xl">Cách sử dụng</h2>
-        <div class="mt-8 grid gap-6 sm:grid-cols-3">
-          <div><span class="gradient-text text-2xl font-extrabold">01</span><h3 class="ink mt-2 font-bold">Nhập prompt</h3><p class="muted mt-2 leading-6">Dán câu lệnh bạn muốn kiểm tra vào ứng dụng.</p></div>
-          <div><span class="gradient-text text-2xl font-extrabold">02</span><h3 class="ink mt-2 font-bold">Xem đánh giá</h3><p class="muted mt-2 leading-6">Đọc điểm số, điểm mạnh và những phần cần làm rõ.</p></div>
-          <div><span class="gradient-text text-2xl font-extrabold">03</span><h3 class="ink mt-2 font-bold">Tham khảo bản sửa</h3><p class="muted mt-2 leading-6">Dùng bản đề xuất làm nền tảng và điều chỉnh theo nhu cầu.</p></div>
-        </div>
+      <div class="grid gap-5 md:grid-cols-3">
+        <article class="glass feature-card rounded-3xl p-6 sm:p-7">
+          <div class="mb-4 text-3xl" style="color:#e64fa8">✦</div>
+          <h3 class="ink text-xl font-extrabold">Đánh giá theo tiêu chí</h3>
+          <p class="muted mt-3 leading-7">Xem điểm số cùng các điểm mạnh và vấn đề cần cải thiện trong prompt.</p>
+        </article>
+
+        <article class="glass feature-card rounded-3xl p-6 sm:p-7">
+          <div class="mb-4 text-3xl" style="color:#5d78f4">◎</div>
+          <h3 class="ink text-xl font-extrabold">Bản sửa 11 mục</h3>
+          <p class="muted mt-3 leading-7">Sắp xếp lại vai trò, bối cảnh, đầu vào, mục tiêu, yêu cầu và định dạng đầu ra.</p>
+        </article>
+
+        <article class="glass feature-card rounded-3xl p-6 sm:p-7">
+          <div class="mb-4 text-3xl" style="color:#a653ee">▤</div>
+          <h3 class="ink text-xl font-extrabold">Lưu và xem lại</h3>
+          <p class="muted mt-3 leading-7">Truy cập ứng dụng để sử dụng các chức năng thư viện và lịch sử hiện có.</p>
+        </article>
       </div>
     </section>
 
     <section id="about" class="mx-auto max-w-4xl px-5 py-16 text-center sm:px-8 sm:py-24">
       <h2 class="ink text-3xl font-extrabold sm:text-4xl">Bắt đầu cải thiện prompt của bạn</h2>
-      <p class="muted mx-auto mt-4 max-w-2xl text-lg leading-8">Một prompt rõ ràng có thể giúp AI hiểu đúng yêu cầu hơn. Hãy bắt đầu bằng việc kiểm tra câu lệnh hiện tại.</p>
-      <a href="./index.html" class="gradient-btn mt-8 inline-flex items-center justify-center gap-3 rounded-full px-8 py-4 font-extrabold text-white transition">Vào ứng dụng ngay <span aria-hidden="true">→</span></a>
+
+      <p class="muted mx-auto mt-4 max-w-2xl text-base leading-8 sm:text-lg">
+        Một prompt rõ ràng có thể giúp AI hiểu đúng yêu cầu hơn. Hãy bắt đầu bằng việc kiểm tra câu lệnh hiện tại.
+      </p>
+
+      <a href="./index.html" class="gradient-btn mt-8 inline-flex items-center justify-center gap-3 rounded-full px-7 py-4 font-extrabold text-white transition">
+        Vào ứng dụng ngay <span aria-hidden="true">→</span>
+      </a>
     </section>
   </main>
-  <footer class="glass border-t px-5 py-7 text-center text-sm muted" style="border-color:var(--line)">© <span id="year"></span> Trợ lý AI · Tối ưu hoá Prompt</footer>
+
+  <footer class="glass border-t px-5 py-7 text-center text-sm muted" style="border-color:var(--line)">
+    © <span id="year"></span> Trợ lý AI · Tối ưu hoá Prompt
+  </footer>
 
   <script>
     (() => {
       const body = document.body;
+      const root = document.documentElement;
       const sidebar = document.getElementById('sidebar');
       const overlay = document.getElementById('overlay');
       const menuButton = document.getElementById('menuButton');
@@ -126,25 +462,63 @@
       function setMenu(open) {
         sidebar.classList.toggle('open', open);
         overlay.classList.toggle('show', open);
+
         sidebar.setAttribute('aria-hidden', String(!open));
+        overlay.setAttribute('aria-hidden', String(!open));
         menuButton.setAttribute('aria-expanded', String(open));
         menuButton.setAttribute('aria-label', open ? 'Đóng menu' : 'Mở menu');
-        document.body.style.overflow = open ? 'hidden' : '';
+
+        body.style.overflow = open ? 'hidden' : '';
       }
-      menuButton.addEventListener('click', () => setMenu(!sidebar.classList.contains('open')));
+
+      menuButton.addEventListener('click', () => {
+        setMenu(!sidebar.classList.contains('open'));
+      });
+
       overlay.addEventListener('click', () => setMenu(false));
-      document.addEventListener('keydown', e => { if (e.key === 'Escape') setMenu(false); });
-      sidebar.querySelectorAll('a').forEach(a => a.addEventListener('click', () => setMenu(false)));
+
+      document.addEventListener('keydown', event => {
+        if (event.key === 'Escape') setMenu(false);
+      });
+
+      sidebar.querySelectorAll('a').forEach(link => {
+        link.addEventListener('click', () => setMenu(false));
+      });
 
       function setTheme(theme) {
-        body.classList.toggle('dark', theme === 'dark');
-        themeButton.textContent = theme === 'dark' ? '☀️' : '🌙';
-        try { localStorage.setItem('theme', theme); } catch (_) {}
+        const isDark = theme === 'dark';
+
+        root.classList.toggle('dark', isDark);
+        body.classList.toggle('dark', isDark);
+
+        themeButton.textContent = isDark ? '☀️' : '🌙';
+        themeButton.setAttribute(
+          'aria-label',
+          isDark ? 'Chuyển sang giao diện sáng' : 'Chuyển sang giao diện tối'
+        );
+
+        const themeColor = document.querySelector('meta[name="theme-color"]');
+        if (themeColor) {
+          themeColor.setAttribute('content', isDark ? '#111a2b' : '#f8f7fc');
+        }
+
+        try {
+          localStorage.setItem('theme', theme);
+        } catch (_) {}
       }
+
       let savedTheme = 'light';
-      try { savedTheme = localStorage.getItem('theme') || 'light'; } catch (_) {}
+
+      try {
+        savedTheme = localStorage.getItem('theme') || 'light';
+      } catch (_) {}
+
       setTheme(savedTheme);
-      themeButton.addEventListener('click', () => setTheme(body.classList.contains('dark') ? 'light' : 'dark'));
+
+      themeButton.addEventListener('click', () => {
+        setTheme(root.classList.contains('dark') ? 'light' : 'dark');
+      });
+
       document.getElementById('year').textContent = new Date().getFullYear();
     })();
   </script>
