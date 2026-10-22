@@ -8,10 +8,7 @@
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23ec4899'/%3E%3Cstop offset='100%25' stop-color='%233b82f6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' rx='20' fill='url(%23g)'/%3E%3Ctext x='50' y='72' font-size='60' font-family='Arial,sans-serif' font-weight='bold' fill='white' text-anchor='middle'%3EP%3C/text%3E%3C/svg%3E">
 
     <script>
-        const savedTheme = localStorage.getItem('theme');
-        const useDarkTheme = savedTheme ? savedTheme === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
-        document.documentElement.classList.toggle('dark', useDarkTheme);
-        document.documentElement.classList.toggle('light', !useDarkTheme);
+        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) { document.documentElement.classList.add('dark'); } else { document.documentElement.classList.remove('dark'); }
     </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -22,15 +19,12 @@
         html.dark { background-color: #0f172a; }
         body { -webkit-tap-highlight-color: transparent; overflow-x: hidden; transition: background-color .15s ease, color .15s ease; background-color: #f8f7fc; overscroll-behavior-y: none; }
         .dark body { background-color: #0f172a; }
-        .page-bg { position: fixed; inset: 0; z-index: -1; pointer-events: none; background: radial-gradient(ellipse at 18% 28%, rgba(229,112,196,.12), transparent 36%), radial-gradient(ellipse at 74% 52%, rgba(90,129,255,.10), transparent 40%), transparent; }
-        .dark .page-bg { background: radial-gradient(ellipse at 18% 28%, rgba(164,55,130,.10), transparent 36%), radial-gradient(ellipse at 74% 52%, rgba(53,84,180,.12), transparent 40%), transparent; }
-        .app-header { background: #fff; border-color: rgba(0,0,0,.06); }
-        .dark .app-header { background: #0f172a; border-color: rgba(255,255,255,.1); }
-        .brand-spark { flex-shrink: 0; }
+        .app-header { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); border-color: rgba(0,0,0,.06); }
+        .dark .app-header { background: rgba(15, 23, 42, 0.85); border-color: rgba(255,255,255,.1); }
         .brand-text { background: linear-gradient(100deg, #ec4899, #a052c8 52%, #3979f5); -webkit-background-clip: text; background-clip: text; color: transparent; }
-        .brand-icon-gradient { fill: url(#brandSparkGradient); }
-        .menu-dropdown { transition: all .2s ease-in-out; transform-origin: top left; width: min(280px, calc(100vw - 32px)); max-height: calc(100dvh - 100px); overflow-y: auto; box-sizing: border-box; }
-        @media (max-width: 640px) { .menu-dropdown { width: min(260px, calc(100vw - 32px)); max-height: calc(100dvh - 88px); } }
+        .menu-dropdown { transition: all .2s ease-in-out; transform-origin: top left; width: min(280px, calc(100vw - 32px)); max-height: calc(100dvh - 100px); overflow-y: auto; }
+        .menu-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.5); backdrop-filter: blur(4px); z-index: 40; opacity: 0; pointer-events: none; transition: all .2s ease; }
+        .menu-overlay.active { opacity: 1; pointer-events: auto; }
         .glass-card { transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease; }
         .stat-card { background: linear-gradient(135deg, rgba(255,255,255,.05) 0%, rgba(255,255,255,.01) 100%); border: 1px solid rgba(255,255,255,.1); }
         .dark .stat-card { background: linear-gradient(135deg, rgba(30,41,59,.8) 0%, rgba(15,23,42,.8) 100%); border: 1px solid rgba(51,65,85,.5); }
@@ -40,112 +34,43 @@
         .tab-btn.active { border-bottom-color: #ec4899; color: #ec4899; }
         .dark .tab-btn.active { border-bottom-color: #3b82f6; color: #3b82f6; }
     </style>
-
-<script>
-/* Điều hướng độc lập với các thư viện ngoài để menu luôn hoạt động. */
-(function () {
-    function initPromptNavigation() {
-        const button = document.getElementById('btnHamburger');
-        const menu = document.getElementById('dropdownMenu');
-        if (!button || !menu || button.dataset.navigationReady === 'true') return;
-
-        button.dataset.navigationReady = 'true';
-        button.setAttribute('aria-controls', 'dropdownMenu');
-        button.setAttribute('aria-expanded', 'false');
-        button.setAttribute('aria-label', 'Mở menu điều hướng');
-
-        let isOpen = false;
-        function closeMenu() {
-            if (!isOpen) return;
-            isOpen = false;
-            button.setAttribute('aria-expanded', 'false');
-            button.setAttribute('aria-label', 'Mở menu điều hướng');
-            menu.classList.remove('opacity-100', 'scale-100');
-            menu.classList.add('opacity-0', 'scale-95');
-            window.setTimeout(function () {
-                if (!isOpen) menu.classList.add('hidden');
-            }, 200);
-        }
-        function openMenu() {
-            isOpen = true;
-            menu.classList.remove('hidden');
-            void menu.offsetWidth;
-            menu.classList.remove('opacity-0', 'scale-95');
-            menu.classList.add('opacity-100', 'scale-100');
-            button.setAttribute('aria-expanded', 'true');
-            button.setAttribute('aria-label', 'Đóng menu điều hướng');
-        }
-
-        button.addEventListener('click', function (event) {
-            event.preventDefault();
-            event.stopPropagation();
-            if (isOpen) closeMenu(); else openMenu();
-        });
-        document.addEventListener('click', function (event) {
-            if (isOpen && !menu.contains(event.target) && !button.contains(event.target)) closeMenu();
-        });
-        menu.addEventListener('click', function (event) {
-            const target = event.target instanceof Element ? event.target : null;
-            if (target && target.closest('a[href]')) closeMenu();
-        });
-        document.addEventListener('keydown', function (event) {
-            if (event.key === 'Escape') closeMenu();
-        });
-    }
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initPromptNavigation, { once: true });
-    } else {
-        initPromptNavigation();
-    }
-})();
-</script>
-
 </head>
 
 <body class="antialiased min-h-screen relative text-slate-800 dark:text-slate-100 flex flex-col">
-    <div class="page-bg"></div>
+    <div id="menuOverlay" class="menu-overlay"></div>
 
     <!-- HEADER -->
     <header class="app-header fixed top-0 left-0 w-full z-50 border-b">
-        <div class="w-full max-w-7xl mx-auto px-4 sm:px-6 h-16 md:h-20 flex items-center justify-between gap-3">
-            <div class="relative flex items-center gap-2">
+        <div class="w-full max-w-7xl mx-auto px-4 sm:px-6 h-16 md:h-20 flex items-center justify-between gap-3 relative">
+            <div class="relative flex items-center gap-2 z-50">
                 <button id="btnHamburger" class="w-10 h-10 shrink-0 flex items-center justify-center rounded-full text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
                 </button>
-                <div id="dropdownMenu" class="menu-dropdown absolute top-12 left-0 bg-white dark:bg-[#1e293b] border border-slate-200 dark:border-slate-700 rounded-2xl shadow-xl hidden opacity-0 scale-95 z-50 p-2">
+                <div id="dropdownMenu" class="menu-dropdown absolute top-12 left-0 bg-white/95 dark:bg-[#1e293b]/95 backdrop-blur-xl border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl hidden opacity-0 scale-95 z-50 p-2">
                     <div class="flex flex-col gap-1">
-                        <a href="./index.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors">Trang chủ</a>
-                        <a href="./landing.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors">Đánh giá</a>
-                        <a href="./library.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors">Thư viện</a>
-                        <a href="./profile.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors">Trang cá nhân</a>
-                        <div class="h-px bg-slate-100 dark:bg-slate-700/50 my-1 mx-2"></div>
-                        <button id="themeToggleMenu" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors text-left">
+                        <a href="./index.html" class="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors">Trang chủ</a>
+                        <a href="./landing.html" class="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors">Đánh giá</a>
+                        <a href="./library.html" class="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors">Thư viện</a>
+                        <div class="h-px bg-slate-200 dark:bg-slate-700/50 my-1 mx-2"></div>
+                        <button id="themeToggleMenu" class="w-full flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors text-left">
                             <span id="themeIconMenu" class="w-5 h-5 flex items-center justify-center shrink-0"></span><span id="themeTextMenu">Chế độ Tối</span>
                         </button>
-                        <div id="adminMenuDivider" class="h-px bg-slate-100 dark:bg-slate-700/50 my-1 mx-2" style="display:none;"></div>
-                        <a id="menuBtnAdmin" href="./admin.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-green-50 dark:bg-green-900/20 text-sm font-semibold text-green-600 dark:text-green-400 transition-colors" style="display:none;">Quản trị</a>
+                        <div id="adminMenuDivider" class="h-px bg-slate-200 dark:bg-slate-700/50 my-1 mx-2" style="display:none;"></div>
+                        <a id="menuBtnAdmin" href="./admin.html" class="flex items-center gap-3 px-3 py-3 rounded-xl bg-green-50 dark:bg-green-900/20 text-sm font-semibold text-green-600 dark:text-green-400 transition-colors" style="display:none;">Quản trị</a>
                     </div>
                 </div>
+                <div class="flex items-center gap-1.5 min-w-0">
+                    <svg class="w-6 h-6 sm:w-7 sm:h-7 shrink-0" viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="brandSparkGradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ec4899"/><stop offset="100%" stop-color="#3b82f6"/></linearGradient></defs><path fill="url(#brandSparkGradient)" d="M12 2L14.7 9.3 22 12l-7.3 2.7L12 22l-2.7-7.3L2 12l7.3-2.7L12 2Z"/></svg>
+                    <span class="brand-text text-base sm:text-lg font-extrabold truncate">Trợ lý AI</span>
+                </div>
             </div>
-            
-            <a href="./index.html" aria-label="Về trang chủ" title="Về trang chủ" class="absolute left-1/2 -translate-x-1/2 flex items-center gap-1.5 min-w-0 no-underline rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-pink-500">
-                <svg class="brand-spark w-6 h-6 sm:w-7 sm:h-7" viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="brandSparkGradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ec4899"/><stop offset="100%" stop-color="#3b82f6"/></linearGradient></defs><path class="brand-icon-gradient" d="M12 2L14.7 9.3 22 12l-7.3 2.7L12 22l-2.7-7.3L2 12l7.3-2.7L12 2Z"/></svg>
-                <span class="brand-text text-base sm:text-lg font-extrabold truncate">Trợ lý AI</span>
-            </a>
             <div class="w-10"></div>
         </div>
     </header>
 
-    <!-- NỘI DUNG ADMIN -->
     <main class="w-full max-w-5xl mx-auto px-4 sm:px-6 pt-32 md:pt-40 pb-32 flex-grow flex flex-col items-center">
-        <div id="adminAccessNotice" class="glass-card bg-white/90 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700/60 shadow-xl rounded-3xl p-6 max-w-lg w-full text-center" style="display:none;">
-            <h2 class="text-xl font-extrabold text-slate-800 dark:text-white mb-3">Không thể truy cập khu vực quản trị</h2>
-            <p id="adminAccessMessage" class="text-sm text-slate-600 dark:text-slate-300 mb-5">Máy chủ chưa xác nhận quyền truy cập.</p>
-            <a href="./index.html" class="inline-flex items-center justify-center px-5 py-2.5 rounded-xl font-semibold text-white bg-gradient-to-r from-pink-500 to-blue-500">Về trang chủ</a>
-        </div>
         
-        <!-- KHUNG ĐĂNG NHẬP -->
-        <div id="adminLoginBox" class="glass-card login-box-glow bg-white/90 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700/60 shadow-2xl rounded-3xl p-8 max-w-sm w-full text-center relative overflow-hidden">
+        <div id="adminLoginBox" class="glass-card login-box-glow bg-white/90 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700/60 shadow-2xl rounded-3xl p-8 max-w-sm w-full text-center relative overflow-hidden z-50">
             <div class="absolute top-0 left-1/2 transform -translate-x-1/2 w-32 h-1 bg-gradient-to-r from-pink-500 to-blue-500 rounded-b-full opacity-80"></div>
             <div class="w-20 h-20 mx-auto mb-5 rounded-2xl overflow-hidden shadow-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" class="w-full h-full"><defs><linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ec4899"/><stop offset="100%" stop-color="#3b82f6"/></linearGradient></defs><rect width="100" height="100" fill="url(#g)"/><text x="50" y="72" font-size="60" font-family="Arial,sans-serif" font-weight="bold" fill="white" text-anchor="middle">P</text></svg>
@@ -162,7 +87,6 @@
             </button>
         </div>
 
-        <!-- DASHBOARD -->
         <div id="adminDashboard" class="w-full mt-6" style="display: none;">
             <div class="flex justify-between items-center border-b border-slate-200 dark:border-slate-700/50 mb-6">
                 <div class="flex gap-6">
@@ -172,7 +96,6 @@
                 <button id="btnAdminLogout" class="px-4 py-2 rounded-lg text-xs font-bold bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/30 transition mb-2">Đăng xuất</button>
             </div>
 
-            <!-- TAB 1: TỔNG QUAN -->
             <div id="tabContentOverview" class="space-y-5">
                 <div class="grid grid-cols-3 gap-3 md:gap-4">
                     <div class="stat-card rounded-2xl p-4 flex flex-col justify-center items-center text-center"><p class="text-[10px] md:text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Lượt đánh giá</p><p id="statTotal" class="text-3xl font-extrabold text-blue-500">0</p></div>
@@ -196,7 +119,6 @@
                 </div>
             </div>
 
-            <!-- TAB 2: LỊCH SỬ IP -->
             <div id="tabContentIpLogs" class="space-y-5" style="display: none;">
                 <div class="stat-card rounded-2xl overflow-hidden">
                     <div class="px-5 py-4 border-b border-slate-200 dark:border-slate-700/50 bg-slate-50/50 dark:bg-slate-800/30 flex justify-between items-center"><p class="text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wide">Danh sách IP Đăng nhập</p></div>
@@ -211,7 +133,6 @@
         </div>
     </main>
 
-    <!-- SCRIPT -->
     <script>
         const API_URL = "https://prompt-tx2e.onrender.com";
         const $ = id => document.getElementById(id);
@@ -225,8 +146,21 @@
         const moonSVG = `<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-blue-900" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>`;
         const sunSVG = `<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364-.707-.707M6.343 6.343l-.707-.707m12.728 0-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>`;
 
-        // MENU
-        // Menu được xử lý độc lập ở đầu trang để không phụ thuộc các thư viện ngoài.
+        let isMenuOpen = false;
+        function toggleMenu() {
+            isMenuOpen = !isMenuOpen;
+            const menu = $('dropdownMenu'); const overlay = $('menuOverlay');
+            if (isMenuOpen) {
+                menu.classList.remove('hidden'); overlay.classList.add('active');
+                setTimeout(() => { menu.classList.remove('opacity-0', 'scale-95'); menu.classList.add('opacity-100', 'scale-100'); }, 10);
+            } else {
+                menu.classList.remove('opacity-100', 'scale-100'); menu.classList.add('opacity-0', 'scale-95');
+                overlay.classList.remove('active'); setTimeout(() => { menu.classList.add('hidden'); }, 200);
+            }
+        }
+        $('btnHamburger').addEventListener('click', (e) => { e.stopPropagation(); toggleMenu(); });
+        $('menuOverlay').addEventListener('click', () => { if (isMenuOpen) toggleMenu(); });
+
         function applyTheme(dark) {
             document.documentElement.classList.toggle('dark', dark); document.documentElement.classList.toggle('light', !dark);
             $('themeIconMenu').innerHTML = dark ? sunSVG : moonSVG; $('themeTextMenu').textContent = dark ? 'Chế độ Sáng' : 'Chế độ Tối';
@@ -235,40 +169,17 @@
             if (chart1 || chart2) updateChartsTheme(dark);
         }
         applyTheme(document.documentElement.classList.contains('dark'));
-        $('themeToggleMenu').addEventListener('click', (event) => {
-            event.preventDefault();
-            event.stopPropagation();
-            applyTheme(!document.documentElement.classList.contains('dark'));
-        });
-        window.addEventListener('storage', (event) => {
-            if (event.key === 'theme') applyTheme(event.newValue === 'dark');
-        });
+        $('themeToggleMenu').addEventListener('click', () => applyTheme(!document.documentElement.classList.contains('dark')));
 
-        // CHECK IP ADMIN
         async function checkAdminAccess() {
-            const showAccessNotice = message => {
-                $('adminLoginBox').style.display = 'none';
-                $('adminDashboard').style.display = 'none';
-                $('adminAccessMessage').textContent = message;
-                $('adminAccessNotice').style.display = 'block';
-            };
             try {
                 const res = await fetch(`${API_URL}/check_admin_ip`);
-                if (res.ok) {
-                    $('adminMenuDivider').style.display = 'block';
-                    $('menuBtnAdmin').style.display = 'flex';
-                    return;
-                }
-                showAccessNotice(res.status === 403
-                    ? 'Địa chỉ IP hiện tại chưa được cấp quyền quản trị. Hãy kiểm tra ADMIN_ALLOWED_IPS trên máy chủ.'
-                    : `Máy chủ chưa xác nhận được quyền truy cập (HTTP ${res.status}).`);
-            } catch {
-                showAccessNotice('Không kết nối được máy chủ để xác minh quyền quản trị. Vui lòng thử lại sau.');
-            }
+                if (res.ok) { $('adminMenuDivider').style.display = 'block'; $('menuBtnAdmin').style.display = 'flex'; }
+                else { alert("Bạn không có quyền truy cập trang này."); window.location.href = "./index.html"; }
+            } catch { window.location.href = "./index.html"; }
         }
         checkAdminAccess();
 
-        // TABS
         window.switchTab = function(tabName) {
             const btnOverview = $('tabBtnOverview'), btnIpLogs = $('tabBtnIpLogs');
             const contentOverview = $('tabContentOverview'), contentIpLogs = $('tabContentIpLogs');
@@ -282,13 +193,11 @@
             }
         };
 
-        // PASSWORD TOGGLE
         $('toggleAdminPassword').addEventListener('click', function() {
             const input = $('adminPassword');
             if (input.type === 'password') { input.type = 'text'; this.innerText = '🙈'; } else { input.type = 'password'; this.innerText = '🐵'; }
         });
 
-        // LOGIN
         async function handleLogin() {
             const pwd = $('adminPassword').value.trim(); if (!pwd) return;
             const btn = $('btnAdminLogin'); btn.disabled = true; btn.innerHTML = 'Đang kiểm tra...';
@@ -312,7 +221,6 @@
         $('btnAdminLogin').addEventListener('click', handleLogin);
         $('adminPassword').addEventListener('keypress', (e) => { if (e.key === 'Enter') { e.preventDefault(); handleLogin(); } });
 
-        // LOGOUT
         $('btnAdminLogout').addEventListener('click', () => {
             adminToken = null; sessionStorage.removeItem('adminToken');
             $('adminLoginBox').style.display = 'block'; $('adminDashboard').style.display = 'none';
@@ -321,20 +229,11 @@
             if (chart1) { chart1.destroy(); chart1 = null; } if (chart2) { chart2.destroy(); chart2 = null; }
         });
 
-        // CHART THEME
         function updateChartsTheme(isDark) {
             const textColor = isDark ? '#94a3b8' : '#64748b';
-            [chart1, chart2].forEach(c => {
-                if (!c) return;
-                const legendLabels = c.options?.plugins?.legend?.labels;
-                if (legendLabels) legendLabels.color = textColor;
-                if (c.options?.scales?.x?.ticks) c.options.scales.x.ticks.color = textColor;
-                if (c.options?.scales?.y?.ticks) c.options.scales.y.ticks.color = textColor;
-                c.update();
-            });
+            [chart1, chart2].forEach(c => { if (c) { c.options.plugins.legend.labels.color = textColor; c.options.scales.x.ticks.color = textColor; c.options.scales.y.ticks.color = textColor; c.update(); } });
         }
 
-        // DELETE PROMPT
         window.deletePrompt = async function(id) {
             if (!confirm("Bạn có chắc chắn muốn xóa prompt này không?")) return;
             try {
@@ -343,7 +242,6 @@
             } catch { alert("Lỗi kết nối!"); }
         };
 
-        // FETCH HISTORY
         async function fetchHistory() {
             const tbody = $('adminHistoryList');
             tbody.innerHTML = '<tr><td colspan="5" class="text-center py-6 text-slate-500 text-xs">Đang tải...</td></tr>';
@@ -374,7 +272,6 @@
                     $('statTotal').textContent = '0'; $('statAvg').textContent = '0.0'; $('statClean').textContent = '0%';
                 }
 
-                // Render table rows
                 if (n === 0) {
                     tbody.innerHTML = '<tr><td colspan="5" class="text-center py-6 text-slate-500 text-xs">Chưa có dữ liệu.</td></tr>';
                 } else {
@@ -395,7 +292,6 @@
                     });
                 }
 
-                // Chart 1: Top errors (doughnut)
                 if (chart1) chart1.destroy();
                 const errLabels = Object.keys(errorCounts).length ? Object.keys(errorCounts).map(c => ERROR_NAMES[c] || c) : ['Không có lỗi'];
                 const errData = Object.keys(errorCounts).length ? Object.values(errorCounts) : [1];
@@ -412,7 +308,6 @@
                     }
                 });
 
-                // Chart 2: Score distribution (bar)
                 if (chart2) chart2.destroy();
                 chart2 = new Chart($('scoreChart').getContext('2d'), {
                     type: 'bar',
@@ -440,7 +335,6 @@
             }
         }
 
-        // FETCH IP LOGS
         async function fetchIpLogs() {
             const tbody = $('ipLogsList');
             tbody.innerHTML = '<tr><td colspan="3" class="text-center py-6 text-slate-500 text-xs">Đang tải...</td></tr>';
@@ -454,8 +348,8 @@
                     const tr = document.createElement('tr');
                     tr.className = 'border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/40';
                     tr.innerHTML = `
-                        <td class="px-4 py-2 text-[11px] text-slate-500 whitespace-nowrap">${new Date(log.login_time || log.created_at || log.timestamp).toLocaleString('vi-VN')}</td>
-                        <td class="px-4 py-2 text-[11px] font-mono text-slate-700 dark:text-slate-300">${escapeHtml(log.ip_address || log.ip || '—')}</td>
+                        <td class="px-4 py-2 text-[11px] text-slate-500 whitespace-nowrap">${new Date(log.login_time).toLocaleString('vi-VN')}</td>
+                        <td class="px-4 py-2 text-[11px] font-mono text-slate-700 dark:text-slate-300">${escapeHtml(log.ip_address || '—')}</td>
                         <td class="px-4 py-2 text-[11px] text-slate-600 dark:text-slate-400">${escapeHtml(log.user_agent || '—')}</td>
                     `;
                     tbody.appendChild(tr);
@@ -465,24 +359,13 @@
             }
         }
 
-        // TỰ ĐỘNG ĐĂNG NHẬP LẠI NẾU CÓ TOKEN TRONG SESSION
-        (async function autoRestore() {
+        (function autoRestore() {
             const t = sessionStorage.getItem('adminToken');
-            if (!t) return;
-            try {
-                const response = await fetch(`${API_URL}/history`, { method: 'GET', headers: { 'X-Admin-Token': t } });
-                const data = await response.json();
-                if (!response.ok || !Array.isArray(data.history)) throw new Error('Phiên Admin không hợp lệ.');
+            if (t) {
                 adminToken = t;
                 $('adminLoginBox').style.display = 'none';
                 $('adminDashboard').style.display = 'block';
-                switchTab('overview');
-                await fetchHistory();
-            } catch {
-                adminToken = null;
-                sessionStorage.removeItem('adminToken');
-                $('adminLoginBox').style.display = 'block';
-                $('adminDashboard').style.display = 'none';
+                switchTab('overview'); fetchHistory();
             }
         })();
     </script>
