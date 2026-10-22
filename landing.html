@@ -2,9 +2,7 @@
 <html lang="vi" class="light">
 <head>
     <meta charset="UTF-8">
-    <!-- viewport-fit=cover để tràn viền -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
-    <!-- Sửa lỗi thanh trạng thái trên iOS -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     
@@ -22,7 +20,6 @@
         document.documentElement.classList.toggle('dark', useDarkTheme);
         document.documentElement.classList.toggle('light', !useDarkTheme);
         
-        // Cập nhật màu thanh trạng thái ngay lập tức để tránh bị nháy trắng
         if (useDarkTheme) {
             document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0b1120');
         }
@@ -32,7 +29,6 @@
     <script>tailwind.config = { darkMode: 'class' }</script>
 
     <style>
-        /* XỬ LÝ NỀN VÀ CHỐNG LỘ KHOẢNG TRẮNG */
         html { 
             background-color: #f8f7fc; 
             transition: background-color .15s ease; 
@@ -41,7 +37,7 @@
             scroll-behavior: smooth; 
         }
         html.dark { 
-            background-color: #0b1120 !important; /* Màu nền tối tuyệt đối */
+            background-color: #0b1120 !important;
         }
         
         body { 
@@ -51,7 +47,6 @@
             overscroll-behavior-y: none; 
             min-height: 100vh;
             min-height: 100dvh;
-            /* Đảm bảo nội dung không đè lên tai thỏ */
             padding-top: env(safe-area-inset-top, 0px);
         }
         
@@ -217,7 +212,6 @@
             <p class="text-slate-500 dark:text-slate-400 text-sm md:text-base font-medium">AI tự động nhận diện lĩnh vực và tạo Prompt chuẩn chuyên gia.</p>
         </div>
 
-        <!-- Ô nhập liệu (KHÔNG CÒN NÚT HƯỚNG DẪN) -->
         <div class="bg-white/80 dark:bg-[#1e293b]/80 backdrop-blur-md border border-slate-200 dark:border-slate-700/60 shadow-xl rounded-3xl p-5 md:p-6 mb-8 transition-colors">
             <div class="relative">
                 <textarea id="promptInput" maxlength="5000" class="w-full h-40 p-4 pb-10 rounded-2xl bg-slate-50 dark:bg-[#0f172a] border border-slate-200 dark:border-slate-700/60 focus:outline-none focus:ring-1 focus:ring-pink-500 focus:border-pink-500 resize-none text-slate-800 dark:text-slate-100 placeholder-slate-400 text-sm transition-all" placeholder="Mô tả điều bạn muốn AI thực hiện..."></textarea>
@@ -229,7 +223,6 @@
             <p id="longPromptWarning" class="text-yellow-500 text-xs mt-2 font-medium" style="display: none;">⚠️ Prompt khá dài, AI có thể mất 30-60 giây.</p>
             <p id="errorMsg" class="text-red-500 text-xs mt-2 font-medium" style="display: none;">Vui lòng nhập prompt!</p>
             
-            <!-- Nút Đánh giá Full Width (Duy nhất 1 nút) -->
             <div class="mt-5">
                 <button id="btnEvaluate" class="w-full py-4 rounded-2xl font-bold bg-gradient-to-r from-pink-500 to-blue-500 text-white shadow-lg btn-glow disabled:opacity-50 transition-all text-base flex items-center justify-center gap-2">
                     <span id="btnText">Đánh giá & Viết lại</span>
@@ -293,38 +286,48 @@
         </div>
     </div>
 
-    <!-- MODAL HƯỚNG DẪN SỬ DỤNG (Như ảnh 2) -->
-    <div id="guideModal" class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm hidden opacity-0 transition-opacity duration-300">
-        <div class="bg-white dark:bg-[#1e293b] border border-slate-200 dark:border-slate-700 rounded-3xl shadow-2xl w-full max-w-md p-6 relative transform scale-95 transition-transform duration-300" id="guideModalContent">
-            <button type="button" id="btnCloseGuide" class="absolute top-4 right-4 text-slate-400 hover:text-slate-800 dark:hover:text-white bg-slate-100 dark:bg-slate-800/50 hover:bg-slate-200 dark:hover:bg-slate-700 w-8 h-8 rounded-full flex items-center justify-center transition-colors">✕</button>
+    <!-- MODAL HƯỚNG DẪN SỬ DỤNG (Giống hệt ảnh bạn gửi) -->
+    <div id="guideModal" class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md hidden opacity-0 transition-opacity duration-300">
+        <div class="bg-[#1e293b] border border-slate-700/50 rounded-3xl shadow-2xl w-full max-w-[400px] p-6 sm:p-7 relative transform scale-95 transition-transform duration-300" id="guideModalContent">
             
-            <h2 class="text-2xl font-extrabold text-center mb-8 text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-blue-500">Hướng dẫn sử dụng</h2>
+            <!-- Nút X -->
+            <button type="button" id="btnCloseGuide" class="absolute top-5 right-5 text-slate-300 hover:text-white bg-slate-700/50 hover:bg-slate-600 w-8 h-8 rounded-full flex items-center justify-center transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
             
+            <!-- Tiêu đề -->
+            <h2 class="text-[26px] font-extrabold text-center mb-8 text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 tracking-tight">Hướng dẫn sử dụng</h2>
+            
+            <!-- Danh sách bước -->
             <div class="space-y-6 mb-8">
+                <!-- Bước 1 -->
                 <div class="flex gap-4 items-start">
-                    <div class="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center text-blue-600 dark:text-blue-400 font-bold shrink-0">1</div>
-                    <div>
-                        <h4 class="font-bold text-slate-800 dark:text-white text-sm mb-1">Nhập ý tưởng của bạn</h4>
-                        <p class="text-xs text-slate-500 dark:text-slate-400">VD: "viết bài văn tả mẹ", "code web"</p>
+                    <div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-sm shrink-0 shadow-sm">1</div>
+                    <div class="pt-0.5">
+                        <h4 class="font-bold text-white text-[15px] mb-1">Nhập ý tưởng của bạn</h4>
+                        <p class="text-[13px] text-slate-400">VD: "viết bài văn tả mẹ", "code web"</p>
                     </div>
                 </div>
+                <!-- Bước 2 -->
                 <div class="flex gap-4 items-start">
-                    <div class="w-8 h-8 rounded-full bg-pink-100 dark:bg-pink-900/50 flex items-center justify-center text-pink-600 dark:text-pink-400 font-bold shrink-0">2</div>
-                    <div>
-                        <h4 class="font-bold text-slate-800 dark:text-white text-sm mb-1">AI chấm điểm</h4>
-                        <p class="text-xs text-slate-500 dark:text-slate-400">Chỉ ra điểm yếu và gợi ý tư duy</p>
+                    <div class="w-8 h-8 rounded-full bg-pink-600 flex items-center justify-center text-white font-bold text-sm shrink-0 shadow-sm">2</div>
+                    <div class="pt-0.5">
+                        <h4 class="font-bold text-white text-[15px] mb-1">AI chấm điểm</h4>
+                        <p class="text-[13px] text-slate-400">Chỉ ra điểm yếu và gợi ý tư duy</p>
                     </div>
                 </div>
+                <!-- Bước 3 -->
                 <div class="flex gap-4 items-start">
-                    <div class="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900/50 flex items-center justify-center text-purple-600 dark:text-purple-400 font-bold shrink-0">3</div>
-                    <div>
-                        <h4 class="font-bold text-slate-800 dark:text-white text-sm mb-1">Copy & Sử dụng</h4>
-                        <p class="text-xs text-slate-500 dark:text-slate-400">Dán Prompt vào ChatGPT/Claude</p>
+                    <div class="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center text-white font-bold text-sm shrink-0 shadow-sm">3</div>
+                    <div class="pt-0.5">
+                        <h4 class="font-bold text-white text-[15px] mb-1">Copy & Sử dụng</h4>
+                        <p class="text-[13px] text-slate-400">Dán Prompt vào ChatGPT/Claude</p>
                     </div>
                 </div>
             </div>
             
-            <button id="btnStartApp" class="w-full py-3.5 rounded-2xl font-bold text-white bg-gradient-to-r from-pink-500 to-blue-500 shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-95 transition-all text-sm">
+            <!-- Nút Đã hiểu -->
+            <button id="btnStartApp" class="w-full py-3.5 rounded-xl font-bold text-white bg-gradient-to-r from-pink-500 to-blue-500 shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-95 transition-all text-[15px]">
                 Đã hiểu, Bắt đầu
             </button>
         </div>
@@ -351,7 +354,6 @@
             $('themeTextMenu').textContent = dark ? 'Chế độ Sáng' : 'Chế độ Tối';
             try { window.localStorage.setItem('theme', dark ? 'dark' : 'light'); } catch (error) { }
             
-            // Cập nhật màu thanh trạng thái (Status bar)
             const themeColor = document.querySelector('meta[name="theme-color"]'); 
             if (themeColor) themeColor.setAttribute('content', dark ? '#0b1120' : '#f8f7fc');
         }
@@ -362,7 +364,7 @@
             applyTheme(!document.documentElement.classList.contains('dark')); 
         });
 
-        // 2. MODAL HƯỚNG DẪN (Tự động hiện lên như ảnh 2)
+        // MODAL HƯỚNG DẪN - LUÔN HIỆN MỖI KHI RELOAD
         const guideModal = $('guideModal'); const guideContent = $('guideModalContent');
         
         function showGuide() { 
@@ -376,16 +378,16 @@
             guideModal.classList.add('opacity-0'); 
             guideContent.classList.remove('scale-100'); guideContent.classList.add('scale-95'); 
             setTimeout(() => { guideModal.classList.add('hidden'); }, 300); 
-            localStorage.setItem('hasSeenGuideLanding', 'true'); 
         }
         
-        // Luôn hiện lên mỗi khi load trang (dùng để test)
+        // Tự động bật lên sau 1 giây mỗi khi load trang
         setTimeout(showGuide, 1000);
+        
         $('btnCloseGuide').addEventListener('click', hideGuide);
         $('btnStartApp').addEventListener('click', hideGuide);
         guideModal.addEventListener('click', (e) => { if (e.target === guideModal) hideGuide(); });
 
-        // 3. AUTH SUPABASE
+        // AUTH SUPABASE
         async function checkAuthState() {
             if (!supabase) return;
             const { data: { session } } = await supabase.auth.getSession();
@@ -417,7 +419,7 @@
         document.addEventListener('click', () => { if (!$('avatarDropdown').classList.contains('hidden')) { $('avatarDropdown').classList.add('opacity-0', 'scale-95'); setTimeout(() => $('avatarDropdown').classList.add('hidden'), 200); } });
         $('btnLogoutHeader').addEventListener('click', async () => { if(supabase) await supabase.auth.signOut(); window.location.reload(); });
 
-        // 4. LOGIC ĐÁNH GIÁ
+        // LOGIC ĐÁNH GIÁ
         function copyTextToClipboard(text) {
             if (navigator.clipboard && window.isSecureContext) return navigator.clipboard.writeText(text);
             let textArea = document.createElement("textarea"); textArea.value = text; textArea.style.position = "absolute"; textArea.style.left = "-999999px";
@@ -512,8 +514,8 @@
         }
 
         $('btnCopyAll').addEventListener('click', async () => {
-            if (!lastResult) return; let text = ""; 
-            SECTION_NAMES.forEach(sec => { text += `${sec}:\n${lastResult.rewrite[sec] || ''}\n\n`; });
+            if (!last textResult) return; let text = ""; 
+ +=            SECTION_NAMES.forEach `${(sec => {sec}:\n${lastResult.rewrite[sec] || ''}\n\n`; });
             try {
                 await copyTextToClipboard(text); showToast("Đã sao chép!", "success");
                 const btnText = $('copyBtnText'); btnText.textContent = 'Đã chép!'; btnText.classList.add('text-green-500');
