@@ -34,9 +34,9 @@
                         radial-gradient(circle at 50% 120%, rgba(59,130,246,.15) 0%, transparent 50%); 
         }
 
-        /* Header kính mờ */
-        .app-header { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); border-color: rgba(0,0,0,.06); transition: all .2s; }
-        .dark .app-header { background: rgba(15, 23, 42, 0.85); border-color: rgba(255,255,255,.1); }
+        /* ĐÃ BỎ HIỆU ỨNG KÍNH MỜ - Header nền đặc */
+        .app-header { background: #ffffff; border-color: rgba(0,0,0,.06); transition: all .2s; }
+        .dark .app-header { background: #0f172a; border-color: rgba(255,255,255,.1); }
         
         /* Hiệu ứng chữ và nút */
         .brand-text { background: linear-gradient(100deg, #ec4899, #a052c8 52%, #3979f5); -webkit-background-clip: text; background-clip: text; color: transparent; }
@@ -48,7 +48,7 @@
         .menu-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.5); backdrop-filter: blur(4px); z-index: 40; opacity: 0; pointer-events: none; transition: all .2s ease; }
         .menu-overlay.active { opacity: 1; pointer-events: auto; }
 
-        /* Hiệu ứng thẻ tính năng (Lấy cảm hứng từ Mobbin, Godly) */
+        /* Hiệu ứng thẻ tính năng */
         .feature-card { transition: all 0.3s ease; }
         .feature-card:hover { transform: translateY(-5px); box-shadow: 0 20px 40px -10px rgba(0,0,0,0.1); border-color: rgba(236,72,153,0.3); }
         .dark .feature-card:hover { box-shadow: 0 20px 40px -10px rgba(0,0,0,0.5); border-color: rgba(59,130,246,0.3); }
@@ -112,7 +112,7 @@
                 </button>
                 
                 <!-- MENU DROPDOWN -->
-                <div id="dropdownMenu" class="menu-dropdown absolute top-12 left-0 bg-white/95 dark:bg-[#1e293b]/95 backdrop-blur-xl border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl hidden opacity-0 scale-95 z-50 p-2">
+                <div id="dropdownMenu" class="menu-dropdown absolute top-12 left-0 bg-white dark:bg-[#1e293b] border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl hidden opacity-0 scale-95 z-50 p-2">
                     <div class="flex flex-col gap-1">
                         <a href="./index.html" class="flex items-center gap-3 px-3 py-3 rounded-xl bg-slate-100 dark:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors">
                             <svg class="w-5 h-5 text-pink-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
@@ -160,13 +160,13 @@
         </div>
     </header>
 
-    <!-- NỘI DUNG TRANG CHỦ (NÂNG CẤP) -->
+    <!-- NỘI DUNG TRANG CHỦ -->
     <main class="relative pt-32 pb-20 md:pt-40 md:pb-32 z-10 flex-grow flex flex-col items-center">
         
         <!-- HERO SECTION -->
         <section class="w-full max-w-4xl mx-auto px-4 md:px-6 text-center mb-24">
-            <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 text-sm font-semibold text-pink-500 mb-8 shadow-sm">
-                <span class="w-2 h-2 rounded-full bg-pink-500 animate-pulse"></span> Chuẩn mực mới cho Prompt Engineering
+            <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-semibold text-pink-500 mb-8 shadow-sm">
+                <span class="w-2 h-2 rounded-full bg-pink-500"></span> Chuẩn mực mới cho Prompt Engineering
             </div>
             
             <h1 class="text-5xl md:text-6xl lg:text-7xl font-extrabold text-slate-900 dark:text-white leading-[1.1] mb-6 tracking-tight">
@@ -188,7 +188,7 @@
             </div>
         </section>
 
-        <!-- FEATURES SECTION (Lấy cảm hứng từ Godly, Mobbin) -->
+        <!-- FEATURES SECTION -->
         <section class="w-full max-w-5xl mx-auto px-4 md:px-6 mb-24">
             <div class="text-center mb-12">
                 <h2 class="text-3xl font-bold text-slate-900 dark:text-white mb-4">Tại sao chọn Trợ lý AI?</h2>
@@ -225,7 +225,7 @@
             </div>
         </section>
 
-        <!-- HOW IT WORKS (Lấy cảm hứng từ Lapa Ninja, Framer) -->
+        <!-- HOW IT WORKS -->
         <section class="w-full max-w-4xl mx-auto px-4 md:px-6 mb-24">
             <div class="text-center mb-12">
                 <h2 class="text-3xl font-bold text-slate-900 dark:text-white mb-4">Quy trình 3 bước đơn giản</h2>
@@ -255,7 +255,7 @@
             </div>
         </section>
 
-        <!-- BOTTOM CTA (Lấy cảm hứng từ Refero) -->
+        <!-- BOTTOM CTA -->
         <section class="w-full max-w-4xl mx-auto px-4 md:px-6 mb-10">
             <div class="bg-gradient-to-br from-slate-900 to-slate-800 dark:from-[#1e293b] dark:to-[#0f172a] rounded-3xl p-10 md:p-16 text-center relative overflow-hidden border border-slate-700">
                 <div class="absolute top-0 left-0 w-full h-full bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPgo8cmVjdCB3aWR0aD0iNCIgaGVpZ2h0PSI0IiBmaWxsPSIjZmZmIiBmaWxsLW9wYWNpdHk9IjAuMDUiLz4KPC9zdmc+')] opacity-20 pointer-events-none"></div>
@@ -313,7 +313,6 @@
         const API_URL = "https://prompt-tx2e.onrender.com"; 
         const $ = id => document.getElementById(id);
 
-        // ICON SÁNG/TỐI CHUẨN ẢNH 6
         const moonSVG = `<div class="w-7 h-7 rounded-lg bg-white shadow-sm border border-slate-200 flex items-center justify-center overflow-hidden"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-5 h-5"><defs><linearGradient id="moonGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#1e3a8a" /><stop offset="100%" stop-color="#3b82f6" /></linearGradient></defs><path fill="url(#moonGrad)" d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path><circle cx="9" cy="9" r="0.5" fill="#93c5fd"/><circle cx="15" cy="15" r="0.5" fill="#93c5fd"/></svg></div>`;
         const sunSVG = `<div class="w-7 h-7 rounded-lg bg-slate-800 shadow-sm border border-slate-600 flex items-center justify-center overflow-hidden"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-5 h-5"><defs><linearGradient id="sunGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#fef08a" /><stop offset="100%" stop-color="#f59e0b" /></linearGradient></defs><circle cx="12" cy="12" r="5" fill="url(#sunGrad)"></circle><path stroke="url(#sunGrad)" stroke-width="2" stroke-linecap="round" d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg></div>`;
 
@@ -332,7 +331,6 @@
             applyTheme(!document.documentElement.classList.contains('dark')); 
         });
 
-        // CHECK ADMIN IP
         async function checkAdminAccess() {
             try {
                 const res = await fetch(`${API_URL}/check_admin_ip`);
@@ -344,7 +342,6 @@
         }
         checkAdminAccess();
 
-        // LOGIC MODAL HƯỚNG DẪN
         const guideModal = $('guideModal'); 
         const guideContent = $('guideModalContent');
         
