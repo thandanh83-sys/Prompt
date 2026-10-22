@@ -8,10 +8,7 @@
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23ec4899'/%3E%3Cstop offset='100%25' stop-color='%233b82f6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' rx='20' fill='url(%23g)'/%3E%3Ctext x='50' y='72' font-size='60' font-family='Arial,sans-serif' font-weight='bold' fill='white' text-anchor='middle'%3EP%3C/text%3E%3C/svg%3E">
 
     <script>
-        const savedTheme = localStorage.getItem('theme');
-        const useDarkTheme = savedTheme ? savedTheme === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
-        document.documentElement.classList.toggle('dark', useDarkTheme);
-        document.documentElement.classList.toggle('light', !useDarkTheme);
+        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) { document.documentElement.classList.add('dark'); } else { document.documentElement.classList.remove('dark'); }
     </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -22,119 +19,43 @@
         html.dark { background-color: #0f172a; }
         body { -webkit-tap-highlight-color: transparent; overflow-x: hidden; transition: background-color .15s ease, color .15s ease; background-color: #f8f7fc; overscroll-behavior-y: none; }
         .dark body { background-color: #0f172a; }
-        .app-header { background: #fff; border-color: rgba(0,0,0,.06); }
-        .dark .app-header { background: #0f172a; border-color: rgba(255,255,255,.1); }
-        .brand-spark { flex-shrink: 0; }
+        .app-header { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); border-color: rgba(0,0,0,.06); }
+        .dark .app-header { background: rgba(15, 23, 42, 0.85); border-color: rgba(255,255,255,.1); }
         .brand-text { background: linear-gradient(100deg, #ec4899, #a052c8 52%, #3979f5); -webkit-background-clip: text; background-clip: text; color: transparent; }
-        .brand-icon-gradient { fill: url(#brandSparkGradient); }
-        .menu-dropdown { transition: all .2s ease-in-out; transform-origin: top left; width: min(280px, calc(100vw - 32px)); max-height: calc(100dvh - 100px); overflow-y: auto; box-sizing: border-box; }
-        @media (max-width: 640px) { .menu-dropdown { width: min(260px, calc(100vw - 32px)); max-height: calc(100dvh - 88px); } }
+        .menu-dropdown { transition: all .2s ease-in-out; transform-origin: top left; width: min(280px, calc(100vw - 32px)); max-height: calc(100dvh - 100px); overflow-y: auto; }
+        .menu-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.5); backdrop-filter: blur(4px); z-index: 40; opacity: 0; pointer-events: none; transition: all .2s ease; }
+        .menu-overlay.active { opacity: 1; pointer-events: auto; }
         .glass-card { transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease; }
     </style>
-
-<script>
-/* Điều hướng độc lập với các thư viện ngoài để menu luôn hoạt động. */
-(function () {
-    function initPromptNavigation() {
-        const button = document.getElementById('btnHamburger');
-        const menu = document.getElementById('dropdownMenu');
-        if (!button || !menu || button.dataset.navigationReady === 'true') return;
-
-        button.dataset.navigationReady = 'true';
-        button.setAttribute('aria-controls', 'dropdownMenu');
-        button.setAttribute('aria-expanded', 'false');
-        button.setAttribute('aria-label', 'Mở menu điều hướng');
-
-        let isOpen = false;
-        function closeMenu() {
-            if (!isOpen) return;
-            isOpen = false;
-            button.setAttribute('aria-expanded', 'false');
-            button.setAttribute('aria-label', 'Mở menu điều hướng');
-            menu.classList.remove('opacity-100', 'scale-100');
-            menu.classList.add('opacity-0', 'scale-95');
-            window.setTimeout(function () {
-                if (!isOpen) menu.classList.add('hidden');
-            }, 200);
-        }
-        function openMenu() {
-            isOpen = true;
-            menu.classList.remove('hidden');
-            void menu.offsetWidth;
-            menu.classList.remove('opacity-0', 'scale-95');
-            menu.classList.add('opacity-100', 'scale-100');
-            button.setAttribute('aria-expanded', 'true');
-            button.setAttribute('aria-label', 'Đóng menu điều hướng');
-        }
-
-        button.addEventListener('click', function (event) {
-            event.preventDefault();
-            event.stopPropagation();
-            if (isOpen) closeMenu(); else openMenu();
-        });
-        document.addEventListener('click', function (event) {
-            if (isOpen && !menu.contains(event.target) && !button.contains(event.target)) closeMenu();
-        });
-        menu.addEventListener('click', function (event) {
-            const target = event.target instanceof Element ? event.target : null;
-            if (target && target.closest('a[href]')) closeMenu();
-        });
-        document.addEventListener('keydown', function (event) {
-            if (event.key === 'Escape') closeMenu();
-        });
-    }
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initPromptNavigation, { once: true });
-    } else {
-        initPromptNavigation();
-    }
-})();
-</script>
-
 </head>
 
 <body class="antialiased min-h-screen relative text-slate-800 dark:text-slate-100 flex flex-col">
-    <div class="page-bg fixed inset-0 z-[-1] pointer-events-none bg-gradient-to-br from-pink-50/50 to-blue-50/50 dark:from-[#0b1120] dark:to-[#0f172a]"></div>
+    <div id="menuOverlay" class="menu-overlay"></div>
 
     <!-- HEADER -->
     <header class="app-header fixed top-0 left-0 w-full z-50 border-b">
-        <div class="w-full max-w-7xl mx-auto px-4 sm:px-6 h-16 md:h-20 flex items-center justify-between gap-2 sm:gap-3">
-            <div class="relative flex items-center gap-1 sm:gap-2">
+        <div class="w-full max-w-7xl mx-auto px-4 sm:px-6 h-16 md:h-20 flex items-center justify-between gap-2 sm:gap-3 relative">
+            <div class="relative flex items-center gap-1 sm:gap-2 z-50">
                 <button id="btnHamburger" class="w-10 h-10 shrink-0 flex items-center justify-center rounded-full text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
                 </button>
-                <div id="dropdownMenu" class="menu-dropdown absolute top-12 left-0 bg-white dark:bg-[#1e293b] border border-slate-200 dark:border-slate-700 rounded-2xl shadow-xl hidden opacity-0 scale-95 z-50 p-2">
+                <div id="dropdownMenu" class="menu-dropdown absolute top-12 left-0 bg-white/95 dark:bg-[#1e293b]/95 backdrop-blur-xl border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl hidden opacity-0 scale-95 z-50 p-2">
                     <div class="flex flex-col gap-1">
-                        <a href="./index.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-pink-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
-                            Trang chủ
-                        </a>
-                        <a href="./landing.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg>
-                            Đánh giá
-                        </a>
-                        <a href="./library.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
-                            Thư viện
-                        </a>
-                        <a href="./profile.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors">Trang cá nhân</a>
-                        <div class="h-px bg-slate-100 dark:bg-slate-700/50 my-1 mx-2"></div>
-                        <button id="themeToggleMenu" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors text-left">
+                        <a href="./index.html" class="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors">Trang chủ</a>
+                        <a href="./landing.html" class="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors">Đánh giá</a>
+                        <a href="./library.html" class="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors">Thư viện</a>
+                        <div class="h-px bg-slate-200 dark:bg-slate-700/50 my-1 mx-2"></div>
+                        <button id="themeToggleMenu" class="w-full flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors text-left">
                             <span id="themeIconMenu" class="w-5 h-5 flex items-center justify-center shrink-0"></span><span id="themeTextMenu">Chế độ Tối</span>
                         </button>
-                        <div id="adminMenuDivider" class="h-px bg-slate-100 dark:bg-slate-700/50 my-1 mx-2" style="display:none;"></div>
-                        <a id="menuBtnAdmin" href="./admin.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-green-50 dark:hover:bg-green-900/20 text-sm font-semibold text-green-600 dark:text-green-400 transition-colors" style="display:none;">Quản trị</a>
                     </div>
                 </div>
+                <div class="flex items-center gap-1.5 min-w-0">
+                    <svg class="w-6 h-6 sm:w-7 sm:h-7 shrink-0" viewBox="0 0 24 24"><defs><linearGradient id="brandSparkGradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ec4899"/><stop offset="100%" stop-color="#3b82f6"/></linearGradient></defs><path fill="url(#brandSparkGradient)" d="M12 2L14.7 9.3 22 12l-7.3 2.7L12 22l-2.7-7.3L2 12l7.3-2.7L12 2Z"/></svg>
+                    <span class="brand-text text-base sm:text-lg font-extrabold truncate">Trợ lý AI</span>
+                </div>
             </div>
-            
-            <a href="./index.html" aria-label="Về trang chủ" title="Về trang chủ" class="absolute left-1/2 -translate-x-1/2 flex items-center gap-1.5 min-w-0 no-underline rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-pink-500">
-                <svg class="brand-spark w-6 h-6 sm:w-7 sm:h-7" viewBox="0 0 24 24"><defs><linearGradient id="brandSparkGradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ec4899"/><stop offset="100%" stop-color="#3b82f6"/></linearGradient></defs><path class="brand-icon-gradient" d="M12 2L14.7 9.3 22 12l-7.3 2.7L12 22l-2.7-7.3L2 12l7.3-2.7L12 2Z"/></svg>
-                <span class="brand-text text-base sm:text-lg font-extrabold truncate">Trợ lý AI</span>
-            </a>
-            
-            <!-- KHU VỰC ĐĂNG NHẬP (Avatar) -->
-            <div id="authContainer" class="flex items-center relative">
+            <div id="authContainer" class="flex items-center relative z-50">
                 <div id="userAvatarMenu" class="relative hidden">
                     <button id="btnAvatar" class="w-9 h-9 md:w-10 md:h-10 rounded-full overflow-hidden border-2 border-pink-500 shadow-sm hover:scale-105 transition-transform flex items-center justify-center bg-gray-200 dark:bg-gray-700 text-white font-bold text-lg"></button>
                     <div id="avatarDropdown" class="absolute right-0 top-12 w-48 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl hidden opacity-0 scale-95 transition-all z-50 p-2">
@@ -146,10 +67,7 @@
         </div>
     </header>
 
-    <!-- NỘI DUNG TRANG CÁ NHÂN -->
     <main class="w-full max-w-2xl mx-auto px-4 sm:px-6 pt-32 pb-32 flex-grow flex flex-col mt-4">
-        
-        <!-- THÔNG TIN USER -->
         <div id="userInfoBox" class="bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-md border border-slate-200 dark:border-slate-700 flex items-center gap-5 mb-8">
             <div id="avatarContainer" class="w-20 h-20 rounded-full bg-gradient-to-br from-pink-500 to-blue-500 flex items-center justify-center text-3xl text-white font-bold shrink-0 shadow-lg"></div>
             <div class="flex flex-col">
@@ -159,7 +77,6 @@
             </div>
         </div>
 
-        <!-- LỊCH SỬ ĐÁNH GIÁ (LOCAL STORAGE) -->
         <div class="bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-md border border-slate-200 dark:border-slate-700">
             <div class="flex justify-between items-center mb-6">
                 <h3 class="font-bold text-lg text-slate-800 dark:text-white">Lịch sử của bạn</h3>
@@ -177,55 +94,53 @@
 
     <script>
         const SUPABASE_URL = "https://egncrbearrwfoslryuga.supabase.co";
-        // ĐÃ ĐIỀN KEY CỦA BẠN VÀO ĐÂY
-        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVnbmNyYmVhcnJ3Zm9zbHJ5dWdhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI1MDk2MzgsImV4cCI6MjEwODA4NTYzOH0.jX8rz7Fk5wIqdbDqb6ZwKUiMs-wggVRj-dLk2dqlYFM";
-        const supabase = window.supabase?.createClient ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVnbmNyYmVhcnJ3Zm9zbHJ5dWdhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI1MDk2MzgsImV4cCI6MjEwODA4NTYzOH0.jX8rz7Fk5wqdbDqb6ZwKUiMs-wggVRj-dLk2dqlYFM";
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const escapeHtml = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
         const $ = id => document.getElementById(id);
-        const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
 
         const moonSVG = `<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-blue-900" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>`;
         const sunSVG = `<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364-.707-.707M6.343 6.343l-.707-.707m12.728 0-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>`;
 
-        // MENU & THEME
-        // Menu được xử lý độc lập ở đầu trang để không phụ thuộc các thư viện ngoài.
+        let isMenuOpen = false;
+        function toggleMenu() {
+            isMenuOpen = !isMenuOpen;
+            const menu = $('dropdownMenu'); const overlay = $('menuOverlay');
+            if (isMenuOpen) {
+                menu.classList.remove('hidden'); overlay.classList.add('active');
+                setTimeout(() => { menu.classList.remove('opacity-0', 'scale-95'); menu.classList.add('opacity-100', 'scale-100'); }, 10);
+            } else {
+                menu.classList.remove('opacity-100', 'scale-100'); menu.classList.add('opacity-0', 'scale-95');
+                overlay.classList.remove('active'); setTimeout(() => { menu.classList.add('hidden'); }, 200);
+            }
+        }
+        $('btnHamburger').addEventListener('click', (e) => { e.stopPropagation(); toggleMenu(); });
+        $('menuOverlay').addEventListener('click', () => { if (isMenuOpen) toggleMenu(); });
+
         function applyTheme(dark) {
             document.documentElement.classList.toggle('dark', dark); document.documentElement.classList.toggle('light', !dark);
             $('themeIconMenu').innerHTML = dark ? sunSVG : moonSVG; $('themeTextMenu').textContent = dark ? 'Chế độ Sáng' : 'Chế độ Tối';
             localStorage.setItem('theme', dark ? 'dark' : 'light');
-            const themeColor = document.querySelector('meta[name="theme-color"]'); if (themeColor) themeColor.setAttribute('content', dark ? '#0f172a' : '#f8f7fc');
         }
         applyTheme(document.documentElement.classList.contains('dark'));
-        $('themeToggleMenu').addEventListener('click', (event) => {
-            event.preventDefault();
-            event.stopPropagation();
-            applyTheme(!document.documentElement.classList.contains('dark'));
-        });
-        window.addEventListener('storage', (event) => {
-            if (event.key === 'theme') applyTheme(event.newValue === 'dark');
-        });
+        $('themeToggleMenu').addEventListener('click', () => applyTheme(!document.documentElement.classList.contains('dark')));
 
-        // KIỂM TRA ĐĂNG NHẬP
         async function checkUser() {
-            try {
-                const { data: { session }, error } = await supabase.auth.getSession();
-                if (error || !session) { window.location.replace("./landing.html"); return; }
-                const user = session.user;
-                const displayName = user.email ? user.email.split('@')[0] : "Người dùng";
-                $('userName').textContent = displayName;
-                $('userEmail').textContent = user.email || '';
-                const firstChar = displayName.charAt(0).toUpperCase();
-                $('avatarContainer').textContent = firstChar;
-                $('btnAvatar').textContent = firstChar;
-                $('userAvatarMenu').classList.remove('hidden');
-                loadHistory();
-            } catch (error) {
-                console.error('Không thể kiểm tra phiên đăng nhập:', error);
-                window.location.replace("./landing.html");
-            }
+            const { data: { session }, error } = await supabase.auth.getSession();
+            if (error || !session) { window.location.href = "./landing.html"; return; }
+            const user = session.user;
+            const displayName = user.email ? user.email.split('@')[0] : "Người dùng";
+            $('userName').textContent = displayName;
+            $('userEmail').textContent = user.email;
+            
+            const avatarBox = $('avatarContainer'); const avatarBtn = $('btnAvatar');
+            const firstChar = displayName.charAt(0).toUpperCase();
+            avatarBox.textContent = firstChar;
+            avatarBtn.textContent = firstChar;
+            $('userAvatarMenu').classList.remove('hidden');
         }
         checkUser();
 
-        // ĐĂNG XUẤT
         function logout() { supabase.auth.signOut().then(() => { window.location.href = "./landing.html"; }); }
         $('btnLogoutMain').addEventListener('click', logout);
         $('btnLogoutHeader').addEventListener('click', logout);
@@ -233,28 +148,18 @@
         $('btnAvatar').addEventListener('click', (e) => { e.stopPropagation(); $('avatarDropdown').classList.remove('hidden'); setTimeout(() => $('avatarDropdown').classList.remove('opacity-0', 'scale-95'), 10); });
         document.addEventListener('click', () => { if (!$('avatarDropdown').classList.contains('hidden')) { $('avatarDropdown').classList.add('opacity-0', 'scale-95'); setTimeout(() => $('avatarDropdown').classList.add('hidden'), 200); } });
 
-        // HIỂN THỊ LỊCH SỬ
         function loadHistory() {
+            const history = JSON.parse(localStorage.getItem('myPromptHistory') || '[]');
             const list = $('historyList');
-            let history = [];
-            try {
-                const stored = JSON.parse(localStorage.getItem('myPromptHistory') || '[]');
-                if (Array.isArray(stored)) history = stored;
-            } catch (error) {
-                console.error('Lịch sử cục bộ không phải JSON hợp lệ:', error);
-                list.textContent = 'Không thể đọc lịch sử trên thiết bị này.';
-                return;
-            }
             if (history.length === 0) return; 
-
             list.innerHTML = ''; 
-            history.reverse().forEach(item => {
+            [...history].reverse().forEach(item => {
                 const div = document.createElement('div');
                 div.className = 'p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-200 dark:border-slate-700';
                 div.innerHTML = `
                     <div class="flex justify-between items-start mb-2">
-                        <span class="text-xs font-bold text-slate-500">${escapeHtml(new Date(item.date).toLocaleString('vi-VN'))}</span>
-                        <span class="text-sm font-bold text-pink-500">${escapeHtml(item.score)} điểm</span>
+                        <span class="text-xs font-bold text-slate-500">${new Date(item.date).toLocaleString('vi-VN')}</span>
+                        <span class="text-sm font-bold text-pink-500">${item.score} điểm</span>
                     </div>
                     <p class="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 truncate">${escapeHtml(item.prompt)}</p>
                 `;
@@ -267,15 +172,10 @@
             const data = localStorage.getItem('myPromptHistory') || '[]';
             const blob = new Blob([data], { type: "application/json" });
             const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url; a.download = `lich-su-prompt-${new Date().getTime()}.json`; a.click();
-            URL.revokeObjectURL(url);
+            const a = document.createElement('a'); a.href = url; a.download = `lich-su-prompt.json`; a.click(); URL.revokeObjectURL(url);
         });
-
         $('btnClearHistory').addEventListener('click', () => {
-            if (confirm("Bạn có chắc chắn muốn xóa toàn bộ lịch sử trên máy này không?")) {
-                localStorage.removeItem('myPromptHistory'); location.reload();
-            }
+            if (confirm("Xóa toàn bộ lịch sử trên máy này?")) { localStorage.removeItem('myPromptHistory'); location.reload(); }
         });
     </script>
 </body>
