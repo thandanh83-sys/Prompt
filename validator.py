@@ -67,20 +67,20 @@ def validate_full_report(ai_json: dict, main_criteria: dict, tech_criteria: dict
         if not ev_norm:
             raise ReportValidationError(f"Lỗi '{err['code']}' phải có bằng chứng trích dẫn.")
             
-        # SỬA LỖI TẠI ĐÂY: Thêm ngoại lệ cho phép "toàn bộ"
-        if ev_norm not in ["toàn bộ", "toàn bộ prompt"]:
-            prompt_norm = normalize_text(original_prompt)
-            if ev_norm not in prompt_norm:
-                raise ReportValidationError(f"Bằng chứng '{evidence}' không có trong prompt gốc.")
+        prompt_norm = normalize_text(original_prompt)
+        if not prompt_norm:
+            raise ReportValidationError("Prompt gốc không hợp lệ để đối chiếu bằng chứng.")
+        if ev_norm not in prompt_norm:
+            raise ReportValidationError(f"Bằng chứng '{evidence}' không có trong prompt gốc.")
 
     rewrite = ai_json["rewrite"]
     if not isinstance(rewrite, dict): 
         raise ReportValidationError("Trường 'rewrite' phải là dict.")
         
-    expected_sections = set(rules_v38.REQUIRED_REWRITE_SECTIONS)
-    received_sections = set(rewrite.keys())
+    expected_sections = rules_v38.REQUIRED_REWRITE_SECTIONS
+    received_sections = list(rewrite.keys())
     if received_sections != expected_sections:
-        raise ReportValidationError(f"Bản sửa thiếu/thừa mục: {expected_sections.symmetric_difference(received_sections)}")
+        raise ReportValidationError("Bản sửa phải có đúng 11 mục theo thứ tự quy định; cần kiểm tra mục thiếu, thừa hoặc sai thứ tự.")
         
     for sec, val in rewrite.items():
         if not isinstance(val, str) or not val.strip():
@@ -89,30 +89,38 @@ def validate_full_report(ai_json: dict, main_criteria: dict, tech_criteria: dict
     return True
 
 def _calc_tier_score(ai_scores: dict, criteria: dict) -> Decimal:
-    if not criteria: return Decimal('0.0')
-    
-    total_weight = Decimal('0.0')
-    weighted_score = Decimal('0.0')
-    
+    if not isinstance(ai_scores, dict) or not isinstance(criteria, dict) or not criteria:
+        raise ReportValidationError("Không thể tính điểm với dữ liệu điểm hoặc tiêu chí rỗng/không hợp lệ.")
+    total_weight = Decimal("0")
+    weighted_score = Decimal("0")
     for crit_id, info in criteria.items():
-        weight = Decimal(str(info["weight"]))
+        if crit_id not in ai_scores:
+            raise ReportValidationError(f"Thiếu điểm cho tiêu chí '{crit_id}'.")
+        score = ai_scores[crit_id]
+        if type(score) is not int or not 0 <= score <= 10:
+            raise ReportValidationError(f"Điểm của '{crit_id}' phải là số nguyên từ 0 đến 10.")
+        try:
+            weight = Decimal(str(info["weight"]))
+        except (KeyError, TypeError, ValueError, ArithmeticError) as exc:
+            raise ReportValidationError(f"Trọng số của '{crit_id}' không hợp lệ.") from exc
+        if not weight.is_finite() or weight <= 0:
+            raise ReportValidationError(f"Trọng số của '{crit_id}' phải hữu hạn và lớn hơn 0.")
         total_weight += weight
-        score = Decimal(str(ai_scores.get(crit_id, 0)))
-        weighted_score += score * weight
-        
-    if total_weight == 0: return Decimal('0.0')
+        weighted_score += Decimal(score) * weight
+    if total_weight <= 0:
+        raise ReportValidationError("Tổng trọng số phải lớn hơn 0.")
     return weighted_score / total_weight
 
+
 def calculate_final_score(ai_scores: dict, main_criteria: dict, tech_criteria: dict) -> float:
-    if not main_criteria:
+    if not isinstance(main_criteria, dict) or not main_criteria:
         raise ValueError("Không thể tính điểm: Nhóm tiêu chí chính bị rỗng.")
-        
-    s_main = _calc_tier_score(ai_scores, main_criteria)
-    
-    if tech_criteria:
-        s_tech = _calc_tier_score(ai_scores, tech_criteria)
-        final_score = (Decimal('0.6') * s_main) + (Decimal('0.4') * s_tech)
-    else:
-        final_score = s_main
-        
-    return float(final_score.quantize(Decimal('0.1'), rounding=ROUND_HALF_UP))
+    if not isinstance(tech_criteria, dict):
+        raise ValueError("Nhóm tiêu chí kỹ thuật không hợp lệ.")
+    if set(main_criteria) & set(tech_criteria):
+        raise ReportValidationError("ID tiêu chí bị trùng giữa Main và Tech.")
+    rules_v38.validate_config(main_criteria, tech_criteria)
+    all_criteria = {**main_criteria, **tech_criteria}
+    validate_scores_only(ai_scores, all_criteria)
+    weighted_score = _calc_tier_score(ai_scores, all_criteria)
+    return float(weighted_score.quantize(Decimal("0.1"), rounding=ROUND_HALF_UP))
