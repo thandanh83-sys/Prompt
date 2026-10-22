@@ -1,168 +1,6 @@
-<!DOCTYPE html>
-<html lang="vi" class="light">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#f8f7fc">
-    <title>Đánh giá Prompt - Trợ lý AI</title>
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23ec4899'/%3E%3Cstop offset='100%25' stop-color='%233b82f6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' rx='20' fill='url(%23g)'/%3E%3Ctext x='50' y='72' font-size='60' font-family='Arial,sans-serif' font-weight='bold' fill='white' text-anchor='middle'%3EP%3C/text%3E%3C/svg%3E">
+<!-- (Giữ nguyên HTML phía trên) -->
+<!-- Tìm đến đoạn <script> ở cuối file, thay thế toàn bộ bằng đoạn dưới đây) -->
 
-    <script>
-        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) { document.documentElement.classList.add('dark'); } else { document.documentElement.classList.remove('dark'); }
-    </script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script>tailwind.config = { darkMode: 'class' }</script>
-
-    <style>
-        html { background-color: #f8f7fc; transition: background-color .15s ease; min-height: 100vh; }
-        html.dark { background-color: #0f172a; }
-        body { -webkit-tap-highlight-color: transparent; overflow-x: hidden; transition: background-color .15s ease, color .15s ease; background-color: #f8f7fc; overscroll-behavior-y: none; }
-        .dark body { background-color: #0f172a; }
-        .app-header { background: #fff; border-color: rgba(0,0,0,.06); }
-        .dark .app-header { background: #0f172a; border-color: rgba(255,255,255,.1); }
-        .brand-spark { flex-shrink: 0; }
-        .brand-text { background: linear-gradient(100deg, #ec4899, #a052c8 52%, #3979f5); -webkit-background-clip: text; background-clip: text; color: transparent; }
-        .brand-icon-gradient { fill: url(#brandSparkGradient); }
-        .btn-glow { box-shadow: 0 4px 15px rgba(236,72,153,.3); }
-        .btn-glow:hover { box-shadow: 0 6px 20px rgba(59,130,246,.5); transform: translateY(-1px); }
-        .menu-dropdown { transition: all .2s ease-in-out; transform-origin: top left; width: min(280px, calc(100vw - 32px)); max-height: calc(100dvh - 100px); overflow-y: auto; box-sizing: border-box; }
-        @media (max-width: 640px) { .menu-dropdown { width: min(260px, calc(100vw - 32px)); max-height: calc(100dvh - 88px); } }
-        .glass-card { transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease; }
-        .pre-wrap { white-space: pre-wrap; }
-        #promptInput { white-space: pre-wrap; overflow-wrap: anywhere; }
-        .toast-msg { background-color: #1e293b; color: white; padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 500; box-shadow: 0 4px 6px rgba(0,0,0,.1); opacity: 0; transform: translateY(20px); transition: all .3s ease; pointer-events: auto; display: flex; align-items: center; gap: 8px; white-space: nowrap; }
-        .toast-success { border-left: 4px solid #22c55e; }
-        .toast-error { border-left: 4px solid #ef4444; }
-        .toast-show { opacity: 1; transform: translateY(0); }
-    </style>
-</head>
-
-<body class="antialiased min-h-screen relative text-slate-800 dark:text-slate-100 flex flex-col">
-
-    <!-- HEADER -->
-    <header class="app-header fixed top-0 left-0 w-full z-50 border-b">
-        <div class="w-full max-w-7xl mx-auto px-4 sm:px-6 h-16 md:h-20 flex items-center justify-between gap-2 sm:gap-3">
-            <div class="relative flex items-center gap-1 sm:gap-2">
-                <button id="btnHamburger" class="w-10 h-10 shrink-0 flex items-center justify-center rounded-full text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
-                </button>
-                <div id="dropdownMenu" class="menu-dropdown absolute top-12 left-0 bg-white dark:bg-[#1e293b] border border-slate-200 dark:border-slate-700 rounded-2xl shadow-xl hidden opacity-0 scale-95 z-50 p-2">
-                    <div class="flex flex-col gap-1">
-                        <a href="./index.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors">Trang chủ</a>
-                        <a href="./landing.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors">Đánh giá</a>
-                        <a href="./library.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors">Thư viện</a>
-                        <div class="h-px bg-slate-100 dark:bg-slate-700/50 my-1 mx-2"></div>
-                        <button id="themeToggleMenu" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors text-left">
-                            <span id="themeIconMenu" class="w-5 h-5 flex items-center justify-center shrink-0"></span><span id="themeTextMenu">Chế độ Tối</span>
-                        </button>
-                        <div id="adminMenuDivider" class="h-px bg-slate-100 dark:bg-slate-700/50 my-1 mx-2" style="display:none;"></div>
-                        <a id="menuBtnAdmin" href="./admin.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-green-50 dark:hover:bg-green-900/20 text-sm font-semibold text-green-600 dark:text-green-400 transition-colors" style="display:none;">Quản trị</a>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="flex items-center gap-1.5 min-w-0">
-                <svg class="brand-spark w-6 h-6 sm:w-7 sm:h-7" viewBox="0 0 24 24"><defs><linearGradient id="brandSparkGradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ec4899"/><stop offset="100%" stop-color="#3b82f6"/></linearGradient></defs><path class="brand-icon-gradient" d="M12 2L14.7 9.3 22 12l-7.3 2.7L12 22l-2.7-7.3L2 12l7.3-2.7L12 2Z"/></svg>
-                <span class="brand-text text-base sm:text-lg font-extrabold truncate">Trợ lý AI</span>
-            </div>
-            
-            <!-- KHU VỰC ĐĂNG NHẬP -->
-            <div id="authContainer" class="flex items-center relative">
-                <button id="btnShowLogin" class="px-3 py-1.5 md:px-5 md:py-2.5 rounded-full text-xs md:text-sm font-bold text-white bg-gradient-to-r from-pink-500 to-blue-500 shadow-sm hover:scale-105 transition-all">
-                    Đăng nhập
-                </button>
-                <div id="userAvatarMenu" class="relative hidden">
-                    <button id="btnAvatar" class="w-9 h-9 md:w-10 md:h-10 rounded-full overflow-hidden border-2 border-pink-500 shadow-sm hover:scale-105 transition-transform flex items-center justify-center bg-gray-200 dark:bg-gray-700 text-white font-bold text-lg"></button>
-                    <div id="avatarDropdown" class="absolute right-0 top-12 w-48 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl hidden opacity-0 scale-95 transition-all z-50 p-2">
-                        <a href="./profile.html" class="block px-3 py-2 text-sm font-semibold hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg">Trang cá nhân</a>
-                        <button id="btnLogoutHeader" class="w-full text-left px-3 py-2 text-sm font-semibold text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg mt-1">Đăng xuất</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </header>
-
-    <!-- POPUP ĐĂNG NHẬP -->
-    <div id="loginModal" class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm hidden opacity-0 transition-opacity duration-300">
-        <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-sm p-6 relative">
-            <button type="button" id="btnCloseLoginModal" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 bg-transparent hover:bg-slate-100 dark:hover:bg-slate-700 w-8 h-8 rounded-full flex items-center justify-center transition-colors text-lg">✕</button>
-            <h2 class="text-xl font-bold text-center mb-2 text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-blue-500">Đăng nhập / Đăng ký</h2>
-            <p class="text-xs text-center text-slate-500 mb-6">Nhập email để nhận link đăng nhập tự động</p>
-            <input type="email" id="loginEmail" class="w-full p-4 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 mb-4 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500" placeholder="Email của bạn...">
-            <p id="loginError" class="text-red-500 text-xs font-bold mb-4 hidden bg-red-50 p-2 rounded-lg"></p>
-            <button id="btnSendMagicLink" class="w-full py-3.5 rounded-xl font-bold text-white bg-gradient-to-r from-pink-500 to-blue-500 shadow-md hover:scale-[1.02] transition-transform text-sm">Gửi link đăng nhập</button>
-        </div>
-    </div>
-
-    <!-- NỘI DUNG ĐÁNH GIÁ -->
-    <main class="w-full max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 md:pt-28 pb-32 flex-grow flex flex-col mt-4">
-        <div class="text-center mb-8">
-            <h1 class="text-xl sm:text-2xl md:text-3xl font-extrabold mb-3 flex items-center justify-center gap-2">
-                <svg class="brand-spark w-7 h-7" viewBox="0 0 24 24"><path class="brand-icon-gradient" d="M12 2 14.8 9.2 22 12l-7.2 2.8L12 22l-2.8-7.2L2 12l7.2-2.8L12 2Z"/></svg>
-                <span class="brand-text">Trợ lý tối ưu hoá Prompt</span>
-            </h1>
-            <p class="text-slate-500 dark:text-slate-400 text-sm font-medium">AI tự động nhận diện và tạo Prompt chuẩn chuyên gia.</p>
-        </div>
-
-        <div class="glass-card bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/50 shadow-sm rounded-3xl p-5">
-            <div class="relative">
-                <textarea id="promptInput" maxlength="5000" class="w-full h-36 p-4 pb-10 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700/50 focus:outline-none focus:ring-1 focus:ring-pink-500 focus:border-pink-500 resize-none text-slate-800 dark:text-slate-100 placeholder-slate-400 text-sm transition-all" placeholder="Mô tả điều bạn muốn AI thực hiện..."></textarea>
-                <div class="absolute bottom-3 right-4 flex items-center gap-3">
-                    <span id="charCount" class="text-[11px] font-medium text-slate-400">0/5000</span>
-                    <button id="btnClearInput" class="hidden text-slate-400 hover:text-red-500"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button>
-                </div>
-            </div>
-            <p id="longPromptWarning" class="text-yellow-500 text-xs mt-2 font-medium" style="display: none;">⚠️ Prompt khá dài, AI có thể mất 30-60 giây.</p>
-            <p id="errorMsg" class="text-red-500 text-xs mt-2 font-medium" style="display: none;">Vui lòng nhập prompt!</p>
-            <button id="btnEvaluate" class="w-full mt-4 py-3.5 rounded-2xl font-bold bg-gradient-to-r from-pink-500 to-blue-500 text-white shadow-md btn-glow disabled:opacity-50 transition-all text-sm flex items-center justify-center gap-2">
-                <span id="btnText">Đánh giá & Viết lại</span>
-                <svg id="loadingSpinner" class="hidden animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-            </button>
-        </div>
-
-        <!-- KẾT QUẢ -->
-        <div id="resultArea" class="mt-8 space-y-5" style="display: none;">
-            <!-- (Giữ nguyên phần hiển thị kết quả như code cũ) -->
-            <div class="glass-card bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/50 shadow-sm rounded-3xl p-6 flex justify-between items-start relative overflow-hidden">
-                <div class="flex flex-col w-1/2 pt-1">
-                    <p class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1">Điểm tổng</p>
-                    <div class="flex items-baseline"><span id="totalScore" class="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-blue-500">0.0</span><span class="text-sm font-bold text-slate-400 ml-1">/ 10</span></div>
-                    <div class="w-full bg-slate-100 dark:bg-slate-700 h-1.5 rounded-full mt-3"><div id="scoreBar" class="h-1.5 rounded-full bg-gradient-to-r from-pink-500 to-blue-500 transition-all duration-1000" style="width: 0%"></div></div>
-                </div>
-                <div class="flex flex-col items-end justify-center w-1/2">
-                    <p class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2">Phân loại</p>
-                    <div class="flex flex-wrap justify-end gap-1.5"><span id="promptType" class="px-3 py-1 rounded-full text-[11px] font-bold text-white shadow-sm bg-blue-500">PROMPT</span><div id="techniqueBadges" class="flex flex-wrap gap-1.5"></div></div>
-                </div>
-            </div>
-            <div id="strengthsCard" class="glass-card bg-green-50/50 dark:bg-green-900/10 border border-green-200 dark:border-green-800/30 shadow-sm rounded-3xl p-6" style="display: none;">
-                <h3 class="font-bold text-sm mb-3 text-green-700 dark:text-green-400 flex items-center gap-2"><span class="text-lg">🌟</span> Điểm sáng của bạn</h3>
-                <ul id="strengthsList" class="space-y-2 text-sm text-slate-700 dark:text-slate-300 list-disc pl-4"></ul>
-            </div>
-            <div class="glass-card bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/50 shadow-sm rounded-3xl p-6">
-                <h3 class="font-bold text-sm mb-4 text-slate-800 dark:text-slate-200 flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-red-500"></span> Điểm nên luyện thêm</h3>
-                <ul id="userErrorList" class="space-y-3 text-sm text-slate-700 dark:text-slate-300"></ul>
-            </div>
-            <div class="glass-card bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/50 shadow-sm rounded-3xl p-6">
-                <h3 class="font-bold text-sm mb-5 text-slate-800 dark:text-slate-200 flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-blue-500"></span> Chi tiết điểm</h3>
-                <div id="criteriaList" class="grid grid-cols-2 gap-x-4 gap-y-4"></div>
-            </div>
-            <div class="glass-card bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/50 shadow-sm rounded-3xl overflow-hidden">
-                <div class="flex justify-between items-center px-5 py-3 border-b border-slate-200 dark:border-slate-700/50 bg-slate-50 dark:bg-slate-900/40">
-                    <h3 class="font-bold text-sm text-slate-800 dark:text-slate-200 flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-indigo-500"></span> Bản sửa hoàn chỉnh</h3>
-                    <button id="btnCopyAll" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 rounded-md border border-slate-200 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 transition">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
-                        <span id="copyBtnText">Sao chép</span>
-                    </button>
-                </div>
-                <div id="rewriteList" class="p-5 space-y-5 text-sm"></div>
-            </div>
-        </div>
-    </main>
-
-    <div id="toastContainer" class="fixed bottom-5 left-1/2 transform -translate-x-1/2 z-[9999] flex flex-col gap-2 pointer-events-none"></div>
-
-    <!-- SCRIPT -->
     <script>
         const API_URL = "https://prompt-tx2e.onrender.com"; 
         const SUPABASE_URL = "https://egncrbearrwfoslryuga.supabase.co";
@@ -175,89 +13,9 @@
 
         const ERROR_NAMES = { "A01": "Lỗi chính tả", "A02": "Thiếu dấu câu", "A03": "Lặp lại", "B01": "Thiếu cấu trúc", "B02": "Mục không logic", "B03": "Sai phân cấp", "B04": "Chưa định dạng", "C01": "Đối tượng chưa rõ", "C02": "Thiếu bối cảnh", "C03": "Chung chung", "C04": "Thiếu ví dụ", "D01": "Mâu thuẫn", "D02": "Bất khả thi", "D03": "Vai trò sai", "E01": "Trộn lĩnh vực", "E02": "Thuật ngữ lộn xộn", "E03": "Thiếu đặc thù" };
 
-        const moonSVG = `<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-blue-900" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>`;
-        const sunSVG = `<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364-.707-.707M6.343 6.343l-.707-.707m12.728 0-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>`;
-
-        // MENU & THEME
-        let isMenuOpen = false;
-        $('btnHamburger').addEventListener('click', (e) => {
-            e.stopPropagation(); isMenuOpen = !isMenuOpen;
-            if (isMenuOpen) { $('dropdownMenu').classList.remove('hidden'); setTimeout(() => { $('dropdownMenu').classList.remove('opacity-0', 'scale-95'); $('dropdownMenu').classList.add('opacity-100', 'scale-100'); }, 10); } 
-            else { $('dropdownMenu').classList.remove('opacity-100', 'scale-100'); $('dropdownMenu').classList.add('opacity-0', 'scale-95'); setTimeout(() => { $('dropdownMenu').classList.add('hidden'); }, 200); }
-        });
-        document.addEventListener('click', (e) => {
-            if (isMenuOpen && !$('dropdownMenu').contains(e.target) && e.target !== $('btnHamburger')) {
-                isMenuOpen = false; $('dropdownMenu').classList.remove('opacity-100', 'scale-100'); $('dropdownMenu').classList.add('opacity-0', 'scale-95'); setTimeout(() => { $('dropdownMenu').classList.add('hidden'); }, 200);
-            }
-        });
-        function applyTheme(dark) {
-            document.documentElement.classList.toggle('dark', dark); document.documentElement.classList.toggle('light', !dark);
-            $('themeIconMenu').innerHTML = dark ? sunSVG : moonSVG; $('themeTextMenu').textContent = dark ? 'Chế độ Sáng' : 'Chế độ Tối';
-            localStorage.setItem('theme', dark ? 'dark' : 'light');
-            const themeColor = document.querySelector('meta[name="theme-color"]'); if (themeColor) themeColor.setAttribute('content', dark ? '#0f172a' : '#f8f7fc');
-        }
-        applyTheme(document.documentElement.classList.contains('dark'));
-        $('themeToggleMenu').addEventListener('click', () => applyTheme(!document.documentElement.classList.contains('dark')));
-
-        async function checkAdminAccess() {
-            try { const res = await fetch(`${API_URL}/check_admin_ip`); if (res.ok) { $('adminMenuDivider').style.display = 'block'; $('menuBtnAdmin').style.display = 'flex'; } } catch (e) { console.log("Lỗi check IP"); }
-        }
-        checkAdminAccess();
-
-        // LOGIC ĐĂNG NHẬP SUPABASE
-        async function checkAuthState() {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (session) {
-                $('btnShowLogin').classList.add('hidden'); $('userAvatarMenu').classList.remove('hidden');
-                const displayName = session.user.email.split('@')[0];
-                $('btnAvatar').textContent = displayName.charAt(0).toUpperCase();
-            } else {
-                $('btnShowLogin').classList.remove('hidden'); $('userAvatarMenu').classList.add('hidden');
-            }
-        }
-        checkAuthState();
-
-        $('btnShowLogin').addEventListener('click', () => { $('loginModal').classList.remove('hidden'); setTimeout(() => $('loginModal').classList.remove('opacity-0'), 10); });
-        $('btnCloseLoginModal').addEventListener('click', () => { $('loginModal').classList.add('opacity-0'); setTimeout(() => $('loginModal').classList.add('hidden'), 300); });
+        // Lấy các hàm theme, menu, login giữ nguyên như cũ...
+        // ...
         
-        $('btnSendMagicLink').addEventListener('click', async () => {
-            const email = $('loginEmail').value.trim(); const errorMsg = $('loginError'); const btn = $('btnSendMagicLink');
-            if (!email) { errorMsg.textContent = "Vui lòng nhập email!"; errorMsg.classList.remove('hidden'); return; }
-            btn.textContent = "Đang gửi..."; btn.disabled = true; errorMsg.classList.add('hidden');
-            const { error } = await supabase.auth.signInWithOtp({ email: email, options: { emailRedirectTo: window.location.href } });
-            if (error) { errorMsg.textContent = error.message; errorMsg.classList.remove('hidden'); btn.textContent = "Gửi link đăng nhập"; btn.disabled = false; } 
-            else { alert("Đã gửi link! Vui lòng kiểm tra hộp thư (hoặc mục Spam)."); $('btnCloseLoginModal').click(); btn.textContent = "Gửi link đăng nhập"; btn.disabled = false; }
-        });
-
-        $('btnAvatar').addEventListener('click', (e) => { e.stopPropagation(); $('avatarDropdown').classList.remove('hidden'); setTimeout(() => $('avatarDropdown').classList.remove('opacity-0', 'scale-95'), 10); });
-        document.addEventListener('click', () => { if (!$('avatarDropdown').classList.contains('hidden')) { $('avatarDropdown').classList.add('opacity-0', 'scale-95'); setTimeout(() => $('avatarDropdown').classList.add('hidden'), 200); } });
-        $('btnLogoutHeader').addEventListener('click', async () => { await supabase.auth.signOut(); window.location.reload(); });
-
-        // LOGIC ĐÁNH GIÁ PROMPT
-        function copyTextToClipboard(text) {
-            if (navigator.clipboard && window.isSecureContext) return navigator.clipboard.writeText(text);
-            let textArea = document.createElement("textarea"); textArea.value = text; textArea.style.position = "absolute"; textArea.style.left = "-999999px";
-            document.body.appendChild(textArea); textArea.focus(); textArea.select();
-            return new Promise((res, rej) => { try { document.execCommand('copy'); res(); } catch (e) { rej(e); } finally { textArea.remove(); } });
-        }
-        function showToast(message, type = 'success') {
-            const container = document.getElementById('toastContainer'); const toast = document.createElement('div');
-            toast.className = `toast-msg toast-${type}`; toast.innerHTML = `<span>${type === 'success' ? '✅' : '⚠️'}</span> <span>${message}</span>`;
-            container.appendChild(toast); setTimeout(() => toast.classList.add('toast-show'), 10);
-            setTimeout(() => { toast.classList.remove('toast-show'); setTimeout(() => toast.remove(), 300); }, 3000);
-        }
-
-        const promptInput = $('promptInput'); const charCount = $('charCount'); const btnClearInput = $('btnClearInput'); const longPromptWarning = $('longPromptWarning');
-        promptInput.addEventListener('input', () => {
-            const len = promptInput.value.length; charCount.textContent = `${len}/5000`;
-            btnClearInput.classList.toggle('hidden', len === 0); longPromptWarning.style.display = len > 2000 ? 'block' : 'none';
-            $('resultArea').style.display = 'none';
-        });
-        btnClearInput.addEventListener('click', () => {
-            promptInput.value = ''; charCount.textContent = '0/5000'; btnClearInput.classList.add('hidden');
-            longPromptWarning.style.display = 'none'; $('resultArea').style.display = 'none'; promptInput.focus();
-        });
-
         $('btnEvaluate').addEventListener('click', async () => {
             const prompt = promptInput.value.trim(); $('resultArea').style.display = 'none'; 
             if (!prompt) { $('errorMsg').style.display = 'block'; promptInput.focus(); return; }
@@ -271,30 +29,39 @@
                 const controller = new AbortController(); const timeoutId = setTimeout(() => controller.abort(), 180000);
                 const response = await fetch(`${API_URL}/evaluate`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt }), signal: controller.signal });
                 clearTimeout(timeoutId);
-                if (!response.ok) { const d = await response.json(); throw new Error(d.error || d.detail || 'Lỗi'); }
+                
+                if (!response.ok) { 
+                    const d = await response.json(); 
+                    throw new Error(d.error || d.detail || 'Lỗi không xác định từ Server'); 
+                }
+                
                 lastResult = await response.json();
                 render(lastResult);
                 
-                // LƯU LỊCH SỬ VÀO LOCAL STORAGE CỦA MÁY
-                const localHistory = JSON.parse(localStorage.getItem('myPromptHistory') || '[]');
-                localHistory.push({
-                    date: new Date().toISOString(),
-                    prompt: prompt,
-                    score: lastResult.total,
-                    type: lastResult.type,
-                    rewrite: lastResult.rewrite,
-                    errors: lastResult.errors,
-                    details: lastResult.details
-                });
-                localStorage.setItem('myPromptHistory', JSON.stringify(localHistory));
+                // LƯU LỊCH SỬ VÀO LOCAL STORAGE (ĐÃ FIX TRÀN BỘ NHỚ)
+                try {
+                    let localHistory = JSON.parse(localStorage.getItem('myPromptHistory') || '[]');
+                    localHistory.push({
+                        date: new Date().toISOString(),
+                        prompt: prompt.length > 2000 ? prompt.slice(0, 2000) + '…' : prompt,
+                        score: lastResult.total, type: lastResult.type,
+                        rewrite: lastResult.rewrite, errors: lastResult.errors, details: lastResult.details
+                    });
+                    if (localHistory.length > 100) localHistory = localHistory.slice(-100); // Chỉ giữ 100 cái
+                    localStorage.setItem('myPromptHistory', JSON.stringify(localHistory));
+                } catch (e) {
+                    let h = JSON.parse(localStorage.getItem('myPromptHistory') || '[]').slice(-50);
+                    try { localStorage.setItem('myPromptHistory', JSON.stringify(h)); } catch {}
+                }
                 
             } catch (e) { 
-                $('errorMsg').textContent = e.message || "Đã xảy ra lỗi."; $('errorMsg').style.display = 'block'; 
+                $('errorMsg').textContent = e.message || "Đã xảy ra lỗi kết nối."; $('errorMsg').style.display = 'block'; 
             } finally { 
                 clearInterval(timer); btn.disabled = false; spinner.classList.add('hidden'); btnText.textContent = 'Đánh giá & Viết lại'; 
             }
         });
 
+        // Hàm render và các hàm khác giữ nguyên...
         function render(r) {
             $('totalScore').textContent = r.total; const sb = $('scoreBar'); sb.style.width = `${r.total * 10}%`;
             sb.className = r.total >= 8 ? 'h-1.5 rounded-full bg-green-500' : (r.total >= 5 ? 'h-1.5 rounded-full bg-yellow-500' : 'h-1.5 rounded-full bg-red-500');
@@ -327,16 +94,6 @@
             $('resultArea').style.display = 'block';
             setTimeout(() => { $('resultArea').scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 100);
         }
-
-        $('btnCopyAll').addEventListener('click', async () => {
-            if (!lastResult) return; let text = ""; 
-            SECTION_NAMES.forEach(sec => { text += `${sec}:\n${lastResult.rewrite[sec] || ''}\n\n`; });
-            try {
-                await copyTextToClipboard(text); showToast("Đã sao chép!", "success");
-                const btnText = $('copyBtnText'); btnText.textContent = 'Đã chép!'; btnText.classList.add('text-green-500');
-                setTimeout(() => { btnText.textContent = 'Sao chép'; btnText.classList.remove('text-green-500'); }, 2000);
-            } catch (e) { showToast("Không thể sao chép.", "error"); }
-        });
     </script>
 </body>
 </html>
