@@ -46,50 +46,50 @@ CRITERIA_PROMPT = {
 }
 
 CRITERIA_STEM = {
-    "S01": {"name": "Xác định dạng bài/dữ kiện", "weight": 1.5, "rubric": "0-2: Không rõ dạng bài. 7-10: Rõ ràng chi tiết."},
-    "S02": {"name": "Yêu cầu tìm gì", "weight": 1.5, "rubric": "0-2: Không rõ cần tìm gì. 7-10: Rõ mục tiêu."},
-    "S03": {"name": "Cung cấp đủ số liệu", "weight": 1.5, "rubric": "0-2: Thiếu số liệu. 7-10: Đầy đủ số liệu."},
-    "S04": {"name": "Quy định đơn vị đo", "weight": 1.0, "rubric": "0-2: Không có đơn vị. 7-10: Đơn vị chuẩn."},
-    "S05": {"name": "Yêu cầu trình bày các bước", "weight": 1.5, "rubric": "0-2: Không yêu cầu. 7-10: Yêu cầu chi tiết."},
-    "S06": {"name": "Tránh gây nhiễu thông tin", "weight": 1.0, "rubric": "0-2: Nhiều thông tin nhiễu. 7-10: Không có nhiễu."},
-    "S07": {"name": "Yêu cầu định dạng kết quả", "weight": 1.0, "rubric": "0-2: Không rõ định dạng. 7-10: Định dạng rõ."},
-    "S08": {"name": "Tính khả thi của dữ kiện", "weight": 1.0, "rubric": "0-2: Dữ kiện vô lý. 7-10: Dữ kiện thực tế."}
+    "S01": {"name": "Xác định dạng bài/dữ kiện", "weight": 1.5, "rubric": "0-2: Không rõ dạng bài. 3-4: Dạng bài hoặc dữ kiện được nêu nhưng còn thiếu rõ ràng. 5-6: Dạng bài và phần lớn dữ kiện đã rõ. 7-10: Rõ ràng chi tiết."},
+    "S02": {"name": "Yêu cầu tìm gì", "weight": 1.5, "rubric": "0-2: Không rõ cần tìm gì. 3-4: Nêu điều cần tìm nhưng còn mơ hồ. 5-6: Mục tiêu tìm kiếm khá rõ, còn thiếu một giới hạn nhỏ. 7-10: Rõ mục tiêu."},
+    "S03": {"name": "Cung cấp đủ số liệu", "weight": 1.5, "rubric": "0-2: Thiếu số liệu. 3-4: Có số liệu nhưng thiếu một số dữ kiện cần thiết. 5-6: Phần lớn số liệu cần dùng đã có. 7-10: Đầy đủ số liệu."},
+    "S04": {"name": "Quy định đơn vị đo", "weight": 1.0, "rubric": "0-2: Không có đơn vị. 3-4: Đơn vị được nhắc tới nhưng chưa nhất quán. 5-6: Hầu hết đơn vị được quy định rõ. 7-10: Đơn vị chuẩn."},
+    "S05": {"name": "Yêu cầu trình bày các bước", "weight": 1.5, "rubric": "0-2: Không yêu cầu. 3-4: Chỉ yêu cầu trình bày một vài bước. 5-6: Có yêu cầu trình bày các bước chính. 7-10: Yêu cầu chi tiết."},
+    "S06": {"name": "Tránh gây nhiễu thông tin", "weight": 1.0, "rubric": "0-2: Nhiều thông tin nhiễu. 3-4: Có thông tin gây nhiễu nhưng không quá nhiều. 5-6: Phần lớn thông tin đều liên quan. 7-10: Không có nhiễu."},
+    "S07": {"name": "Yêu cầu định dạng kết quả", "weight": 1.0, "rubric": "0-2: Không rõ định dạng. 3-4: Định dạng kết quả được nêu chung chung. 5-6: Định dạng kết quả tương đối rõ. 7-10: Định dạng rõ."},
+    "S08": {"name": "Tính khả thi của dữ kiện", "weight": 1.0, "rubric": "0-2: Dữ kiện vô lý. 3-4: Có dữ kiện khó hợp lý hoặc cần giả định. 5-6: Dữ kiện nhìn chung khả thi. 7-10: Dữ kiện thực tế."}
 }
 
 CRITERIA_TEMPLATE = {
-    "T01": {"name": "Đủ mục", "weight": 1.5, "rubric": "0-2: Thiếu nhiều mục. 7-10: Đủ mục."},
-    "T02": {"name": "Mục hợp lý", "weight": 1.0, "rubric": "0-2: Mục vô lý. 7-10: Mục hợp lý."},
-    "T03": {"name": "Hướng dẫn điền", "weight": 1.5, "rubric": "0-2: Không có hướng dẫn. 7-10: Hướng dẫn rõ."},
-    "T04": {"name": "Ví dụ mẫu", "weight": 1.0, "rubric": "0-2: Không có ví dụ. 7-10: Có ví dụ."},
-    "T05": {"name": "Phân cấp", "weight": 1.0, "rubric": "0-2: Không phân cấp. 7-10: Phân cấp tốt."},
-    "T06": {"name": "Quy tắc cấm", "weight": 1.0, "rubric": "0-2: Không có quy tắc. 7-10: Quy tắc rõ."},
-    "T07": {"name": "Quy tắc ưu tiên", "weight": 1.0, "rubric": "0-2: Không có ưu tiên. 7-10: Ưu tiên rõ."},
-    "T08": {"name": "Quy trình xử lý", "weight": 1.0, "rubric": "0-2: Không có quy trình. 7-10: Quy trình rõ."},
-    "T09": {"name": "Chất lượng placeholder", "weight": 1.0, "rubric": "0-2: Placeholder kém. 7-10: Placeholder tốt."}
+    "T01": {"name": "Đủ mục", "weight": 1.5, "rubric": "0-2: Thiếu nhiều mục. 3-4: Thiếu một số mục quan trọng. 5-6: Có hầu hết mục cần thiết. 7-10: Đủ mục."},
+    "T02": {"name": "Mục hợp lý", "weight": 1.0, "rubric": "0-2: Mục vô lý. 3-4: Một số mục chưa hợp lý hoặc trùng lặp. 5-6: Các mục nhìn chung hợp lý. 7-10: Mục hợp lý."},
+    "T03": {"name": "Hướng dẫn điền", "weight": 1.5, "rubric": "0-2: Không có hướng dẫn. 3-4: Hướng dẫn điền còn mơ hồ. 5-6: Hướng dẫn điền cơ bản rõ ràng. 7-10: Hướng dẫn rõ."},
+    "T04": {"name": "Ví dụ mẫu", "weight": 1.0, "rubric": "0-2: Không có ví dụ. 3-4: Ví dụ chưa đủ sát hoặc thiếu chi tiết. 5-6: Có ví dụ phù hợp ở mức cơ bản. 7-10: Có ví dụ."},
+    "T05": {"name": "Phân cấp", "weight": 1.0, "rubric": "0-2: Không phân cấp. 3-4: Phân cấp chưa nhất quán. 5-6: Phân cấp chính tương đối rõ. 7-10: Phân cấp tốt."},
+    "T06": {"name": "Quy tắc cấm", "weight": 1.0, "rubric": "0-2: Không có quy tắc. 3-4: Một số quy tắc cấm chưa cụ thể. 5-6: Các giới hạn chính đã được nêu. 7-10: Quy tắc rõ."},
+    "T07": {"name": "Quy tắc ưu tiên", "weight": 1.0, "rubric": "0-2: Không có ưu tiên. 3-4: Thứ tự ưu tiên còn mơ hồ. 5-6: Có thứ tự ưu tiên cơ bản. 7-10: Ưu tiên rõ."},
+    "T08": {"name": "Quy trình xử lý", "weight": 1.0, "rubric": "0-2: Không có quy trình. 3-4: Quy trình thiếu bước hoặc thứ tự. 5-6: Có quy trình chính tương đối rõ. 7-10: Quy trình rõ."},
+    "T09": {"name": "Chất lượng placeholder", "weight": 1.0, "rubric": "0-2: Placeholder kém. 3-4: Placeholder khó hiểu hoặc thiếu hướng dẫn. 5-6: Placeholder dễ nhận biết và dùng được. 7-10: Placeholder tốt."}
 }
 
 CRITERIA_PROMPT_META = {
-    "M01": {"name": "Cấu trúc", "weight": 1.5, "rubric": "0-2: Không cấu trúc. 7-10: Cấu trúc tốt."},
-    "M02": {"name": "Chi tiết", "weight": 2.0, "rubric": "0-2: Quá sơ sài. 7-10: Rất chi tiết."},
-    "M03": {"name": "Định dạng", "weight": 1.0, "rubric": "0-2: Không định dạng. 7-10: Định dạng đẹp."},
-    "M04": {"name": "Nhất quán", "weight": 1.0, "rubric": "0-2: Mâu thuẫn. 7-10: Nhất quán."},
-    "M05": {"name": "Khả thi", "weight": 1.0, "rubric": "0-2: Bất khả thi. 7-10: Khả thi."},
-    "M06": {"name": "Vai trò", "weight": 0.5, "rubric": "0-2: Không có vai trò. 7-10: Vai trò tốt."},
-    "M07": {"name": "Mở rộng", "weight": 1.0, "rubric": "0-2: Không mở rộng. 7-10: Mở rộng tốt."},
-    "M08": {"name": "Ứng dụng", "weight": 1.0, "rubric": "0-2: Không ứng dụng. 7-10: Ứng dụng tốt."},
-    "M09": {"name": "Quy trình", "weight": 1.0, "rubric": "0-2: Không quy trình. 7-10: Quy trình tốt."}
+    "M01": {"name": "Cấu trúc", "weight": 1.5, "rubric": "0-2: Không cấu trúc. 3-4: Có cấu trúc nhưng sắp xếp còn thiếu hợp lý. 5-6: Cấu trúc khá rõ, còn vài điểm cần chỉnh. 7-10: Cấu trúc tốt."},
+    "M02": {"name": "Chi tiết", "weight": 2.0, "rubric": "0-2: Quá sơ sài. 3-4: Nội dung còn ít chi tiết quan trọng. 5-6: Đủ các chi tiết chính nhưng chưa sâu. 7-10: Rất chi tiết."},
+    "M03": {"name": "Định dạng", "weight": 1.0, "rubric": "0-2: Không định dạng. 3-4: Có định dạng nhưng chưa nhất quán. 5-6: Định dạng dễ theo dõi ở mức cơ bản. 7-10: Định dạng đẹp."},
+    "M04": {"name": "Nhất quán", "weight": 1.0, "rubric": "0-2: Mâu thuẫn. 3-4: Có một số điểm chưa nhất quán. 5-6: Phần lớn nội dung nhất quán. 7-10: Nhất quán."},
+    "M05": {"name": "Khả thi", "weight": 1.0, "rubric": "0-2: Bất khả thi. 3-4: Có yêu cầu khó thực hiện nếu thiếu giả định. 5-6: Hầu hết yêu cầu khả thi. 7-10: Khả thi."},
+    "M06": {"name": "Vai trò", "weight": 0.5, "rubric": "0-2: Không có vai trò. 3-4: Vai trò được nêu nhưng còn chung chung. 5-6: Vai trò khá phù hợp với nội dung. 7-10: Vai trò tốt."},
+    "M07": {"name": "Mở rộng", "weight": 1.0, "rubric": "0-2: Không mở rộng. 3-4: Khả năng mở rộng còn hạn chế. 5-6: Có thể mở rộng trong các tình huống phổ biến. 7-10: Mở rộng tốt."},
+    "M08": {"name": "Ứng dụng", "weight": 1.0, "rubric": "0-2: Không ứng dụng. 3-4: Ứng dụng còn chung chung. 5-6: Có nêu được một số ứng dụng thực tế. 7-10: Ứng dụng tốt."},
+    "M09": {"name": "Quy trình", "weight": 1.0, "rubric": "0-2: Không quy trình. 3-4: Quy trình còn sơ lược. 5-6: Có trình tự thực hiện cơ bản. 7-10: Quy trình tốt."}
 }
 
 CRITERIA_TABLE = {
-    "TB01": {"name": "Đủ cột và hàng", "weight": 1.5, "rubric": "0-2: Thiếu cột/hàng. 7-10: Đầy đủ."},
-    "TB02": {"name": "Header rõ ràng", "weight": 1.0, "rubric": "0-2: Không header. 7-10: Header rõ."},
-    "TB03": {"name": "Dữ liệu nhất quán", "weight": 1.5, "rubric": "0-2: Dữ liệu lộn xộn. 7-10: Nhất quán."},
-    "TB04": {"name": "Không ô trống bất thường", "weight": 1.0, "rubric": "0-2: Nhiều ô trống. 7-10: Không có."},
-    "TB05": {"name": "Ghi chú đơn vị", "weight": 1.0, "rubric": "0-2: Không ghi chú. 7-10: Ghi chú rõ."},
-    "TB06": {"name": "Khả năng đọc hiểu", "weight": 1.0, "rubric": "0-2: Khó đọc. 7-10: Dễ đọc."},
-    "TB07": {"name": "Tính ứng dụng", "weight": 1.0, "rubric": "0-2: Không thực tế. 7-10: Rất thực tế."},
-    "TB08": {"name": "Khả năng mở rộng", "weight": 1.0, "rubric": "0-2: Khó mở rộng. 7-10: Dễ mở rộng."},
-    "TB09": {"name": "Mức độ chi tiết", "weight": 1.0, "rubric": "0-2: Quá sơ sài. 7-10: Rất chi tiết."}
+    "TB01": {"name": "Đủ cột và hàng", "weight": 1.5, "rubric": "0-2: Thiếu cột/hàng. 3-4: Thiếu một vài hàng hoặc cột cần thiết. 5-6: Hầu hết hàng và cột cần thiết đã có. 7-10: Đầy đủ."},
+    "TB02": {"name": "Header rõ ràng", "weight": 1.0, "rubric": "0-2: Không header. 3-4: Tiêu đề cột còn mơ hồ. 5-6: Phần lớn tiêu đề cột rõ nghĩa. 7-10: Header rõ."},
+    "TB03": {"name": "Dữ liệu nhất quán", "weight": 1.5, "rubric": "0-2: Dữ liệu lộn xộn. 3-4: Có dữ liệu không đồng nhất. 5-6: Dữ liệu phần lớn nhất quán. 7-10: Nhất quán."},
+    "TB04": {"name": "Không ô trống bất thường", "weight": 1.0, "rubric": "0-2: Nhiều ô trống. 3-4: Một số ô trống chưa được giải thích. 5-6: Chỉ còn ít ô trống cần làm rõ. 7-10: Không có."},
+    "TB05": {"name": "Ghi chú đơn vị", "weight": 1.0, "rubric": "0-2: Không ghi chú. 3-4: Đơn vị hoặc ghi chú còn thiếu. 5-6: Phần lớn đơn vị đã được ghi chú. 7-10: Ghi chú rõ."},
+    "TB06": {"name": "Khả năng đọc hiểu", "weight": 1.0, "rubric": "0-2: Khó đọc. 3-4: Bảng còn khó đọc ở một số chỗ. 5-6: Bảng đọc được, còn vài điểm chưa tối ưu. 7-10: Dễ đọc."},
+    "TB07": {"name": "Tính ứng dụng", "weight": 1.0, "rubric": "0-2: Không thực tế. 3-4: Khả năng áp dụng còn hạn chế. 5-6: Có thể dùng cho tình huống phổ biến. 7-10: Rất thực tế."},
+    "TB08": {"name": "Khả năng mở rộng", "weight": 1.0, "rubric": "0-2: Khó mở rộng. 3-4: Khó mở rộng khi thêm dữ liệu. 5-6: Có thể thêm dữ liệu với một số điều chỉnh. 7-10: Dễ mở rộng."},
+    "TB09": {"name": "Mức độ chi tiết", "weight": 1.0, "rubric": "0-2: Quá sơ sài. 3-4: Thiếu nhiều chi tiết cần thiết. 5-6: Có phần lớn chi tiết chính. 7-10: Rất chi tiết."}
 }
 
 CRITERIA_ROLE_PLAY = {
@@ -149,7 +149,7 @@ def get_criteria_by_type(classification: dict) -> dict:
     
     mapping = {
         TYPE_PROMPT: CRITERIA_PROMPT, TYPE_TEMPLATE: CRITERIA_TEMPLATE,
-        TYPE_PROMPT_META: CRITERIA_PROMPT_META, TYPE_TABLE: CRITERIA_TABLE,
+        TYPE_PROMPT_META: CRITERIA_PROMPT_META,  # TABLE dùng bộ PROMPT chung; giữ CRITERIA_TABLE để không xóa cấu hình cũ.
         TYPE_STEM: CRITERIA_STEM, TYPE_IMAGE: CRITERIA_PROMPT, TYPE_EMPTY: {}
     }
     main_criteria = mapping.get(main_task, CRITERIA_PROMPT).copy()
@@ -165,6 +165,7 @@ def get_criteria_by_type(classification: dict) -> dict:
     return {"main": main_criteria, "tech": tech_criteria}
 
 def classify_prompt(prompt_text: str) -> dict:
+    if not isinstance(prompt_text, str): return {"main_task": TYPE_EMPTY, "techniques": []}
     text = prompt_text.strip()
     if not text: return {"main_task": TYPE_EMPTY, "techniques": []}
     
@@ -194,8 +195,9 @@ def classify_prompt(prompt_text: str) -> dict:
     if any(kw in lower_text for kw in ["http", "jpg", "png", "vẽ ảnh", "tạo ảnh", "hình ảnh"]): 
         return {"main_task": TYPE_IMAGE, "techniques": techniques}
     
-    if any(kw in lower_text for kw in ["tạo bảng", "lập bảng", "dạng bảng", "cột", "hàng"]): 
-        return {"main_task": TYPE_TABLE, "techniques": techniques}
+    if any(kw in lower_text for kw in ["tạo bảng", "lập bảng", "dạng bảng", "cột", "hàng"]):
+        # Không dùng bộ TABLE độc lập; vẫn giữ TYPE_TABLE/CRITERIA_TABLE để tương thích mã cũ.
+        return {"main_task": TYPE_PROMPT, "techniques": techniques}
     
     if any(kw in lower_text for kw in ["đánh giá prompt", "viết prompt", "sửa prompt", "chấm điểm prompt", "tạo prompt"]): 
         return {"main_task": TYPE_PROMPT_META, "techniques": techniques}
