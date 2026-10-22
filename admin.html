@@ -37,6 +37,66 @@
         .tab-btn.active { border-bottom-color: #ec4899; color: #ec4899; }
         .dark .tab-btn.active { border-bottom-color: #3b82f6; color: #3b82f6; }
     </style>
+
+<script>
+/* Điều hướng độc lập với các thư viện ngoài để menu luôn hoạt động. */
+(function () {
+    function initPromptNavigation() {
+        const button = document.getElementById('btnHamburger');
+        const menu = document.getElementById('dropdownMenu');
+        if (!button || !menu || button.dataset.navigationReady === 'true') return;
+
+        button.dataset.navigationReady = 'true';
+        button.setAttribute('aria-controls', 'dropdownMenu');
+        button.setAttribute('aria-expanded', 'false');
+        button.setAttribute('aria-label', 'Mở menu điều hướng');
+
+        let isOpen = false;
+        function closeMenu() {
+            if (!isOpen) return;
+            isOpen = false;
+            button.setAttribute('aria-expanded', 'false');
+            button.setAttribute('aria-label', 'Mở menu điều hướng');
+            menu.classList.remove('opacity-100', 'scale-100');
+            menu.classList.add('opacity-0', 'scale-95');
+            window.setTimeout(function () {
+                if (!isOpen) menu.classList.add('hidden');
+            }, 200);
+        }
+        function openMenu() {
+            isOpen = true;
+            menu.classList.remove('hidden');
+            void menu.offsetWidth;
+            menu.classList.remove('opacity-0', 'scale-95');
+            menu.classList.add('opacity-100', 'scale-100');
+            button.setAttribute('aria-expanded', 'true');
+            button.setAttribute('aria-label', 'Đóng menu điều hướng');
+        }
+
+        button.addEventListener('click', function (event) {
+            event.preventDefault();
+            event.stopPropagation();
+            if (isOpen) closeMenu(); else openMenu();
+        });
+        document.addEventListener('click', function (event) {
+            if (isOpen && !menu.contains(event.target) && !button.contains(event.target)) closeMenu();
+        });
+        menu.addEventListener('click', function (event) {
+            const target = event.target instanceof Element ? event.target : null;
+            if (target && target.closest('a[href]')) closeMenu();
+        });
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape') closeMenu();
+        });
+    }
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initPromptNavigation, { once: true });
+    } else {
+        initPromptNavigation();
+    }
+})();
+</script>
+
 </head>
 
 <body class="antialiased min-h-screen relative text-slate-800 dark:text-slate-100 flex flex-col">
@@ -54,12 +114,13 @@
                         <a href="./index.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors">Trang chủ</a>
                         <a href="./landing.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors">Đánh giá</a>
                         <a href="./library.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors">Thư viện</a>
+                        <a href="./profile.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors">Trang cá nhân</a>
                         <div class="h-px bg-slate-100 dark:bg-slate-700/50 my-1 mx-2"></div>
                         <button id="themeToggleMenu" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors text-left">
                             <span id="themeIconMenu" class="w-5 h-5 flex items-center justify-center shrink-0"></span><span id="themeTextMenu">Chế độ Tối</span>
                         </button>
-                        <div id="adminMenuDivider" class="h-px bg-slate-100 dark:bg-slate-700/50 my-1 mx-2" style="display:none;"></div>
-                        <a id="menuBtnAdmin" href="./admin.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-green-50 dark:bg-green-900/20 text-sm font-semibold text-green-600 dark:text-green-400 transition-colors" style="display:none;">Quản trị</a>
+                        <div id="adminMenuDivider" class="h-px bg-slate-100 dark:bg-slate-700/50 my-1 mx-2"></div>
+                        <a id="menuBtnAdmin" href="./admin.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-green-50 dark:bg-green-900/20 text-sm font-semibold text-green-600 dark:text-green-400 transition-colors">Quản trị</a>
                     </div>
                 </div>
             </div>
@@ -74,6 +135,11 @@
 
     <!-- NỘI DUNG ADMIN -->
     <main class="w-full max-w-5xl mx-auto px-4 sm:px-6 pt-32 md:pt-40 pb-32 flex-grow flex flex-col items-center">
+        <div id="adminAccessNotice" class="glass-card bg-white/90 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700/60 shadow-xl rounded-3xl p-6 max-w-lg w-full text-center" style="display:none;">
+            <h2 class="text-xl font-extrabold text-slate-800 dark:text-white mb-3">Không thể truy cập khu vực quản trị</h2>
+            <p id="adminAccessMessage" class="text-sm text-slate-600 dark:text-slate-300 mb-5">Máy chủ chưa xác nhận quyền truy cập.</p>
+            <a href="./index.html" class="inline-flex items-center justify-center px-5 py-2.5 rounded-xl font-semibold text-white bg-gradient-to-r from-pink-500 to-blue-500">Về trang chủ</a>
+        </div>
         
         <!-- KHUNG ĐĂNG NHẬP -->
         <div id="adminLoginBox" class="glass-card login-box-glow bg-white/90 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700/60 shadow-2xl rounded-3xl p-8 max-w-sm w-full text-center relative overflow-hidden">
@@ -157,19 +223,7 @@
         const sunSVG = `<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364-.707-.707M6.343 6.343l-.707-.707m12.728 0-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>`;
 
         // MENU
-        let isMenuOpen = false;
-        $('btnHamburger').addEventListener('click', (e) => {
-            e.stopPropagation(); isMenuOpen = !isMenuOpen;
-            if (isMenuOpen) { $('dropdownMenu').classList.remove('hidden'); setTimeout(() => { $('dropdownMenu').classList.remove('opacity-0', 'scale-95'); $('dropdownMenu').classList.add('opacity-100', 'scale-100'); }, 10); }
-            else { $('dropdownMenu').classList.remove('opacity-100', 'scale-100'); $('dropdownMenu').classList.add('opacity-0', 'scale-95'); setTimeout(() => { $('dropdownMenu').classList.add('hidden'); }, 200); }
-        });
-        document.addEventListener('click', (e) => {
-            if (isMenuOpen && !$('dropdownMenu').contains(e.target) && e.target !== $('btnHamburger')) {
-                isMenuOpen = false; $('dropdownMenu').classList.remove('opacity-100', 'scale-100'); $('dropdownMenu').classList.add('opacity-0', 'scale-95'); setTimeout(() => { $('dropdownMenu').classList.add('hidden'); }, 200);
-            }
-        });
-
-        // THEME
+        // Menu được xử lý độc lập ở đầu trang để không phụ thuộc các thư viện ngoài.
         function applyTheme(dark) {
             document.documentElement.classList.toggle('dark', dark); document.documentElement.classList.toggle('light', !dark);
             $('themeIconMenu').innerHTML = dark ? sunSVG : moonSVG; $('themeTextMenu').textContent = dark ? 'Chế độ Sáng' : 'Chế độ Tối';
@@ -182,11 +236,25 @@
 
         // CHECK IP ADMIN
         async function checkAdminAccess() {
+            const showAccessNotice = message => {
+                $('adminLoginBox').style.display = 'none';
+                $('adminDashboard').style.display = 'none';
+                $('adminAccessMessage').textContent = message;
+                $('adminAccessNotice').style.display = 'block';
+            };
             try {
                 const res = await fetch(`${API_URL}/check_admin_ip`);
-                if (res.ok) { $('adminMenuDivider').style.display = 'block'; $('menuBtnAdmin').style.display = 'flex'; }
-                else { alert("Bạn không có quyền truy cập trang này."); window.location.href = "./index.html"; }
-            } catch { window.location.href = "./index.html"; }
+                if (res.ok) {
+                    $('adminMenuDivider').style.display = 'block';
+                    $('menuBtnAdmin').style.display = 'flex';
+                    return;
+                }
+                showAccessNotice(res.status === 403
+                    ? 'Địa chỉ IP hiện tại chưa được cấp quyền quản trị. Hãy kiểm tra ADMIN_ALLOWED_IPS trên máy chủ.'
+                    : `Máy chủ chưa xác nhận được quyền truy cập (HTTP ${res.status}).`);
+            } catch {
+                showAccessNotice('Không kết nối được máy chủ để xác minh quyền quản trị. Vui lòng thử lại sau.');
+            }
         }
         checkAdminAccess();
 
