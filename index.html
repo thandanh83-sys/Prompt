@@ -175,108 +175,109 @@
                 <a href="./landing.html" class="btn-glow w-full sm:w-auto px-10 py-4 rounded-full font-bold text-white bg-gradient-to-r from-pink-500 to-blue-500 transition-all flex items-center justify-center gap-2 text-lg">
                     Bắt đầu đánh giá miễn phí
                 </a>
-                <!-- Nút này trượt xuống ID features -->
+                <!-- Thêm scroll-mt để không bị header che khuất -->
                 <a href="#features" class="w-full sm:w-auto px-8 py-4 rounded-full font-bold text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all flex items-center justify-center gap-2 text-lg">
                     Tìm hiểu thêm
                 </a>
             </div>
         </section>
 
-        <!-- MOCKUP DEMO SECTION (Giao diện y hệt ảnh 1) -->
-        <section class="w-full max-w-2xl mx-auto px-4 md:px-6 mb-16">
+        <!-- MOCKUP DEMO SECTION (Thu gọn giống ảnh 3) -->
+        <section id="demo" class="w-full max-w-md mx-auto px-4 md:px-6 mb-16 scroll-mt-28">
             <!-- Khung cửa sổ máy tính (Mockup) -->
             <div class="bg-[#0f172a] rounded-3xl border border-slate-800 shadow-2xl overflow-hidden">
                 
                 <!-- Thanh tiêu đề giả lập -->
-                <div class="bg-[#0b1120] px-5 py-3 border-b border-slate-800 flex items-center gap-2">
-                    <div class="w-3 h-3 rounded-full bg-red-500"></div>
-                    <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
-                    <div class="w-3 h-3 rounded-full bg-green-500"></div>
+                <div class="bg-[#0b1120] px-4 py-2.5 border-b border-slate-800 flex items-center gap-2">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500"></div>
                 </div>
 
                 <!-- Nội dung bên trong -->
-                <div class="p-5 md:p-8">
+                <div class="p-4 md:p-5">
                     <!-- Ô nhập liệu -->
-                    <div class="relative bg-[#1e293b] rounded-xl border border-slate-700 p-4 mb-6">
-                        <p class="text-slate-400 text-sm md:text-base">Mô tả điều bạn muốn AI thực hiện...</p>
-                        <span class="absolute bottom-3 right-4 text-xs text-slate-500 font-medium">0/5000</span>
+                    <div class="relative bg-[#1e293b] rounded-xl border border-slate-700 p-3 mb-4">
+                        <p class="text-slate-400 text-sm">Mô tả điều bạn muốn AI thực hiện...</p>
+                        <span class="absolute bottom-2 right-3 text-[10px] text-slate-500 font-medium">0/5000</span>
                     </div>
 
                     <!-- Nút Đánh giá -->
-                    <button class="w-full py-3.5 rounded-xl bg-gradient-to-r from-pink-500 to-blue-500 text-white font-bold text-base md:text-lg mb-8 shadow-md">
+                    <button class="w-full py-3 rounded-xl bg-gradient-to-r from-pink-500 to-blue-500 text-white font-bold text-sm mb-6 shadow-md">
                         Đánh giá & Viết lại
                     </button>
 
                     <!-- Khung Kết quả -->
-                    <div class="bg-[#0f172a] border border-slate-800 rounded-2xl p-5 md:p-6 mb-4">
+                    <div class="bg-[#0f172a] border border-slate-800 rounded-2xl p-4">
                         <!-- Điểm tổng -->
-                        <p class="text-[11px] md:text-xs text-slate-500 font-bold mb-1 uppercase tracking-wider">ĐIỂM TỔNG</p>
-                        <div class="flex items-baseline gap-1 md:gap-2 mb-4">
-                            <span class="text-6xl md:text-7xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-blue-500">8.5</span>
-                            <span class="text-slate-500 text-lg md:text-xl font-medium">/ 10</span>
+                        <p class="text-[10px] text-slate-500 font-bold mb-1 uppercase tracking-wider">ĐIỂM TỔNG</p>
+                        <div class="flex items-baseline gap-1 mb-3">
+                            <span class="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-blue-500">8.5</span>
+                            <span class="text-slate-500 text-sm font-medium">/ 10</span>
                         </div>
                         
                         <!-- Thanh tiến trình -->
-                        <div class="w-full bg-slate-800 h-2 rounded-full mb-6">
-                            <div class="bg-gradient-to-r from-pink-500 to-blue-500 h-2 rounded-full w-[85%]"></div>
+                        <div class="w-full bg-slate-800 h-1.5 rounded-full mb-4">
+                            <div class="bg-gradient-to-r from-pink-500 to-blue-500 h-1.5 rounded-full w-[85%]"></div>
                         </div>
                         
                         <!-- Phân loại -->
-                        <p class="text-[11px] md:text-xs text-slate-500 font-bold mb-3 uppercase tracking-wider">PHÂN LOẠI</p>
-                        <div class="flex flex-wrap gap-2">
-                            <span class="px-4 py-1.5 bg-blue-500 text-white text-xs md:text-sm font-bold rounded-full">TEMPLATE</span>
-                            <span class="px-3 py-1.5 bg-[#1e293b] text-slate-300 text-xs md:text-sm rounded-md border border-slate-700">Đóng vai</span>
-                            <span class="px-3 py-1.5 bg-[#1e293b] text-slate-300 text-xs md:text-sm rounded-md border border-slate-700">Ví dụ mẫu</span>
+                        <p class="text-[10px] text-slate-500 font-bold mb-2 uppercase tracking-wider">PHÂN LOẠI</p>
+                        <div class="flex flex-wrap gap-1.5">
+                            <span class="px-3 py-1 bg-blue-500 text-white text-[11px] font-bold rounded-full">TEMPLATE</span>
+                            <span class="px-2.5 py-1 bg-[#1e293b] text-slate-300 text-[11px] rounded-md border border-slate-700">Đóng vai</span>
+                            <span class="px-2.5 py-1 bg-[#1e293b] text-slate-300 text-[11px] rounded-md border border-slate-700">Ví dụ mẫu</span>
                         </div>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- FEATURES SECTION (4 thẻ tính năng - Nơi nút "Tìm hiểu thêm" trượt đến) -->
-        <section id="features" class="w-full max-w-2xl mx-auto px-4 md:px-6 mb-24 flex flex-col gap-6">
+        <!-- FEATURES SECTION (Nơi nút "Tìm hiểu thêm" trượt đến) -->
+        <!-- Thêm scroll-mt-28 để không bị header che khuất -->
+        <section id="features" class="w-full max-w-lg mx-auto px-4 md:px-6 mb-24 flex flex-col gap-4 scroll-mt-28">
             
             <!-- Thẻ 1 -->
-            <div class="feature-card bg-white dark:bg-[#1e293b] border border-slate-200 dark:border-slate-700/60 rounded-3xl p-6 md:p-8 flex flex-col gap-4">
-                <div class="w-14 h-14 rounded-2xl bg-pink-100 dark:bg-pink-900/30 flex items-center justify-center">
-                    <svg class="w-7 h-7 text-pink-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <div class="feature-card bg-white dark:bg-[#1e293b] border border-slate-200 dark:border-slate-700/60 rounded-3xl p-5 md:p-6 flex flex-col gap-3">
+                <div class="w-12 h-12 rounded-2xl bg-pink-100 dark:bg-pink-900/30 flex items-center justify-center">
+                    <svg class="w-6 h-6 text-pink-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                 </div>
                 <div>
-                    <h3 class="text-2xl font-bold text-slate-900 dark:text-white mb-2">Chấm điểm Đa chiều</h3>
-                    <p class="text-slate-600 dark:text-slate-400 text-base leading-relaxed">Phân tích khắt khe dựa trên 14+ tiêu chí.</p>
+                    <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-1">Chấm điểm Đa chiều</h3>
+                    <p class="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">Phân tích khắt khe dựa trên 14+ tiêu chí.</p>
                 </div>
             </div>
 
             <!-- Thẻ 2 -->
-            <div class="feature-card bg-white dark:bg-[#1e293b] border border-slate-200 dark:border-slate-700/60 rounded-3xl p-6 md:p-8 flex flex-col gap-4">
-                <div class="w-14 h-14 rounded-2xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-                    <svg class="w-7 h-7 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+            <div class="feature-card bg-white dark:bg-[#1e293b] border border-slate-200 dark:border-slate-700/60 rounded-3xl p-5 md:p-6 flex flex-col gap-3">
+                <div class="w-12 h-12 rounded-2xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                    <svg class="w-6 h-6 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
                 </div>
                 <div>
-                    <h3 class="text-2xl font-bold text-slate-900 dark:text-white mb-2">Gợi ý tư duy</h3>
-                    <p class="text-slate-600 dark:text-slate-400 text-base leading-relaxed">Đưa ra câu hỏi gợi mở để bạn tự hoàn thiện.</p>
+                    <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-1">Gợi ý tư duy</h3>
+                    <p class="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">Đưa ra câu hỏi gợi mở để bạn tự hoàn thiện.</p>
                 </div>
             </div>
 
             <!-- Thẻ 3 -->
-            <div class="feature-card bg-white dark:bg-[#1e293b] border border-slate-200 dark:border-slate-700/60 rounded-3xl p-6 md:p-8 flex flex-col gap-4">
-                <div class="w-14 h-14 rounded-2xl bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
-                    <svg class="w-7 h-7 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>
+            <div class="feature-card bg-white dark:bg-[#1e293b] border border-slate-200 dark:border-slate-700/60 rounded-3xl p-5 md:p-6 flex flex-col gap-3">
+                <div class="w-12 h-12 rounded-2xl bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
+                    <svg class="w-6 h-6 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>
                 </div>
                 <div>
-                    <h3 class="text-2xl font-bold text-slate-900 dark:text-white mb-2">Viết lại chuẩn 11 mục</h3>
-                    <p class="text-slate-600 dark:text-slate-400 text-base leading-relaxed">Tự động cấu trúc lại format chuyên nghiệp.</p>
+                    <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-1">Viết lại chuẩn 11 mục</h3>
+                    <p class="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">Tự động cấu trúc lại format chuyên nghiệp.</p>
                 </div>
             </div>
 
             <!-- Thẻ 4 -->
-            <div class="feature-card bg-white dark:bg-[#1e293b] border border-slate-200 dark:border-slate-700/60 rounded-3xl p-6 md:p-8 flex flex-col gap-4">
-                <div class="w-14 h-14 rounded-2xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-                    <svg class="w-7 h-7 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+            <div class="feature-card bg-white dark:bg-[#1e293b] border border-slate-200 dark:border-slate-700/60 rounded-3xl p-5 md:p-6 flex flex-col gap-3">
+                <div class="w-12 h-12 rounded-2xl bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+                    <svg class="w-6 h-6 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
                 </div>
                 <div>
-                    <h3 class="text-2xl font-bold text-slate-900 dark:text-white mb-2">Thống kê thông minh</h3>
-                    <p class="text-slate-600 dark:text-slate-400 text-base leading-relaxed">Theo dõi lịch sử và biểu đồ phân bố lỗi.</p>
+                    <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-1">Thống kê thông minh</h3>
+                    <p class="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">Theo dõi lịch sử và biểu đồ phân bố lỗi.</p>
                 </div>
             </div>
 
