@@ -8,7 +8,11 @@
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23ec4899'/%3E%3Cstop offset='100%25' stop-color='%233b82f6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' rx='20' fill='url(%23g)'/%3E%3Ctext x='50' y='72' font-size='60' font-family='Arial,sans-serif' font-weight='bold' fill='white' text-anchor='middle'%3EP%3C/text%3E%3C/svg%3E">
 
     <script>
-        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) { document.documentElement.classList.add('dark'); } else { document.documentElement.classList.remove('dark'); }
+        let savedTheme = null;
+        try { savedTheme = window.localStorage.getItem('theme'); } catch (error) { }
+        const useDarkTheme = savedTheme ? savedTheme === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.classList.toggle('dark', useDarkTheme);
+        document.documentElement.classList.toggle('light', !useDarkTheme);
     </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -22,11 +26,45 @@
         .app-header { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); border-color: rgba(0,0,0,.06); }
         .dark .app-header { background: rgba(15, 23, 42, 0.85); border-color: rgba(255,255,255,.1); }
         .brand-text { background: linear-gradient(100deg, #ec4899, #a052c8 52%, #3979f5); -webkit-background-clip: text; background-clip: text; color: transparent; }
-        .menu-dropdown { transition: all .2s ease-in-out; transform-origin: top left; width: min(280px, calc(100vw - 32px)); max-height: calc(100dvh - 100px); overflow-y: auto; }
+        .brand-icon-gradient { fill: url(#brandSparkGradient); }
+        .menu-dropdown { transition: all .2s ease-in-out; transform-origin: top left; width: min(280px, calc(100vw - 32px)); max-height: calc(100dvh - 100px); overflow-y: auto; box-sizing: border-box; }
         .menu-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.5); backdrop-filter: blur(4px); z-index: 40; opacity: 0; pointer-events: none; transition: all .2s ease; }
         .menu-overlay.active { opacity: 1; pointer-events: auto; }
         .glass-card { transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease; }
+        @media (max-width: 640px) { .menu-dropdown { width: min(260px, calc(100vw - 32px)); max-height: calc(100dvh - 88px); } }
     </style>
+
+    <script>
+        (function () {
+            function initPromptNavigation() {
+                const button = document.getElementById('btnHamburger');
+                const menu = document.getElementById('dropdownMenu');
+                const overlay = document.getElementById('menuOverlay');
+                if (!button || !menu || button.dataset.navigationReady === 'true') return;
+                button.dataset.navigationReady = 'true';
+                button.setAttribute('aria-controls', 'dropdownMenu'); button.setAttribute('aria-expanded', 'false');
+                let isOpen = false;
+                function closeMenu() {
+                    if (!isOpen) return;
+                    isOpen = false; button.setAttribute('aria-expanded', 'false');
+                    menu.classList.remove('opacity-100', 'scale-100'); menu.classList.add('opacity-0', 'scale-95');
+                    if (overlay) overlay.classList.remove('active');
+                    window.setTimeout(function () { if (!isOpen) menu.classList.add('hidden'); }, 200);
+                }
+                function openMenu() {
+                    isOpen = true; menu.classList.remove('hidden'); void menu.offsetWidth;
+                    menu.classList.remove('opacity-0', 'scale-95'); menu.classList.add('opacity-100', 'scale-100');
+                    if (overlay) overlay.classList.add('active');
+                    button.setAttribute('aria-expanded', 'true');
+                }
+                button.addEventListener('click', function (event) { event.preventDefault(); event.stopPropagation(); if (isOpen) closeMenu(); else openMenu(); });
+                if (overlay) overlay.addEventListener('click', closeMenu);
+                document.addEventListener('click', function (event) { if (isOpen && !menu.contains(event.target) && !button.contains(event.target)) closeMenu(); });
+                menu.addEventListener('click', function (event) { const target = event.target instanceof Element ? event.target : null; if (target && target.closest('a[href]')) closeMenu(); });
+            }
+            if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', initPromptNavigation); } else { initPromptNavigation(); }
+        })();
+    </script>
 </head>
 
 <body class="antialiased min-h-screen relative text-slate-800 dark:text-slate-100 flex flex-col">
@@ -41,20 +79,26 @@
                 </button>
                 <div id="dropdownMenu" class="menu-dropdown absolute top-12 left-0 bg-white/95 dark:bg-[#1e293b]/95 backdrop-blur-xl border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl hidden opacity-0 scale-95 z-50 p-2">
                     <div class="flex flex-col gap-1">
-                        <a href="./index.html" class="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors">Trang chủ</a>
-                        <a href="./landing.html" class="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors">Đánh giá</a>
-                        <a href="./library.html" class="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors">Thư viện</a>
-                        <div class="h-px bg-slate-200 dark:bg-slate-700/50 my-1 mx-2"></div>
-                        <button id="themeToggleMenu" class="w-full flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors text-left">
-                            <span id="themeIconMenu" class="w-5 h-5 flex items-center justify-center shrink-0"></span><span id="themeTextMenu">Chế độ Tối</span>
+                        <a href="./index.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors">Trang chủ</a>
+                        <a href="./landing.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors">Đánh giá</a>
+                        <a href="./library.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors">Thư viện</a>
+                        <a href="./profile.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors">Trang cá nhân</a>
+                        <div class="h-px bg-slate-100 dark:bg-slate-700/50 my-1 mx-2"></div>
+                        <button id="themeToggleMenu" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors text-left">
+                            <span id="themeIconMenu" class="w-7 h-7 flex items-center justify-center shrink-0"></span>
+                            <span id="themeTextMenu">Chế độ Tối</span>
                         </button>
+                        <div id="adminMenuDivider" class="h-px bg-slate-100 dark:bg-slate-700/50 my-1 mx-2" style="display:none;"></div>
+                        <a id="menuBtnAdmin" href="./admin.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-green-50 dark:hover:bg-green-900/20 text-sm font-semibold text-green-600 dark:text-green-400 transition-colors" style="display:none;">Quản trị</a>
                     </div>
                 </div>
-                <div class="flex items-center gap-1.5 min-w-0">
-                    <svg class="w-6 h-6 sm:w-7 sm:h-7 shrink-0" viewBox="0 0 24 24"><defs><linearGradient id="brandSparkGradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ec4899"/><stop offset="100%" stop-color="#3b82f6"/></linearGradient></defs><path fill="url(#brandSparkGradient)" d="M12 2L14.7 9.3 22 12l-7.3 2.7L12 22l-2.7-7.3L2 12l7.3-2.7L12 2Z"/></svg>
-                    <span class="brand-text text-base sm:text-lg font-extrabold truncate">Trợ lý AI</span>
-                </div>
             </div>
+            
+            <a href="./index.html" class="absolute left-1/2 -translate-x-1/2 flex items-center gap-1.5 min-w-0 no-underline focus:outline-none">
+                <svg class="brand-spark w-6 h-6 sm:w-7 sm:h-7 shrink-0" viewBox="0 0 24 24"><defs><linearGradient id="brandSparkGradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ec4899"/><stop offset="100%" stop-color="#3b82f6"/></linearGradient></defs><path class="brand-icon-gradient" d="M12 2L14.7 9.3 22 12l-7.3 2.7L12 22l-2.7-7.3L2 12l7.3-2.7L12 2Z"/></svg>
+                <span class="brand-text text-base sm:text-lg font-extrabold truncate">Trợ lý AI</span>
+            </a>
+            
             <div id="authContainer" class="flex items-center relative z-50">
                 <div id="userAvatarMenu" class="relative hidden">
                     <button id="btnAvatar" class="w-9 h-9 md:w-10 md:h-10 rounded-full overflow-hidden border-2 border-pink-500 shadow-sm hover:scale-105 transition-transform flex items-center justify-center bg-gray-200 dark:bg-gray-700 text-white font-bold text-lg"></button>
@@ -67,6 +111,7 @@
         </div>
     </header>
 
+    <!-- NỘI DUNG TRANG CÁ NHÂN -->
     <main class="w-full max-w-2xl mx-auto px-4 sm:px-6 pt-32 pb-32 flex-grow flex flex-col mt-4">
         <div id="userInfoBox" class="bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-md border border-slate-200 dark:border-slate-700 flex items-center gap-5 mb-8">
             <div id="avatarContainer" class="w-20 h-20 rounded-full bg-gradient-to-br from-pink-500 to-blue-500 flex items-center justify-center text-3xl text-white font-bold shrink-0 shadow-lg"></div>
@@ -95,53 +140,39 @@
     <script>
         const SUPABASE_URL = "https://egncrbearrwfoslryuga.supabase.co";
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVnbmNyYmVhcnJ3Zm9zbHJ5dWdhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI1MDk2MzgsImV4cCI6MjEwODA4NTYzOH0.jX8rz7Fk5wqdbDqb6ZwKUiMs-wggVRj-dLk2dqlYFM";
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        const escapeHtml = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+        const supabase = window.supabase?.createClient ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
         const $ = id => document.getElementById(id);
+        const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
 
-        const moonSVG = `<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-blue-900" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>`;
-        const sunSVG = `<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364-.707-.707M6.343 6.343l-.707-.707m12.728 0-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>`;
-
-        let isMenuOpen = false;
-        function toggleMenu() {
-            isMenuOpen = !isMenuOpen;
-            const menu = $('dropdownMenu'); const overlay = $('menuOverlay');
-            if (isMenuOpen) {
-                menu.classList.remove('hidden'); overlay.classList.add('active');
-                setTimeout(() => { menu.classList.remove('opacity-0', 'scale-95'); menu.classList.add('opacity-100', 'scale-100'); }, 10);
-            } else {
-                menu.classList.remove('opacity-100', 'scale-100'); menu.classList.add('opacity-0', 'scale-95');
-                overlay.classList.remove('active'); setTimeout(() => { menu.classList.add('hidden'); }, 200);
-            }
-        }
-        $('btnHamburger').addEventListener('click', (e) => { e.stopPropagation(); toggleMenu(); });
-        $('menuOverlay').addEventListener('click', () => { if (isMenuOpen) toggleMenu(); });
+        const moonSVG = `<div class="w-7 h-7 rounded-lg bg-white shadow-sm border border-slate-200 flex items-center justify-center overflow-hidden"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-5 h-5"><defs><linearGradient id="moonGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#1e3a8a" /><stop offset="100%" stop-color="#3b82f6" /></linearGradient></defs><path fill="url(#moonGrad)" d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path><circle cx="9" cy="9" r="0.5" fill="#93c5fd"/><circle cx="15" cy="15" r="0.5" fill="#93c5fd"/></svg></div>`;
+        const sunSVG = `<div class="w-7 h-7 rounded-lg bg-slate-800 shadow-sm border border-slate-600 flex items-center justify-center overflow-hidden"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-5 h-5"><defs><linearGradient id="sunGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#fef08a" /><stop offset="100%" stop-color="#f59e0b" /></linearGradient></defs><circle cx="12" cy="12" r="5" fill="url(#sunGrad)"></circle><path stroke="url(#sunGrad)" stroke-width="2" stroke-linecap="round" d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg></div>`;
 
         function applyTheme(dark) {
             document.documentElement.classList.toggle('dark', dark); document.documentElement.classList.toggle('light', !dark);
-            $('themeIconMenu').innerHTML = dark ? sunSVG : moonSVG; $('themeTextMenu').textContent = dark ? 'Chế độ Sáng' : 'Chế độ Tối';
-            localStorage.setItem('theme', dark ? 'dark' : 'light');
+            $('themeIconMenu').innerHTML = dark ? sunSVG : moonSVG; 
+            $('themeTextMenu').textContent = dark ? 'Chế độ Sáng' : 'Chế độ Tối';
+            try { window.localStorage.setItem('theme', dark ? 'dark' : 'light'); } catch (error) { }
         }
         applyTheme(document.documentElement.classList.contains('dark'));
-        $('themeToggleMenu').addEventListener('click', () => applyTheme(!document.documentElement.classList.contains('dark')));
+        $('themeToggleMenu').addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); applyTheme(!document.documentElement.classList.contains('dark')); });
 
         async function checkUser() {
+            if (!supabase) return;
             const { data: { session }, error } = await supabase.auth.getSession();
-            if (error || !session) { window.location.href = "./landing.html"; return; }
+            if (error || !session) { window.location.replace("./landing.html"); return; }
             const user = session.user;
             const displayName = user.email ? user.email.split('@')[0] : "Người dùng";
             $('userName').textContent = displayName;
-            $('userEmail').textContent = user.email;
-            
-            const avatarBox = $('avatarContainer'); const avatarBtn = $('btnAvatar');
+            $('userEmail').textContent = user.email || '';
             const firstChar = displayName.charAt(0).toUpperCase();
-            avatarBox.textContent = firstChar;
-            avatarBtn.textContent = firstChar;
+            $('avatarContainer').textContent = firstChar;
+            $('btnAvatar').textContent = firstChar;
             $('userAvatarMenu').classList.remove('hidden');
+            loadHistory();
         }
         checkUser();
 
-        function logout() { supabase.auth.signOut().then(() => { window.location.href = "./landing.html"; }); }
+        function logout() { if(supabase) supabase.auth.signOut().then(() => { window.location.href = "./landing.html"; }); }
         $('btnLogoutMain').addEventListener('click', logout);
         $('btnLogoutHeader').addEventListener('click', logout);
 
@@ -149,17 +180,24 @@
         document.addEventListener('click', () => { if (!$('avatarDropdown').classList.contains('hidden')) { $('avatarDropdown').classList.add('opacity-0', 'scale-95'); setTimeout(() => $('avatarDropdown').classList.add('hidden'), 200); } });
 
         function loadHistory() {
-            const history = JSON.parse(localStorage.getItem('myPromptHistory') || '[]');
             const list = $('historyList');
+            let history = [];
+            try {
+                const stored = JSON.parse(localStorage.getItem('myPromptHistory') || '[]');
+                if (Array.isArray(stored)) history = stored;
+            } catch (error) {
+                list.textContent = 'Không thể đọc lịch sử trên thiết bị này.'; return;
+            }
             if (history.length === 0) return; 
+
             list.innerHTML = ''; 
-            [...history].reverse().forEach(item => {
+            history.reverse().forEach(item => {
                 const div = document.createElement('div');
                 div.className = 'p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-200 dark:border-slate-700';
                 div.innerHTML = `
                     <div class="flex justify-between items-start mb-2">
-                        <span class="text-xs font-bold text-slate-500">${new Date(item.date).toLocaleString('vi-VN')}</span>
-                        <span class="text-sm font-bold text-pink-500">${item.score} điểm</span>
+                        <span class="text-xs font-bold text-slate-500">${escapeHtml(new Date(item.date).toLocaleString('vi-VN'))}</span>
+                        <span class="text-sm font-bold text-pink-500">${escapeHtml(item.score)} điểm</span>
                     </div>
                     <p class="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 truncate">${escapeHtml(item.prompt)}</p>
                 `;
@@ -174,8 +212,11 @@
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a'); a.href = url; a.download = `lich-su-prompt.json`; a.click(); URL.revokeObjectURL(url);
         });
+
         $('btnClearHistory').addEventListener('click', () => {
-            if (confirm("Xóa toàn bộ lịch sử trên máy này?")) { localStorage.removeItem('myPromptHistory'); location.reload(); }
+            if (confirm("Bạn có chắc chắn muốn xóa toàn bộ lịch sử trên máy này không?")) {
+                localStorage.removeItem('myPromptHistory'); location.reload();
+            }
         });
     </script>
 </body>
