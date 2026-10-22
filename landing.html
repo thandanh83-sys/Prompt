@@ -379,8 +379,8 @@
             localStorage.setItem('hasSeenGuideLanding', 'true'); 
         }
         
-        // Chỉ hiện lần đầu tiên
-        if (!localStorage.getItem('hasSeenGuideLanding')) { setTimeout(showGuide, 1000); }
+        // Luôn hiện lên mỗi khi load trang (dùng để test)
+        setTimeout(showGuide, 1000);
         $('btnCloseGuide').addEventListener('click', hideGuide);
         $('btnStartApp').addEventListener('click', hideGuide);
         guideModal.addEventListener('click', (e) => { if (e.target === guideModal) hideGuide(); });
