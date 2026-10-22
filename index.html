@@ -20,8 +20,13 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script> tailwind.config = { darkMode: 'class' } </script>
     <style>
-        body { -webkit-tap-highlight-color: transparent; overflow-x: hidden; animation: fadeIn 0.4s ease-in-out; }
+        body { -webkit-tap-highlight-color: transparent; overflow-x: hidden; animation: fadeIn 0.4s ease-in-out; transition: background-color 0.15s ease, color 0.15s ease; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        
+        @media (prefers-reduced-motion: reduce) {
+            body, .glass-card, .btn-glow { transition: none !important; animation: none !important; }
+        }
+
         .glass-card { transition: all 0.3s ease; }
         .pre-wrap { white-space: pre-wrap; }
         
@@ -56,7 +61,7 @@
 
     <!-- HEADER CỐ ĐỊNH -->
     <header class="fixed top-0 left-0 w-full z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-700/50">
-        <div class="max-w-xl mx-auto px-3 md:px-4 h-16 flex items-center justify-between">
+        <div class="max-w-xl mx-auto px-4 md:px-4 h-16 flex items-center justify-between">
             
             <div class="relative flex items-center">
                 <button id="btnHamburger" class="w-10 h-10 shrink-0 flex items-center justify-center rounded-full text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
@@ -90,26 +95,33 @@
                 </div>
             </div>
 
-            <!-- GIỮA: LOGO (ICON 3 SAO) -->
+            <!-- GIỮA: LOGO -->
             <div class="flex items-center gap-1.5 pointer-events-none whitespace-nowrap">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 text-brand-pink">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5 text-brand-pink">
                     <path fill-rule="evenodd" d="M9 4.5a.75.75 0 01.721.544l.813 2.846a3.75 3.75 0 002.576 2.576l2.846.813a.75.75 0 010 1.442l-2.846.813a3.75 3.75 0 00-2.576 2.576l-.813 2.846a.75.75 0 01-1.442 0l-.813-2.846a3.75 3.75 0 00-2.576-2.576l-2.846-.813a.75.75 0 010-1.442l2.846-.813A3.75 3.75 0 009 7.89l.813-2.846A.75.75 0 019 4.5zM18 1.5a.75.75 0 01.728.568l.258 1.036c.236.94.97 1.674 1.91 1.91l1.036.258a.75.75 0 010 1.456l-1.036.258c-.94.236-1.674.97-1.91 1.91l-.258 1.036a.75.75 0 01-1.456 0l-.258-1.036a2.625 2.625 0 00-1.91-1.91l-1.036-.258a.75.75 0 010-1.456l1.036-.258a2.625 2.625 0 001.91-1.91l.258-1.036A.75.75 0 0118 1.5zM16.5 15a.75.75 0 01.712.513l.394 1.183c.15.447.5.799.948.948l1.183.395a.75.75 0 010 1.422l-1.183.395c-.447.15-.799.5-.948.948l-.395 1.183a.75.75 0 01-1.422 0l-.395-1.183a1.5 1.5 0 00-.948-.948l-1.183-.395a.75.75 0 010-1.422l1.183-.395c.447-.15.799-.5.948-.948l.395-1.183A.75.75 0 0116.5 15z" clip-rule="evenodd" />
                 </svg>
                 <div class="text-base md:text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-blue-500">Trợ lý AI</div>
             </div>
 
-            <!-- PHẢI: NÚT THEME (ICON 3D) -->
-            <button id="themeToggle" class="w-10 h-10 md:w-11 md:h-11 shrink-0 flex items-center justify-center rounded-full transition-all duration-300">
+            <!-- PHẢI: NÚT THEME -->
+            <button
+                id="themeToggle"
+                type="button"
+                aria-label="Chuyển sang giao diện tối"
+                title="Chuyển giao diện sáng/tối"
+                class="w-10 h-10 md:w-11 md:h-11 shrink-0 flex items-center justify-center rounded-full transition-colors duration-150 bg-white border border-slate-200 shadow-sm hover:bg-slate-50 dark:bg-slate-800/80 dark:border-slate-600/50 dark:hover:bg-slate-700/80"
+            >
                 <!-- SVG sẽ được JS bơm vào -->
             </button>
         </div>
     </header>
 
     <!-- NỘI DUNG CHÍNH -->
-    <div class="max-w-xl w-full mx-auto px-5 pt-24 pb-32 flex-grow flex flex-col" id="mainContainer">
-        <div class="text-center mb-8 px-6">
-            <h1 class="text-2xl md:text-3xl font-extrabold mb-3 leading-tight flex items-center justify-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-7 h-7 text-brand-pink shrink-0">
+    <div class="max-w-xl w-full mx-auto px-4 pt-24 pb-32 flex-grow flex flex-col" id="mainContainer">
+        <div class="text-center mb-8 px-2 sm:px-6">
+            <!-- GIẢM SIZE CHỮ VÀ ICON TRÊN MOBILE ĐỂ KHÔNG BỊ RỚT DÒNG -->
+            <h1 class="text-xl sm:text-2xl md:text-3xl font-extrabold mb-3 leading-tight flex items-center justify-center gap-1.5 sm:gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 sm:w-7 sm:h-7 text-brand-pink shrink-0">
                     <path fill-rule="evenodd" d="M9 4.5a.75.75 0 01.721.544l.813 2.846a3.75 3.75 0 002.576 2.576l2.846.813a.75.75 0 010 1.442l-2.846.813a3.75 3.75 0 00-2.576 2.576l-.813 2.846a.75.75 0 01-1.442 0l-.813-2.846a3.75 3.75 0 00-2.576-2.576l-2.846-.813a.75.75 0 010-1.442l2.846-.813A3.75 3.75 0 009 7.89l.813-2.846A.75.75 0 019 4.5zM18 1.5a.75.75 0 01.728.568l.258 1.036c.236.94.97 1.674 1.91 1.91l1.036.258a.75.75 0 010 1.456l-1.036.258c-.94.236-1.674.97-1.91 1.91l-.258 1.036a.75.75 0 01-1.456 0l-.258-1.036a2.625 2.625 0 00-1.91-1.91l-1.036-.258a.75.75 0 010-1.456l1.036-.258a2.625 2.625 0 001.91-1.91l.258-1.036A.75.75 0 0118 1.5zM16.5 15a.75.75 0 01.712.513l.394 1.183c.15.447.5.799.948.948l1.183.395a.75.75 0 010 1.422l-1.183.395c-.447.15-.799.5-.948.948l-.395 1.183a.75.75 0 01-1.422 0l-.395-1.183a1.5 1.5 0 00-.948-.948l-1.183-.395a.75.75 0 010-1.422l1.183-.395c.447-.15.799-.5.948-.948l.395-1.183A.75.75 0 0116.5 15z" clip-rule="evenodd" />
                 </svg>
                 <span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-blue-500">Trợ lý tối ưu hoá Prompt</span>
@@ -288,28 +300,14 @@
         setTimeout(() => { toast.classList.remove('toast-show'); setTimeout(() => toast.remove(), 300); }, 3000);
     }
 
-    // SVG MOON (LIGHT MODE)
     const moonSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-6 h-6">
-        <defs>
-            <linearGradient id="moonGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stop-color="#1e40af" />
-                <stop offset="100%" stop-color="#0f172a" />
-            </linearGradient>
-        </defs>
+        <defs><linearGradient id="moonGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#1e40af" /><stop offset="100%" stop-color="#0f172a" /></linearGradient></defs>
         <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" fill="url(#moonGrad)"/>
-        <circle cx="14" cy="8" r="1.5" fill="#60a5fa" opacity="0.6"/>
-        <circle cx="10" cy="14" r="1" fill="#60a5fa" opacity="0.6"/>
+        <circle cx="14" cy="8" r="1.5" fill="#60a5fa" opacity="0.6"/><circle cx="10" cy="14" r="1" fill="#60a5fa" opacity="0.6"/>
     </svg>`;
 
-    // SVG SUN (DARK MODE)
     const sunSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-6 h-6">
-        <defs>
-            <radialGradient id="sunGrad" cx="50%" cy="50%" r="50%">
-                <stop offset="0%" stop-color="#fef08a" />
-                <stop offset="70%" stop-color="#f59e0b" />
-                <stop offset="100%" stop-color="#d97706" />
-            </radialGradient>
-        </defs>
+        <defs><radialGradient id="sunGrad" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#fef08a" /><stop offset="70%" stop-color="#f59e0b" /><stop offset="100%" stop-color="#d97706" /></radialGradient></defs>
         <path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round"/>
         <circle cx="12" cy="12" r="5.5" fill="url(#sunGrad)" />
         <ellipse cx="10" cy="10" rx="2" ry="1.5" fill="white" opacity="0.3" transform="rotate(-45 10 10)" />
@@ -338,9 +336,6 @@
         }
     });
 
-    // ==========================================
-    // CẬP NHẬT LOGIC MENU: BẤM LẠI SẼ RELOAD TAB ĐÓ
-    // ==========================================
     $('menuBtnEvaluate').addEventListener('click', () => { 
         switchToEvaluate(); 
         $('promptInput').value = '';
@@ -460,24 +455,22 @@
     });
 
     function applyTheme(dark) {
-        document.documentElement.classList.toggle('dark', dark); 
-        document.documentElement.classList.toggle('light', !dark);
+        const root = document.documentElement;
+        root.classList.toggle('dark', dark);
+        root.classList.toggle('light', !dark);
         
-        // Cập nhật Icon
         $('themeToggle').innerHTML = dark ? sunSVG : moonSVG;
+        $('themeToggle').setAttribute('aria-label', dark ? 'Chuyển sang giao diện sáng' : 'Chuyển sang giao diện tối');
         
-        // Cập nhật CSS cho Nút bấm
-        if (dark) {
-            $('themeToggle').className = "w-10 h-10 md:w-11 md:h-11 shrink-0 flex items-center justify-center rounded-full transition-all duration-300 bg-slate-800/80 border border-slate-600/50 shadow-sm hover:scale-105 hover:bg-slate-700/80";
-        } else {
-            $('themeToggle').className = "w-10 h-10 md:w-11 md:h-11 shrink-0 flex items-center justify-center rounded-full transition-all duration-300 bg-white border border-slate-200 shadow-sm hover:scale-105 hover:bg-slate-50";
-        }
-
         try { localStorage.setItem('theme', dark ? 'dark' : 'light'); } catch (e) {}
         if ($('adminDashboard').style.display === 'block' && chart1 && chart2) { updateChartsTheme(dark); }
     }
+    
     applyTheme(document.documentElement.classList.contains('dark'));
-    $('themeToggle').addEventListener('click', () => applyTheme(!document.documentElement.classList.contains('dark')));
+    $('themeToggle').addEventListener('click', () => {
+        const isDark = document.documentElement.classList.contains('dark');
+        applyTheme(!isDark);
+    });
 
     async function evaluatePrompt(prompt) {
         const controller = new AbortController(); const timeoutId = setTimeout(() => controller.abort(), 180000); 
