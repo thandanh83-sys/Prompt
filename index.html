@@ -26,7 +26,6 @@
         .glass-card { transition: all 0.3s ease; }
         .pre-wrap { white-space: pre-wrap; }
         
-        /* CSS thanh cuộn cho Thư viện */
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         .dark .custom-scrollbar::-webkit-scrollbar-thumb { background: #475569; }
@@ -43,7 +42,6 @@
         .dark .stat-card { background: linear-gradient(135deg, rgba(30,41,59,0.8) 0%, rgba(15,23,42,0.8) 100%); border: 1px solid rgba(51,65,85,0.5); }
         .menu-dropdown { transition: all 0.2s ease-in-out; transform-origin: top left; }
         
-        /* CSS CHO TOAST THÔNG BÁO */
         .toast-msg {
             background-color: #1e293b; color: white; padding: 10px 20px; border-radius: 8px;
             font-size: 14px; font-weight: 500; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
@@ -91,8 +89,15 @@
                 </div>
             </div>
 
-            <!-- GIỮA: LOGO -->
-            <div class="text-base md:text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-blue-500 pointer-events-none whitespace-nowrap">Trợ lý AI</div>
+            <!-- GIỮA: LOGO (ĐÃ THÊM LẠI ICON 3 NGÔI SAO) -->
+            <div class="flex items-center gap-1.5 pointer-events-none whitespace-nowrap">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5 text-brand-pink">
+                    <path d="M12 2c0 0 1.5 6.5 3.5 8.5s8.5 3.5 8.5 3.5s-6.5 1.5-8.5 3.5s-3.5 8.5-3.5 8.5s-1.5-6.5-3.5-8.5s-8.5-3.5-8.5-3.5s6.5-1.5 8.5-3.5S12 2 12 2z" />
+                    <path d="M5 3c0 0 0.8 2.5 1.8 3.5s3.2 1.5 3.2 1.5s-2.2 0.8-3.2 1.8s-1.8 3.2-1.8 3.2s-0.8-2.2-1.8-3.2s-3.2-1.8-3.2-1.8s2.2-0.8 3.2-1.8S5 3 5 3z" />
+                    <path d="M5 15c0 0 0.8 2.5 1.8 3.5s3.2 1.5 3.2 1.5s-2.2 0.8-3.2 1.8s-1.8 3.2-1.8 3.2s-0.8-2.2-1.8-3.2s-3.2-1.8-3.2-1.8s2.2-0.8 3.2-1.8S5 15 5 15z" />
+                </svg>
+                <div class="text-base md:text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-blue-500">Trợ lý AI</div>
+            </div>
 
             <!-- PHẢI: THEME -->
             <button id="themeToggle" class="w-10 h-10 shrink-0 flex items-center justify-center rounded-full text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
@@ -104,7 +109,15 @@
     <!-- NỘI DUNG CHÍNH -->
     <div class="max-w-xl w-full mx-auto px-5 pt-24 pb-32 flex-grow flex flex-col" id="mainContainer">
         <div class="text-center mb-8 px-6">
-            <h1 class="text-2xl md:text-3xl font-extrabold mb-3 leading-tight"><span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-blue-500">✨ Trợ lý tối ưu hoá Prompt</span></h1>
+            <!-- TIÊU ĐỀ CŨNG CÓ ICON 3 SAO -->
+            <h1 class="text-2xl md:text-3xl font-extrabold mb-3 leading-tight flex items-center justify-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-7 h-7 text-brand-pink shrink-0">
+                    <path d="M12 2c0 0 1.5 6.5 3.5 8.5s8.5 3.5 8.5 3.5s-6.5 1.5-8.5 3.5s-3.5 8.5-3.5 8.5s-1.5-6.5-3.5-8.5s-8.5-3.5-8.5-3.5s6.5-1.5 8.5-3.5S12 2 12 2z" />
+                    <path d="M5 3c0 0 0.8 2.5 1.8 3.5s3.2 1.5 3.2 1.5s-2.2 0.8-3.2 1.8s-1.8 3.2-1.8 3.2s-0.8-2.2-1.8-3.2s-3.2-1.8-3.2-1.8s2.2-0.8 3.2-1.8S5 3 5 3z" />
+                    <path d="M5 15c0 0 0.8 2.5 1.8 3.5s3.2 1.5 3.2 1.5s-2.2 0.8-3.2 1.8s-1.8 3.2-1.8 3.2s-0.8-2.2-1.8-3.2s-3.2-1.8-3.2-1.8s2.2-0.8 3.2-1.8S5 15 5 15z" />
+                </svg>
+                <span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-blue-500">Trợ lý tối ưu hoá Prompt</span>
+            </h1>
             <p class="text-slate-500 dark:text-slate-400 text-sm font-medium leading-relaxed max-w-sm mx-auto">Thích nghi mọi lĩnh vực.<br>AI tự động nhận diện và tạo Prompt chuẩn chuyên gia.</p>
         </div>
 
@@ -243,9 +256,6 @@
     let chart2 = null;
     let isLibraryLoaded = false;
 
-    // ==========================================
-    // HÀM COPY ĐA NỀN TẢNG (SỬA LỖI TRÊN MOBILE)
-    // ==========================================
     function copyTextToClipboard(text) {
         if (navigator.clipboard && window.isSecureContext) {
             return navigator.clipboard.writeText(text);
@@ -271,7 +281,6 @@
         }
     }
 
-    // Hàm hiển thị Toast
     function showToast(message, type = 'success') {
         const container = document.getElementById('toastContainer');
         const toast = document.createElement('div');
@@ -283,11 +292,9 @@
         setTimeout(() => { toast.classList.remove('toast-show'); setTimeout(() => toast.remove(), 300); }, 3000);
     }
 
-    // SVG Icons
     const sunSVG = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>`;
     const moonSVG = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>`;
 
-    // LOGIC MENU
     const btnHamburger = $('btnHamburger');
     const dropdownMenu = $('dropdownMenu');
     let isMenuOpen = false;
@@ -319,19 +326,16 @@
     function switchToLibrary() { $('userModeSection').style.display = 'none'; $('libraryModeSection').style.display = 'block'; $('adminModeSection').style.display = 'none'; if (!isLibraryLoaded) { fetchLibrary(); } }
     function switchToAdmin() { $('userModeSection').style.display = 'none'; $('libraryModeSection').style.display = 'none'; $('adminModeSection').style.display = 'block'; if (adminToken) { $('adminLoginBox').style.display = 'none'; $('adminDashboard').style.display = 'block'; fetchHistory(); } else { $('adminLoginBox').style.display = 'block'; $('adminDashboard').style.display = 'none'; } }
 
-    // URL Params
     const urlParams = new URLSearchParams(window.location.search);
     const tabParam = urlParams.get('tab');
     if (tabParam === 'library') { switchToLibrary(); }
     else if (tabParam === 'admin') { switchToAdmin(); }
     else { switchToEvaluate(); }
 
-    // Close Modal
     function closeModal() { const modal = $('instructionModal'); if (modal) { modal.style.opacity = '0'; modal.style.pointerEvents = 'none'; setTimeout(() => { modal.style.display = 'none'; }, 300); } }
     $('btnCloseModalX').addEventListener('click', closeModal);
     $('btnCloseModalStart').addEventListener('click', closeModal);
 
-    // Check Admin IP
     async function checkAdminAccess() {
         try {
             const res = await fetch(`${API_URL}/check_admin_ip`);
@@ -371,7 +375,6 @@
                             <span class="text-lg font-extrabold text-green-500">${item.total_score} <span class="text-xs text-slate-400 font-semibold">điểm</span></span>
                         </div>
                         
-                        <!-- Khung chứa nội dung Prompt được định dạng lại -->
                         <div class="relative">
                             <div class="max-h-40 overflow-y-auto custom-scrollbar bg-slate-50 dark:bg-slate-900/50 p-3 rounded-xl border border-slate-100 dark:border-slate-700/50">
                                 <p class="text-[13px] text-slate-700 dark:text-slate-300 whitespace-pre-wrap leading-relaxed">${item.prompt}</p>
