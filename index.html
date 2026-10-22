@@ -26,8 +26,9 @@
             body, .glass-card, .btn-glow { transition: none !important; animation: none !important; }
         }
 
-        .glass-card { transition: all 0.3s ease; }
+        .glass-card { transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease; }
         .pre-wrap { white-space: pre-wrap; }
+        #promptInput { white-space: pre-wrap; overflow-wrap: anywhere; }
         
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
@@ -38,7 +39,32 @@
         ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
         ::-webkit-scrollbar-track { background: transparent; }
         
-        .dark-glow { background: radial-gradient(circle at 50% 0%, rgba(236,72,153,0.10) 0%, transparent 60%); }
+        .dark-glow {
+            background:
+                radial-gradient(ellipse at 18% 10%, rgba(229,112,196,0.16) 0%, transparent 38%),
+                radial-gradient(ellipse at 82% 35%, rgba(90,129,255,0.12) 0%, transparent 42%),
+                #f8f7fc;
+        }
+        .dark.dark-glow {
+            background:
+                radial-gradient(ellipse at 18% 10%, rgba(164,55,130,0.13) 0%, transparent 38%),
+                radial-gradient(ellipse at 82% 35%, rgba(53,84,180,0.14) 0%, transparent 42%),
+                #0f172a;
+        }
+        .brand-spark { flex-shrink: 0; }
+        .brand-text {
+            background: linear-gradient(100deg, #e743a3, #a052c8 52%, #3979f5);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        .brand-icon-gradient { fill: url(#brandSparkGradient); }
+        .app-header { background: rgba(255,255,255,.96); }
+        .dark .app-header { background: rgba(15,23,42,.96); }
+        @media (min-width: 768px) {
+            #mainContainer { max-width: 64rem; }
+            #promptInput { min-height: 11rem; }
+        }
 
         /* Header nền đặc để giảm repaint, đồng bộ landing.html */
         .app-header { background: #ffffff; border-color: rgba(0, 0, 0, 0.06); }
@@ -54,6 +80,7 @@
         .stat-card { background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.01) 100%); border: 1px solid rgba(255,255,255,0.1); }
         .dark .stat-card { background: linear-gradient(135deg, rgba(30,41,59,0.8) 0%, rgba(15,23,42,0.8) 100%); border: 1px solid rgba(51,65,85,0.5); }
         .menu-dropdown { transition: all 0.2s ease-in-out; transform-origin: top left; }
+        button:focus-visible, a:focus-visible, textarea:focus-visible { outline: 2px solid #ec4899; outline-offset: 3px; }
         
         .toast-msg {
             background-color: #1e293b; color: white; padding: 10px 20px; border-radius: 8px;
@@ -106,12 +133,17 @@
 
             <!-- GIỮA: LOGO (CHỮ GRADIENT GIỐNG LANDING) -->
             <div class="flex items-center gap-1.5 pointer-events-none whitespace-nowrap">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="url(#brandSparkGradient)" class="brand-spark w-6 h-6">
-                    <defs><linearGradient id="brandSparkGradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ec4899"/><stop offset="100%" stop-color="#3b82f6"/></linearGradient></defs>
-                    <path fill-rule="evenodd" d="M9 4.5a.75.75 0 01.721.544l.813 2.846a3.75 3.75 0 002.576 2.576l2.846.813a.75.75 0 010 1.442l-2.846.813a3.75 3.75 0 00-2.576 2.576l-.813 2.846a.75.75 0 01-1.442 0l-.813-2.846a3.75 3.75 0 00-2.576-2.576l-2.846-.813a.75.75 0 010-1.442l2.846-.813A3.75 3.75 0 009 7.89l.813-2.846A.75.75 0 019 4.5zM18 1.5a.75.75 0 01.728.568l.258 1.036c.236.94.97 1.674 1.91 1.91l1.036.258a.75.75 0 010 1.456l-1.036.258c-.94.236-1.674.97-1.91 1.91l-.258 1.036a.75.75 0 01-1.456 0l-.258-1.036a2.625 2.625 0 00-1.91-1.91l-1.036-.258a.75.75 0 010-1.456l1.036-.258a2.625 2.625 0 001.91-1.91l.258-1.036A.75.75 0 0118 1.5zM16.5 15a.75.75 0 01.712.513l.394 1.183c.15.447.5.799.948.948l1.183.395a.75.75 0 010 1.422l-1.183.395c-.447.15-.799.5-.948.948l-.395 1.183a.75.75 0 01-1.422 0l-.395-1.183a1.5 1.5 0 00-.948-.948l-1.183-.395a.75.75 0 010-1.422l1.183-.395c.447-.15.799-.5.948-.948l.395-1.183A.75.75 0 0116.5 15z" clip-rule="evenodd" />
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="brand-spark w-6 h-6 md:w-7 md:h-7" aria-hidden="true">
+                    <defs>
+                        <linearGradient id="brandSparkGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#ec4899"/>
+                            <stop offset="100%" stop-color="#3b82f6"/>
+                        </linearGradient>
+                    </defs>
+                    <path fill="url(#brandSparkGradient)" fill-rule="evenodd" d="M9 4.5a.75.75 0 01.721.544l.813 2.846a3.75 3.75 0 002.576 2.576l2.846.813a.75.75 0 010 1.442l-2.846.813a3.75 3.75 0 00-2.576 2.576l-.813 2.846a.75.75 0 01-1.442 0l-.813-2.846a3.75 3.75 0 00-2.576-2.576l-2.846-.813a.75.75 0 010-1.442l2.846-.813A3.75 3.75 0 009 7.89l.813-2.846A.75.75 0 019 4.5zM18 1.5a.75.75 0 01.728.568l.258 1.036c.236.94.97 1.674 1.91 1.91l1.036.258a.75.75 0 010 1.456l-1.036.258c-.94.236-1.674.97-1.91 1.91l-.258 1.036a.75.75 0 01-1.456 0l-.258-1.036a2.625 2.625 0 00-1.91-1.91l-1.036-.258a.75.75 0 010-1.456l1.036-.258a2.625 2.625 0 001.91-1.91l.258-1.036A.75.75 0 0118 1.5zM16.5 15a.75.75 0 01.712.513l.394 1.183c.15.447.5.799.948.948l1.183.395a.75.75 0 010 1.422l-1.183.395c-.447.15-.799.5-.948.948l-.395 1.183a.75.75 0 01-1.422 0l-.395-1.183a1.5 1.5 0 00-.948-.948l-1.183-.395a.75.75 0 010-1.422l1.183-.395c.447-.15.799-.5.948-.948l.395-1.183A.75.75 0 0116.5 15z" clip-rule="evenodd" />
                 </svg>
                 <!-- Đã chuyển lại thành màu Gradient Hồng - Xanh -->
-                <div class="brand-text text-base md:text-xl font-extrabold tracking-wide">Trợ lý AI</div>
+                <div class="brand-text text-base sm:text-lg md:text-xl font-extrabold tracking-wide">Trợ lý AI</div>
             </div>
 
             <!-- PHẢI: NÚT THEME -->
@@ -128,11 +160,12 @@
     </header>
 
     <!-- NỘI DUNG CHÍNH -->
-    <div class="w-full max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 md:pt-28 pb-32 flex-grow flex flex-col" id="mainContainer">
-        <div class="text-center mb-8 px-2 sm:px-6">
-            <h1 class="text-xl sm:text-2xl md:text-3xl font-extrabold mb-3 leading-tight flex items-center justify-center gap-1.5 sm:gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6 sm:w-7 sm:h-7 text-pink-500 shrink-0">
-                    <path fill-rule="evenodd" d="M9 4.5a.75.75 0 01.721.544l.813 2.846a3.75 3.75 0 002.576 2.576l2.846.813a.75.75 0 010 1.442l-2.846.813a3.75 3.75 0 00-2.576 2.576l-.813 2.846a.75.75 0 01-1.442 0l-.813-2.846a3.75 3.75 0 00-2.576-2.576l-2.846-.813a.75.75 0 010-1.442l2.846-.813A3.75 3.75 0 009 7.89l.813-2.846A.75.75 0 019 4.5zM18 1.5a.75.75 0 01.728.568l.258 1.036c.236.94.97 1.674 1.91 1.91l1.036.258a.75.75 0 010 1.456l-1.036.258c-.94.236-1.674.97-1.91 1.91l-.258 1.036a.75.75 0 01-1.456 0l-.258-1.036a2.625 2.625 0 00-1.91-1.91l-1.036-.258a.75.75 0 010-1.456l1.036-.258a2.625 2.625 0 001.91-1.91l.258-1.036A.75.75 0 0118 1.5zM16.5 15a.75.75 0 01.712.513l.394 1.183c.15.447.5.799.948.948l1.183.395a.75.75 0 010 1.422l-1.183.395c-.447.15-.799.5-.948.948l-.395 1.183a.75.75 0 01-1.422 0l-.395-1.183a1.5 1.5 0 00-.948-.948l-1.183-.395a.75.75 0 010-1.422l1.183-.395c.447-.15.799-.5.948-.948l.395-1.183A.75.75 0 0116.5 15z" clip-rule="evenodd" />
+    <div class="w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 md:pt-28 pb-32 flex-grow flex flex-col" id="mainContainer">
+        <div class="text-center mb-8 px-2 sm:px-6 md:mb-10">
+            <h1 class="text-xl sm:text-2xl md:text-4xl font-extrabold mb-3 leading-tight flex items-center justify-center gap-1.5 sm:gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="brand-spark w-6 h-6 sm:w-7 sm:h-7 shrink-0" aria-hidden="true">
+                    <defs><linearGradient id="headingSparkGradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ec4899"/><stop offset="100%" stop-color="#3b82f6"/></linearGradient></defs>
+                    <path fill="url(#headingSparkGradient)" fill-rule="evenodd" d="M9 4.5a.75.75 0 01.721.544l.813 2.846a3.75 3.75 0 002.576 2.576l2.846.813a.75.75 0 010 1.442l-2.846.813a3.75 3.75 0 00-2.576 2.576l-.813 2.846a.75.75 0 01-1.442 0l-.813-2.846a3.75 3.75 0 00-2.576-2.576l-2.846-.813a.75.75 0 010-1.442l2.846-.813A3.75 3.75 0 009 7.89l.813-2.846A.75.75 0 019 4.5zM18 1.5a.75.75 0 01.728.568l.258 1.036c.236.94.97 1.674 1.91 1.91l1.036.258a.75.75 0 010 1.456l-1.036.258c-.94.236-1.674.97-1.91 1.91l-.258 1.036a.75.75 0 01-1.456 0l-.258-1.036a2.625 2.625 0 00-1.91-1.91l-1.036-.258a.75.75 0 010-1.456l1.036-.258a2.625 2.625 0 001.91-1.91l.258-1.036A.75.75 0 0118 1.5zM16.5 15a.75.75 0 01.712.513l.394 1.183c.15.447.5.799.948.948l1.183.395a.75.75 0 010 1.422l-1.183.395c-.447.15-.799.5-.948.948l-.395 1.183a.75.75 0 01-1.422 0l-.395-1.183a1.5 1.5 0 00-.948-.948l-1.183-.395a.75.75 0 010-1.422l1.183-.395c.447-.15.799-.5.948-.948l.395-1.183A.75.75 0 0116.5 15z" clip-rule="evenodd" />
                 </svg>
                 <span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-blue-500">Trợ lý tối ưu hoá Prompt</span>
             </h1>
@@ -143,7 +176,7 @@
         <div id="userModeSection">
             <div class="glass-card bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/50 shadow-sm rounded-3xl p-5">
                 <div class="relative">
-                    <textarea id="promptInput" maxlength="5000" class="w-full h-36 p-4 pb-10 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700/50 focus:outline-none focus:ring-1 focus:ring-pink-500 focus:border-pink-500 resize-none text-slate-800 dark:text-slate-100 placeholder-slate-400 text-sm transition-all" placeholder="Mô tả điều bạn muốn AI thực hiện..."></textarea>
+                    <textarea id="promptInput" maxlength="5000" class="w-full h-36 md:h-44 p-4 pb-10 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700/50 focus:outline-none focus:ring-1 focus:ring-pink-500 focus:border-pink-500 resize-none text-slate-800 dark:text-slate-100 placeholder-slate-400 text-sm transition-all" placeholder="Mô tả điều bạn muốn AI thực hiện..."></textarea>
                     <div class="absolute bottom-3 right-4 flex items-center gap-3">
                         <span id="charCount" class="text-[11px] font-medium text-slate-400">0/5000</span>
                         <button id="btnClearInput" class="hidden text-slate-400 hover:text-red-500 transition-colors" title="Xóa nội dung"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button>
@@ -449,6 +482,21 @@
         if (len > 0) btnClearInput.classList.remove('hidden'); else btnClearInput.classList.add('hidden');
         if (len > 2000) longPromptWarning.style.display = 'block'; else longPromptWarning.style.display = 'none';
         if ($('resultArea').style.display === 'block') { $('resultArea').style.display = 'none'; }
+    });
+    // Khi dán văn bản có ký tự "\n" dạng chữ, chuyển chúng thành xuống dòng thật.
+    // Nhấn Enter trong textarea vẫn hoạt động bình thường.
+    promptInput.addEventListener('paste', (event) => {
+        const clipboard = event.clipboardData || window.clipboardData;
+        if (!clipboard) return;
+        const pastedText = clipboard.getData('text');
+        if (!pastedText.includes('\\n')) return;
+
+        event.preventDefault();
+        const normalizedText = pastedText.replace(/\\n/g, '\n');
+        const start = promptInput.selectionStart;
+        const end = promptInput.selectionEnd;
+        promptInput.setRangeText(normalizedText, start, end, 'end');
+        promptInput.dispatchEvent(new Event('input', { bubbles: true }));
     });
     btnClearInput.addEventListener('click', () => {
         promptInput.value = ''; charCount.textContent = '0/5000'; btnClearInput.classList.add('hidden');
