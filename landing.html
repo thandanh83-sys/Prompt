@@ -36,6 +36,66 @@
         .toast-error { border-left: 4px solid #ef4444; }
         .toast-show { opacity: 1; transform: translateY(0); }
     </style>
+
+<script>
+/* Điều hướng độc lập với các thư viện ngoài để menu luôn hoạt động. */
+(function () {
+    function initPromptNavigation() {
+        const button = document.getElementById('btnHamburger');
+        const menu = document.getElementById('dropdownMenu');
+        if (!button || !menu || button.dataset.navigationReady === 'true') return;
+
+        button.dataset.navigationReady = 'true';
+        button.setAttribute('aria-controls', 'dropdownMenu');
+        button.setAttribute('aria-expanded', 'false');
+        button.setAttribute('aria-label', 'Mở menu điều hướng');
+
+        let isOpen = false;
+        function closeMenu() {
+            if (!isOpen) return;
+            isOpen = false;
+            button.setAttribute('aria-expanded', 'false');
+            button.setAttribute('aria-label', 'Mở menu điều hướng');
+            menu.classList.remove('opacity-100', 'scale-100');
+            menu.classList.add('opacity-0', 'scale-95');
+            window.setTimeout(function () {
+                if (!isOpen) menu.classList.add('hidden');
+            }, 200);
+        }
+        function openMenu() {
+            isOpen = true;
+            menu.classList.remove('hidden');
+            void menu.offsetWidth;
+            menu.classList.remove('opacity-0', 'scale-95');
+            menu.classList.add('opacity-100', 'scale-100');
+            button.setAttribute('aria-expanded', 'true');
+            button.setAttribute('aria-label', 'Đóng menu điều hướng');
+        }
+
+        button.addEventListener('click', function (event) {
+            event.preventDefault();
+            event.stopPropagation();
+            if (isOpen) closeMenu(); else openMenu();
+        });
+        document.addEventListener('click', function (event) {
+            if (isOpen && !menu.contains(event.target) && !button.contains(event.target)) closeMenu();
+        });
+        menu.addEventListener('click', function (event) {
+            const target = event.target instanceof Element ? event.target : null;
+            if (target && target.closest('a[href]')) closeMenu();
+        });
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape') closeMenu();
+        });
+    }
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initPromptNavigation, { once: true });
+    } else {
+        initPromptNavigation();
+    }
+})();
+</script>
+
 </head>
 
 <body class="antialiased min-h-screen relative text-slate-800 dark:text-slate-100 flex flex-col">
@@ -52,12 +112,13 @@
                         <a href="./index.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors">Trang chủ</a>
                         <a href="./landing.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors">Đánh giá</a>
                         <a href="./library.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors">Thư viện</a>
+                        <a href="./profile.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors">Trang cá nhân</a>
                         <div class="h-px bg-slate-100 dark:bg-slate-700/50 my-1 mx-2"></div>
                         <button id="themeToggleMenu" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors text-left">
                             <span id="themeIconMenu" class="w-5 h-5 flex items-center justify-center shrink-0"></span><span id="themeTextMenu">Chế độ Tối</span>
                         </button>
-                        <div id="adminMenuDivider" class="h-px bg-slate-100 dark:bg-slate-700/50 my-1 mx-2" style="display:none;"></div>
-                        <a id="menuBtnAdmin" href="./admin.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-green-50 dark:hover:bg-green-900/20 text-sm font-semibold text-green-600 dark:text-green-400 transition-colors" style="display:none;">Quản trị</a>
+                        <div id="adminMenuDivider" class="h-px bg-slate-100 dark:bg-slate-700/50 my-1 mx-2"></div>
+                        <a id="menuBtnAdmin" href="./admin.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-green-50 dark:hover:bg-green-900/20 text-sm font-semibold text-green-600 dark:text-green-400 transition-colors">Quản trị</a>
                     </div>
                 </div>
             </div>
@@ -167,7 +228,7 @@
         const API_URL = "https://prompt-tx2e.onrender.com"; 
         const SUPABASE_URL = "https://egncrbearrwfoslryuga.supabase.co";
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVnbmNyYmVhcnJ3Zm9zbHJ5dWdhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI1MDk2MzgsImV4cCI6MjEwODA4NTYzOH0.jX8rz7Fk5wIqdbDqb6ZwKUiMs-wggVRj-dLk2dqlYFM"; // Public anon key; bảo vệ dữ liệu bằng RLS và policy phía Supabase.
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const supabase = window.supabase?.createClient ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 
         const SECTION_NAMES = ["1. VAI TRÒ", "2. BỐI CẢNH", "3. INPUT", "4. MỤC TIÊU", "5. YÊU CẦU", "6. RÀNG BUỘC", "7. TASK", "8. ĐỊNH DẠNG ĐẦU RA", "9. NEVER DO", "10. THỨ TỰ ƯU TIÊN", "11. XỬ LÝ NỘI BỘ"];
         const $ = id => document.getElementById(id);
@@ -179,17 +240,7 @@
         const sunSVG = `<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364-.707-.707M6.343 6.343l-.707-.707m12.728 0-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>`;
 
         // MENU & THEME
-        let isMenuOpen = false;
-        $('btnHamburger').addEventListener('click', (e) => {
-            e.stopPropagation(); isMenuOpen = !isMenuOpen;
-            if (isMenuOpen) { $('dropdownMenu').classList.remove('hidden'); setTimeout(() => { $('dropdownMenu').classList.remove('opacity-0', 'scale-95'); $('dropdownMenu').classList.add('opacity-100', 'scale-100'); }, 10); } 
-            else { $('dropdownMenu').classList.remove('opacity-100', 'scale-100'); $('dropdownMenu').classList.add('opacity-0', 'scale-95'); setTimeout(() => { $('dropdownMenu').classList.add('hidden'); }, 200); }
-        });
-        document.addEventListener('click', (e) => {
-            if (isMenuOpen && !$('dropdownMenu').contains(e.target) && e.target !== $('btnHamburger')) {
-                isMenuOpen = false; $('dropdownMenu').classList.remove('opacity-100', 'scale-100'); $('dropdownMenu').classList.add('opacity-0', 'scale-95'); setTimeout(() => { $('dropdownMenu').classList.add('hidden'); }, 200);
-            }
-        });
+        // Menu được xử lý độc lập ở đầu trang để không phụ thuộc các thư viện ngoài.
         function applyTheme(dark) {
             document.documentElement.classList.toggle('dark', dark); document.documentElement.classList.toggle('light', !dark);
             $('themeIconMenu').innerHTML = dark ? sunSVG : moonSVG; $('themeTextMenu').textContent = dark ? 'Chế độ Sáng' : 'Chế độ Tối';
@@ -206,6 +257,7 @@
 
         // LOGIC ĐĂNG NHẬP SUPABASE
         async function checkAuthState() {
+            if (!supabase) return;
             const { data: { session } } = await supabase.auth.getSession();
             if (session) {
                 $('btnShowLogin').classList.add('hidden'); $('userAvatarMenu').classList.remove('hidden');
@@ -222,6 +274,7 @@
         
         $('btnSendMagicLink').addEventListener('click', async () => {
             const email = $('loginEmail').value.trim(); const errorMsg = $('loginError'); const btn = $('btnSendMagicLink');
+            if (!supabase) { errorMsg.textContent = 'Dịch vụ đăng nhập chưa tải được. Bạn vẫn có thể dùng chức năng đánh giá; hãy tải lại trang để thử đăng nhập lần nữa.'; errorMsg.classList.remove('hidden'); return; }
             if (!email) { errorMsg.textContent = "Vui lòng nhập email!"; errorMsg.classList.remove('hidden'); return; }
             btn.textContent = "Đang gửi..."; btn.disabled = true; errorMsg.classList.add('hidden');
             const { error } = await supabase.auth.signInWithOtp({ email: email, options: { emailRedirectTo: window.location.href } });
@@ -242,7 +295,7 @@
         }
         function showToast(message, type = 'success') {
             const container = document.getElementById('toastContainer'); const toast = document.createElement('div');
-            toast.className = `toast-msg toast-${type}`; toast.innerHTML = `<span>${type === 'success' ? '✅' : '⚠️'}</span> <span>${message}</span>`;
+            toast.className = `toast-msg toast-${type}`; const icon = document.createElement('span'); icon.textContent = type === 'success' ? '✅' : '⚠️'; const messageNode = document.createElement('span'); messageNode.textContent = String(message ?? ''); toast.append(icon, messageNode);
             container.appendChild(toast); setTimeout(() => toast.classList.add('toast-show'), 10);
             setTimeout(() => { toast.classList.remove('toast-show'); setTimeout(() => toast.remove(), 300); }, 3000);
         }
@@ -268,28 +321,50 @@
             const timer = setInterval(() => { seconds++; btnText.textContent = seconds < 15 ? `Đang đợi Server (${seconds}s)...` : `AI đang xử lý (${seconds}s)...`; }, 1000);
             
             try {
-                const controller = new AbortController(); const timeoutId = setTimeout(() => controller.abort(), 180000);
-                const response = await fetch(`${API_URL}/evaluate`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt }), signal: controller.signal });
-                clearTimeout(timeoutId);
-                if (!response.ok) { const d = await response.json(); throw new Error(d.error || d.detail || 'Lỗi'); }
-                lastResult = await response.json();
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 180000);
+                let response;
+                try {
+                    response = await fetch(`${API_URL}/evaluate`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ prompt }),
+                        signal: controller.signal
+                    });
+                } finally {
+                    clearTimeout(timeoutId);
+                }
+                const data = await response.json().catch(() => ({}));
+                if (!response.ok) throw new Error(data.error || data.detail || `Máy chủ trả lỗi (${response.status}).`);
+                if (!data || typeof data.total !== 'number' || !data.details || !data.rewrite) {
+                    throw new Error('Máy chủ trả dữ liệu không đầy đủ. Vui lòng thử lại.');
+                }
+                lastResult = data;
                 render(lastResult);
-                
-                // LƯU LỊCH SỬ VÀO LOCAL STORAGE CỦA MÁY
-                const localHistory = JSON.parse(localStorage.getItem('myPromptHistory') || '[]');
-                localHistory.push({
-                    date: new Date().toISOString(),
-                    prompt: prompt,
-                    score: lastResult.total,
-                    type: lastResult.type,
-                    rewrite: lastResult.rewrite,
-                    errors: lastResult.errors,
-                    details: lastResult.details
-                });
-                localStorage.setItem('myPromptHistory', JSON.stringify(localHistory));
+
+                // Lưu lịch sử cục bộ độc lập với kết quả đánh giá.
+                try {
+                    const stored = JSON.parse(localStorage.getItem('myPromptHistory') || '[]');
+                    const localHistory = Array.isArray(stored) ? stored : [];
+                    localHistory.push({
+                        date: new Date().toISOString(),
+                        prompt,
+                        score: lastResult.total,
+                        type: lastResult.type,
+                        rewrite: lastResult.rewrite,
+                        errors: lastResult.errors,
+                        details: lastResult.details
+                    });
+                    localStorage.setItem('myPromptHistory', JSON.stringify(localHistory));
+                } catch (historyError) {
+                    console.warn('Không thể lưu lịch sử cục bộ:', historyError);
+                }
                 
             } catch (e) { 
-                $('errorMsg').textContent = e.message || "Đã xảy ra lỗi."; $('errorMsg').style.display = 'block'; 
+                const friendlyMessage = e?.name === 'AbortError'
+                    ? 'Máy chủ phản hồi quá lâu. Vui lòng thử lại.'
+                    : (e instanceof TypeError ? 'Không kết nối được máy chủ. Hãy kiểm tra mạng hoặc cấu hình API.' : (e.message || 'Đã xảy ra lỗi.'));
+                $('errorMsg').textContent = friendlyMessage; $('errorMsg').style.display = 'block'; 
             } finally { 
                 clearInterval(timer); btn.disabled = false; spinner.classList.add('hidden'); btnText.textContent = 'Đánh giá & Viết lại'; 
             }
@@ -321,7 +396,9 @@
             $('rewriteList').replaceChildren();
             SECTION_NAMES.forEach(sec => {
                 const item = document.createElement('div'); item.className = 'mb-4 last:mb-0'; 
-                item.innerHTML = `<p class="font-bold text-pink-500 mb-1 text-[11px] uppercase">${sec}</p><p class="text-slate-700 dark:text-slate-300 whitespace-pre-wrap text-sm leading-relaxed">${r.rewrite[sec] || ''}</p>`;
+                const heading = document.createElement('p'); heading.className = 'font-bold text-pink-500 mb-1 text-[11px] uppercase'; heading.textContent = sec;
+                const body = document.createElement('p'); body.className = 'text-slate-700 dark:text-slate-300 whitespace-pre-wrap text-sm leading-relaxed'; body.textContent = String(r.rewrite?.[sec] ?? '');
+                item.append(heading, body);
                 $('rewriteList').appendChild(item);
             });
             $('resultArea').style.display = 'block';
