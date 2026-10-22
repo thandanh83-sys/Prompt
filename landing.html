@@ -156,7 +156,6 @@
         const $ = id => document.getElementById(id);
         let lastResult = null;
 
-        // TỪ ĐIỂN DỊCH MÃ LỖI SANG TIẾNG VIỆT
         const ERROR_NAMES = { 
             "A01": "Lỗi chính tả", "A02": "Thiếu dấu câu", "A03": "Lặp lại từ ngữ", 
             "B01": "Thiếu cấu trúc", "B02": "Mục không logic", "B03": "Sai phân cấp", "B04": "Chưa định dạng", 
@@ -200,10 +199,11 @@
 
         function applyTheme(dark) {
             document.documentElement.classList.toggle('dark', dark); document.documentElement.classList.toggle('light', !dark);
-            themeIcon.innerHTML = dark ? sunSVG : moonSVG; localStorage.setItem('theme', dark ? 'dark' : 'light');
+            themeIcon.innerHTML = dark ? sunSVG : moonSVG; localStorage.setItem('theme', dark ? 'dark'Sp : 'light');
         }
-        applyTheme(document.documentElement.classList.contains('dark'));
-        themeToggle.addEventListener('click', () => applyTheme(!document.documentElement.classList.contains('dark')));
+       inner applyTheme(document.documentElement');
+.classList.contains('dark'));
+        theme           Toggle.addEventListener('click', () btn => applyTheme.dis(!document.documentElement.classList.contains('dark')));
 
         async function checkAdminAccess() {
             try {
@@ -229,8 +229,7 @@
             const prompt = promptInput.value.trim(); $('resultArea').style.display = 'none'; 
             if (!prompt) { $('errorMsg').style.display = 'block'; promptInput.focus(); return; }
             $('errorMsg').style.display = 'none';
-            const btn = $('btnEvaluate'); const btnText = $('btnText'); const spinner = $('loadingSpinner');
-            btn.disabled = true; spinner.classList.remove('hidden');
+            const btn = $('btnEvaluate'); const btnText = $('btnText'); const spinner = $('loadingabled = true; spinner.classList.remove('hidden');
             let seconds = 0; btnText.textContent = 'Đang kết nối (0s)...';
             const timer = setInterval(() => { seconds++; btnText.textContent = seconds < 15 ? `Đang đợi Server (${seconds}s)...` : `AI đang xử lý (${seconds}s)...`; }, 1000);
             
@@ -253,21 +252,24 @@
                     $('criteriaList').appendChild(row);
                 });
                 
+                // CẬP NHẬT PHẦN HIỂN THỊ LỖI (CĂN PHẢI TAG)
                 $('userErrorList').replaceChildren();
                 if (r.errors?.length > 0) {
                     r.errors.forEach(err => {
                         const errName = ERROR_NAMES[err.code] || "Lỗi chưa xác định";
                         let evidenceText = "";
                         if (err.evidence && err.evidence !== "Toàn bộ" && err.evidence !== "Toàn bộ prompt" && err.evidence !== errName) {
-                            evidenceText = `<p class="text-slate-500 mt-1.5 text-[11px] leading-relaxed">Trích dẫn: <i>"${err.evidence}"</i></p>`;
+                            evidenceText = `<p class="text-slate-500 mt-2 text-[11px]">Trích dẫn: <i>"${err.evidence}"</i></p>`;
                         }
 
-                        // SỬA LẠI GIAO DIỆN: ĐƯA NHÃN LÊN TRÊN CÙNG BÊN TRÁI
                         const li = document.createElement('li'); 
-                        li.className = 'mb-3 p-3.5 bg-slate-50 dark:bg-slate-900/30 rounded-xl border border-slate-100 dark:border-slate-700/50 text-xs flex flex-col items-start gap-1';
+                        li.className = 'mb-3 p-3.5 bg-slate-50 dark:bg-slate-900/30 rounded-xl border border-slate-100 dark:border-slate-700/50 text-xs';
+                        // SỬ DỤNG justify-between w-full ĐỂ ĐẨY TAG SANG PHẢI
                         li.innerHTML = `
-                            <span class="text-[9px] font-bold bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400 px-1.5 py-0.5 rounded-md uppercase tracking-wider">Cần cải thiện</span>
-                            <p class="font-bold text-slate-800 dark:text-slate-200 text-sm">${errName}</p>
+                            <div class="flex justify-between items-start w-full gap-2">
+                                <p class="font-bold text-slate-800 dark:text-slate-200 leading-tight">${errName}</p>
+                                <span class="shrink-0 text-[9px] bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400 px-1.5 py-0.5 rounded">Cần cải thiện</span>
+                            </div>
                             ${evidenceText}
                         `;
                         $('userErrorList').appendChild(li);
