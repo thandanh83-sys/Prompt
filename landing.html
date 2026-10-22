@@ -25,15 +25,23 @@
     <script>tailwind.config = { darkMode: 'class' }</script>
 
     <style>
-        /* XỬ LÝ NỀN VÀ HÀO QUANG */
-        html { background-color: #f8f7fc; transition: background-color .15s ease; min-height: 100vh; scroll-behavior: smooth; }
-        html.dark { background-color: #0f172a; }
+        /* FIX LỖI NỀN BỊ LỘ VÀ MÀU SẮC */
+        html { 
+            background-color: #f8f7fc; 
+            transition: background-color .15s ease; 
+            min-height: 100vh; 
+            scroll-behavior: smooth; 
+        }
+        html.dark { 
+            background-color: #0b1120; /* Đổi màu tối hơn để tiệp với hào quang */
+        }
         
         body { 
             -webkit-tap-highlight-color: transparent; 
             overflow-x: hidden; 
             background-color: transparent !important; 
             overscroll-behavior-y: none; 
+            min-height: 100vh;
         }
         
         .page-bg { 
@@ -157,11 +165,11 @@
                 </div>
             </div>
 
-            <!-- CỘT 2: Ở GIỮA (LOGO) -->
+            <!-- CỘT 2: Ở GIỮA (LOGO ĐÃ THU NHỎ) -->
             <div class="flex items-center justify-center z-40">
                 <a href="./index.html" class="flex items-center gap-1.5 min-w-0 no-underline focus:outline-none">
-                    <svg class="w-5 h-5 sm:w-7 sm:h-7 shrink-0" viewBox="0 0 24 24"><defs><linearGradient id="brandSparkGradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ec4899"/><stop offset="100%" stop-color="#3b82f6"/></linearGradient></defs><path fill="url(#brandSparkGradient)" d="M12 2L14.7 9.3 22 12l-7.3 2.7L12 22l-2.7-7.3L2 12l7.3-2.7L12 2Z"/></svg>
-                    <span class="brand-text text-[15px] sm:text-lg font-extrabold truncate">Trợ lý AI</span>
+                    <svg class="w-5 h-5 sm:w-6 sm:h-6 shrink-0" viewBox="0 0 24 24"><defs><linearGradient id="brandSparkGradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ec4899"/><stop offset="100%" stop-color="#3b82f6"/></linearGradient></defs><path fill="url(#brandSparkGradient)" d="M12 2L14.7 9.3 22 12l-7.3 2.7L12 22l-2.7-7.3L2 12l7.3-2.7L12 2Z"/></svg>
+                    <span class="brand-text text-sm sm:text-base font-extrabold truncate">Trợ lý AI</span>
                 </a>
             </div>
             
@@ -181,8 +189,8 @@
         </div>
     </header>
 
-    <!-- NỘI DUNG ĐÁNH GIÁ -->
-    <main class="w-full max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 md:pt-36 pb-32 flex-grow flex flex-col mt-4 z-10">
+    <!-- NỘI DUNG ĐÁNH GIÁ (ĐÃ THÊM MIN-H-SCREEN ĐỂ PHỦ KÍN NỀN) -->
+    <main class="w-full max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 md:pt-36 pb-32 flex-grow flex flex-col mt-4 z-10 min-h-screen">
         
         <div class="text-center mb-8">
             <h1 class="text-2xl sm:text-3xl md:text-4xl font-extrabold mb-3 flex items-center justify-center gap-2">
@@ -208,7 +216,6 @@
                     <span id="btnText">Đánh giá & Viết lại</span>
                     <svg id="loadingSpinner" class="hidden animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                 </button>
-                <!-- Nút Hướng dẫn -->
                 <button id="btnOpenGuide" class="w-full sm:w-auto px-6 py-3.5 rounded-2xl font-bold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all text-sm flex items-center justify-center gap-2 whitespace-nowrap">
                     Hướng dẫn
                 </button>
@@ -317,7 +324,6 @@
     <script>
         const API_URL = "https://prompt-tx2e.onrender.com"; 
         const SUPABASE_URL = "https://egncrbearrwfoslryuga.supabase.co";
-        // ⚠️ BẠN HÃY ĐẢM BẢO ĐÃ DÁN KEY ANON PUBLIC VÀO ĐÂY
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVnbmNyYmVhcnJ3Zm9zbHJ5dWdhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI1MDk2MzgsImV4cCI6MjEwODA4NTYzOH0.jX8rz7Fk5wIqdbDqb6ZwKUiMs-wggVRj-dLk2dqlYFM"; 
         const supabase = window.supabase?.createClient ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 
