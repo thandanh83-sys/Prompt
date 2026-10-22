@@ -130,9 +130,15 @@
 
         async function checkAdminAccess() {
             try {
-                const res = await fetch(`${API_URL}/check_admin_ip`);
-                if (res.ok) { $('adminMenuDivider').style.display = 'block'; $('menuBtnAdmin').style.display = 'flex'; } 
-            } catch (e) { console.log("Lỗi check IP"); }
+                const ctrl = new AbortController();
+                const t = setTimeout(() => ctrl.abort(), 4000);
+                const res = await fetch(`${API_URL}/check_admin_ip`, { signal: ctrl.signal });
+                clearTimeout(t);
+                if (res.ok) {
+                    $('adminMenuDivider').style.display = 'block';
+                    $('menuBtnAdmin').style.display = 'flex';
+                }
+            } catch (e) { /* Bỏ qua nếu lỗi mạng hoặc không phải admin */ }
         }
         checkAdminAccess();
     </script>
