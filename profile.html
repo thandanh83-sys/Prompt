@@ -4,14 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#f8f7fc">
-    <title>Quản trị - Trợ lý AI</title>
+    <title>Trang cá nhân - Trợ lý AI</title>
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23ec4899'/%3E%3Cstop offset='100%25' stop-color='%233b82f6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' rx='20' fill='url(%23g)'/%3E%3Ctext x='50' y='72' font-size='60' font-family='Arial,sans-serif' font-weight='bold' fill='white' text-anchor='middle'%3EP%3C/text%3E%3C/svg%3E">
 
     <script>
         if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) { document.documentElement.classList.add('dark'); } else { document.documentElement.classList.remove('dark'); }
     </script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>tailwind.config = { darkMode: 'class' }</script>
 
     <style>
@@ -19,8 +19,6 @@
         html.dark { background-color: #0f172a; }
         body { -webkit-tap-highlight-color: transparent; overflow-x: hidden; transition: background-color .15s ease, color .15s ease; background-color: #f8f7fc; overscroll-behavior-y: none; }
         .dark body { background-color: #0f172a; }
-        .page-bg { position: fixed; inset: 0; z-index: -1; pointer-events: none; background: radial-gradient(ellipse at 18% 28%, rgba(229,112,196,.12), transparent 36%), radial-gradient(ellipse at 74% 52%, rgba(90,129,255,.10), transparent 40%), transparent; }
-        .dark .page-bg { background: radial-gradient(ellipse at 18% 28%, rgba(164,55,130,.10), transparent 36%), radial-gradient(ellipse at 74% 52%, rgba(53,84,180,.12), transparent 40%), transparent; }
         .app-header { background: #fff; border-color: rgba(0,0,0,.06); }
         .dark .app-header { background: #0f172a; border-color: rgba(255,255,255,.1); }
         .brand-spark { flex-shrink: 0; }
@@ -29,23 +27,15 @@
         .menu-dropdown { transition: all .2s ease-in-out; transform-origin: top left; width: min(280px, calc(100vw - 32px)); max-height: calc(100dvh - 100px); overflow-y: auto; box-sizing: border-box; }
         @media (max-width: 640px) { .menu-dropdown { width: min(260px, calc(100vw - 32px)); max-height: calc(100dvh - 88px); } }
         .glass-card { transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease; }
-        .stat-card { background: linear-gradient(135deg, rgba(255,255,255,.05) 0%, rgba(255,255,255,.01) 100%); border: 1px solid rgba(255,255,255,.1); }
-        .dark .stat-card { background: linear-gradient(135deg, rgba(30,41,59,.8) 0%, rgba(15,23,42,.8) 100%); border: 1px solid rgba(51,65,85,.5); }
-        .login-box-glow { box-shadow: 0 10px 40px -10px rgba(236, 72, 153, 0.2); }
-        .dark .login-box-glow { box-shadow: 0 10px 40px -10px rgba(59, 130, 246, 0.2); }
-        .tab-btn { transition: all 0.2s; border-bottom: 2px solid transparent; }
-        .tab-btn.active { border-bottom-color: #ec4899; color: #ec4899; }
-        .dark .tab-btn.active { border-bottom-color: #3b82f6; color: #3b82f6; }
     </style>
 </head>
 
 <body class="antialiased min-h-screen relative text-slate-800 dark:text-slate-100 flex flex-col">
-    <div class="page-bg"></div>
+    <div class="page-bg fixed inset-0 z-[-1] pointer-events-none bg-gradient-to-br from-pink-50/50 to-blue-50/50 dark:from-[#0b1120] dark:to-[#0f172a]"></div>
 
-    <!-- HEADER -->
     <header class="app-header fixed top-0 left-0 w-full z-50 border-b">
-        <div class="w-full max-w-7xl mx-auto px-4 sm:px-6 h-16 md:h-20 flex items-center justify-between gap-3">
-            <div class="relative flex items-center gap-2">
+        <div class="w-full max-w-7xl mx-auto px-4 sm:px-6 h-16 md:h-20 flex items-center justify-between gap-2 sm:gap-3">
+            <div class="relative flex items-center gap-1 sm:gap-2">
                 <button id="btnHamburger" class="w-10 h-10 shrink-0 flex items-center justify-center rounded-full text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
                 </button>
@@ -59,108 +49,67 @@
                             <span id="themeIconMenu" class="w-5 h-5 flex items-center justify-center shrink-0"></span><span id="themeTextMenu">Chế độ Tối</span>
                         </button>
                         <div id="adminMenuDivider" class="h-px bg-slate-100 dark:bg-slate-700/50 my-1 mx-2" style="display:none;"></div>
-                        <a id="menuBtnAdmin" href="./admin.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-green-50 dark:bg-green-900/20 text-sm font-semibold text-green-600 dark:text-green-400 transition-colors" style="display:none;">Quản trị</a>
+                        <a id="menuBtnAdmin" href="./admin.html" class="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-green-50 dark:hover:bg-green-900/20 text-sm font-semibold text-green-600 dark:text-green-400 transition-colors" style="display:none;">Quản trị</a>
                     </div>
                 </div>
             </div>
             
             <div class="flex items-center gap-1.5 min-w-0">
-                <svg class="brand-spark w-6 h-6 sm:w-7 sm:h-7" viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="brandSparkGradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ec4899"/><stop offset="100%" stop-color="#3b82f6"/></linearGradient></defs><path class="brand-icon-gradient" d="M12 2L14.7 9.3 22 12l-7.3 2.7L12 22l-2.7-7.3L2 12l7.3-2.7L12 2Z"/></svg>
+                <svg class="brand-spark w-6 h-6 sm:w-7 sm:h-7" viewBox="0 0 24 24"><defs><linearGradient id="brandSparkGradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ec4899"/><stop offset="100%" stop-color="#3b82f6"/></linearGradient></defs><path class="brand-icon-gradient" d="M12 2L14.7 9.3 22 12l-7.3 2.7L12 22l-2.7-7.3L2 12l7.3-2.7L12 2Z"/></svg>
                 <span class="brand-text text-base sm:text-lg font-extrabold truncate">Trợ lý AI</span>
             </div>
-            <div class="w-10"></div>
+            
+            <div id="authContainer" class="flex items-center relative">
+                <div id="userAvatarMenu" class="relative hidden">
+                    <button id="btnAvatar" class="w-9 h-9 md:w-10 md:h-10 rounded-full overflow-hidden border-2 border-pink-500 shadow-sm hover:scale-105 transition-transform flex items-center justify-center bg-gray-200 dark:bg-gray-700 text-white font-bold text-lg"></button>
+                    <div id="avatarDropdown" class="absolute right-0 top-12 w-48 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl hidden opacity-0 scale-95 transition-all z-50 p-2">
+                        <a href="./profile.html" class="block px-3 py-2 text-sm font-semibold hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg text-pink-500">Trang cá nhân</a>
+                        <button id="btnLogoutHeader" class="w-full text-left px-3 py-2 text-sm font-semibold text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg mt-1">Đăng xuất</button>
+                    </div>
+                </div>
+            </div>
         </div>
     </header>
 
-    <!-- NỘI DUNG ADMIN -->
-    <main class="w-full max-w-5xl mx-auto px-4 sm:px-6 pt-32 md:pt-40 pb-32 flex-grow flex flex-col items-center">
-        
-        <!-- KHUNG ĐĂNG NHẬP -->
-        <div id="adminLoginBox" class="glass-card login-box-glow bg-white/90 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700/60 shadow-2xl rounded-3xl p-8 max-w-sm w-full text-center relative overflow-hidden">
-            <div class="absolute top-0 left-1/2 transform -translate-x-1/2 w-32 h-1 bg-gradient-to-r from-pink-500 to-blue-500 rounded-b-full opacity-80"></div>
-            <div class="w-20 h-20 mx-auto mb-5 rounded-2xl overflow-hidden shadow-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" class="w-full h-full"><defs><linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ec4899"/><stop offset="100%" stop-color="#3b82f6"/></linearGradient></defs><rect width="100" height="100" fill="url(#g)"/><text x="50" y="72" font-size="60" font-family="Arial,sans-serif" font-weight="bold" fill="white" text-anchor="middle">P</text></svg>
+    <main class="w-full max-w-2xl mx-auto px-4 sm:px-6 pt-32 pb-32 flex-grow flex flex-col mt-4">
+        <div id="userInfoBox" class="bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-md border border-slate-200 dark:border-slate-700 flex items-center gap-5 mb-8">
+            <div id="avatarContainer" class="w-20 h-20 rounded-full bg-gradient-to-br from-pink-500 to-blue-500 flex items-center justify-center text-3xl text-white font-bold shrink-0 shadow-lg"></div>
+            <div class="flex flex-col">
+                <h2 id="userName" class="text-xl font-bold text-slate-800 dark:text-white">Đang tải...</h2>
+                <p id="userEmail" class="text-sm text-slate-500 dark:text-slate-400">email@example.com</p>
+                <button id="btnLogoutMain" class="text-left text-xs font-bold text-red-500 hover:text-red-700 mt-2 transition">Đăng xuất tài khoản</button>
             </div>
-            <h3 class="font-extrabold text-2xl mb-2 text-slate-800 dark:text-white tracking-tight">Đăng nhập Admin</h3>
-            <p class="text-xs text-slate-500 dark:text-slate-400 mb-6">Khu vực dành riêng cho quản trị viên</p>
-            <div class="relative w-full mb-6">
-                <input type="password" id="adminPassword" class="w-full p-4 pl-5 pr-12 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent text-slate-800 dark:text-slate-100 placeholder-slate-400 text-sm font-medium transition-all" placeholder="Nhập mật khẩu...">
-                <button type="button" id="toggleAdminPassword" class="absolute inset-y-0 right-0 pr-4 flex items-center text-xl text-slate-400 hover:text-pink-500 transition-colors cursor-pointer" title="Hiện/Ẩn mật khẩu">🐵</button>
-            </div>
-            <p id="adminError" class="text-red-500 text-xs font-bold mb-4 bg-red-50 dark:bg-red-900/20 p-2 rounded-lg" style="display: none;">Sai mật khẩu hoặc lỗi kết nối.</p>
-            <button id="btnAdminLogin" class="w-full py-3.5 rounded-2xl font-bold text-white bg-gradient-to-r from-pink-500 to-blue-500 shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-95 transition-all text-sm flex items-center justify-center gap-2">
-                Đăng nhập ngay
-            </button>
         </div>
 
-        <!-- DASHBOARD -->
-        <div id="adminDashboard" class="w-full mt-6" style="display: none;">
-            <div class="flex justify-between items-center border-b border-slate-200 dark:border-slate-700/50 mb-6">
-                <div class="flex gap-6">
-                    <button id="tabBtnOverview" class="tab-btn active pb-3 text-sm md:text-base font-bold text-slate-500 dark:text-slate-400 hover:text-pink-500 dark:hover:text-blue-400" onclick="switchTab('overview')">📊 Tổng quan</button>
-                    <button id="tabBtnIpLogs" class="tab-btn pb-3 text-sm md:text-base font-bold text-slate-500 dark:text-slate-400 hover:text-pink-500 dark:hover:text-blue-400" onclick="switchTab('iplogs')">🌐 Lịch sử IP</button>
-                </div>
-                <button id="btnAdminLogout" class="px-4 py-2 rounded-lg text-xs font-bold bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/30 transition mb-2">Đăng xuất</button>
-            </div>
-
-            <!-- TAB 1: TỔNG QUAN -->
-            <div id="tabContentOverview" class="space-y-5">
-                <div class="grid grid-cols-3 gap-3 md:gap-4">
-                    <div class="stat-card rounded-2xl p-4 flex flex-col justify-center items-center text-center"><p class="text-[10px] md:text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Lượt đánh giá</p><p id="statTotal" class="text-3xl font-extrabold text-blue-500">0</p></div>
-                    <div class="stat-card rounded-2xl p-4 flex flex-col justify-center items-center text-center"><p class="text-[10px] md:text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Điểm TB</p><p id="statAvg" class="text-3xl font-extrabold text-pink-500">0.0</p></div>
-                    <div class="stat-card rounded-2xl p-4 flex flex-col justify-center items-center text-center"><p class="text-[10px] md:text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Prompt Sạch</p><p id="statClean" class="text-3xl font-extrabold text-green-500">0%</p></div>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="stat-card rounded-2xl p-5"><p class="text-xs font-bold text-slate-500 mb-2 uppercase tracking-wide text-center">Top Lỗi Phổ Biến</p><div class="h-48 w-full flex justify-center"><canvas id="errorChart"></canvas></div></div>
-                    <div class="stat-card rounded-2xl p-5"><p class="text-xs font-bold text-slate-500 mb-2 uppercase tracking-wide text-center">Phân Bố Điểm Số</p><div class="h-48 w-full flex justify-center"><canvas id="scoreChart"></canvas></div></div>
-                </div>
-                <div class="stat-card rounded-2xl overflow-hidden mt-6">
-                    <div class="px-5 py-4 border-b border-slate-200 dark:border-slate-700/50 bg-slate-50/50 dark:bg-slate-800/30 flex justify-between items-center"><p class="text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wide">Lịch sử gần đây</p></div>
-                    <div class="overflow-x-auto max-h-[400px] overflow-y-auto">
-                        <table class="w-full text-xs text-left relative">
-                            <thead class="text-[10px] text-slate-400 uppercase bg-slate-100 dark:bg-slate-900/80 sticky top-0 z-10">
-                                <tr><th class="px-4 py-3 font-semibold">Thời gian</th><th class="px-4 py-3 font-semibold">Prompt</th><th class="px-4 py-3 font-semibold">Điểm</th><th class="px-4 py-3 font-semibold">Mã lỗi</th><th class="px-4 py-3 font-semibold text-center">Xóa</th></tr>
-                            </thead>
-                            <tbody id="adminHistoryList"><tr><td colspan="5" class="text-center py-6 text-slate-500">Đang tải dữ liệu...</td></tr></tbody>
-                        </table>
-                    </div>
+        <div class="bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-md border border-slate-200 dark:border-slate-700">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="font-bold text-lg text-slate-800 dark:text-white">Lịch sử của bạn</h3>
+                <div class="flex gap-2">
+                    <button id="btnExport" class="px-3 py-1.5 text-xs font-bold bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 rounded-lg hover:bg-green-200 transition">Xuất JSON</button>
+                    <button id="btnClearHistory" class="px-3 py-1.5 text-xs font-bold bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 rounded-lg hover:bg-red-200 transition">Xóa hết</button>
                 </div>
             </div>
-
-            <!-- TAB 2: LỊCH SỬ IP -->
-            <div id="tabContentIpLogs" class="space-y-5" style="display: none;">
-                <div class="stat-card rounded-2xl overflow-hidden">
-                    <div class="px-5 py-4 border-b border-slate-200 dark:border-slate-700/50 bg-slate-50/50 dark:bg-slate-800/30 flex justify-between items-center"><p class="text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wide">Danh sách IP Đăng nhập</p></div>
-                    <div class="overflow-x-auto max-h-[500px] overflow-y-auto">
-                        <table class="w-full text-xs text-left relative">
-                            <thead class="text-[10px] text-slate-400 uppercase bg-slate-100 dark:bg-slate-900/80 sticky top-0 z-10"><tr><th class="px-4 py-3 font-semibold">Thời gian</th><th class="px-4 py-3 font-semibold">Địa chỉ IP</th><th class="px-4 py-3 font-semibold">Thiết bị / Trình duyệt</th></tr></thead>
-                            <tbody id="ipLogsList"><tr><td colspan="3" class="text-center py-6 text-slate-500">Đang tải dữ liệu...</td></tr></tbody>
-                        </table>
-                    </div>
-                </div>
+            
+            <div id="historyList" class="space-y-4">
+                <p class="text-center text-sm text-slate-500 py-6">Bạn chưa có lịch sử đánh giá nào trên thiết bị này.</p>
             </div>
         </div>
     </main>
 
-    <!-- SCRIPT -->
     <script>
-        const API_URL = "https://prompt-tx2e.onrender.com";
-        const $ = id => document.getElementById(id);
+        const SUPABASE_URL = "https://egncrbearrwfoslryuga.supabase.co";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVnbmNyYmVhcnJ3Zm9zbHJ5dWdhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI1MDk2MzgsImV4cCI6MjEwODA4NTYzOH0.jX8rz7Fk5wIqdbDqb6ZwKUiMs-wggVRj-dLk2dqlYFM";
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         const escapeHtml = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-
-        let adminToken = null;
-        let chart1 = null, chart2 = null;
-
-        const ERROR_NAMES = { "A01": "Lỗi chính tả", "A02": "Thiếu dấu câu", "A03": "Lặp lại", "B01": "Thiếu cấu trúc", "B02": "Mục không logic", "B03": "Sai phân cấp", "B04": "Chưa định dạng", "C01": "Đối tượng chưa rõ", "C02": "Thiếu bối cảnh", "C03": "Chung chung", "C04": "Thiếu ví dụ", "D01": "Mâu thuẫn", "D02": "Bất khả thi", "D03": "Vai trò sai", "E01": "Trộn lĩnh vực", "E02": "Thuật ngữ lộn xộn", "E03": "Thiếu đặc thù" };
+        const $ = id => document.getElementById(id);
 
         const moonSVG = `<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-blue-900" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>`;
         const sunSVG = `<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364-.707-.707M6.343 6.343l-.707-.707m12.728 0-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>`;
 
-        // MENU
         let isMenuOpen = false;
         $('btnHamburger').addEventListener('click', (e) => {
             e.stopPropagation(); isMenuOpen = !isMenuOpen;
-            if (isMenuOpen) { $('dropdownMenu').classList.remove('hidden'); setTimeout(() => { $('dropdownMenu').classList.remove('opacity-0', 'scale-95'); $('dropdownMenu').classList.add('opacity-100', 'scale-100'); }, 10); }
+            if (isMenuOpen) { $('dropdownMenu').classList.remove('hidden'); setTimeout(() => { $('dropdownMenu').classList.remove('opacity-0', 'scale-95'); $('dropdownMenu').classList.add('opacity-100', 'scale-100'); }, 10); } 
             else { $('dropdownMenu').classList.remove('opacity-100', 'scale-100'); $('dropdownMenu').classList.add('opacity-0', 'scale-95'); setTimeout(() => { $('dropdownMenu').classList.add('hidden'); }, 200); }
         });
         document.addEventListener('click', (e) => {
@@ -168,229 +117,77 @@
                 isMenuOpen = false; $('dropdownMenu').classList.remove('opacity-100', 'scale-100'); $('dropdownMenu').classList.add('opacity-0', 'scale-95'); setTimeout(() => { $('dropdownMenu').classList.add('hidden'); }, 200);
             }
         });
-
-        // THEME
         function applyTheme(dark) {
             document.documentElement.classList.toggle('dark', dark); document.documentElement.classList.toggle('light', !dark);
             $('themeIconMenu').innerHTML = dark ? sunSVG : moonSVG; $('themeTextMenu').textContent = dark ? 'Chế độ Sáng' : 'Chế độ Tối';
             localStorage.setItem('theme', dark ? 'dark' : 'light');
             const themeColor = document.querySelector('meta[name="theme-color"]'); if (themeColor) themeColor.setAttribute('content', dark ? '#0f172a' : '#f8f7fc');
-            if (chart1 || chart2) updateChartsTheme(dark);
         }
         applyTheme(document.documentElement.classList.contains('dark'));
         $('themeToggleMenu').addEventListener('click', () => applyTheme(!document.documentElement.classList.contains('dark')));
 
-        // CHECK IP ADMIN
-        async function checkAdminAccess() {
-            try {
-                const res = await fetch(`${API_URL}/check_admin_ip`);
-                if (res.ok) { $('adminMenuDivider').style.display = 'block'; $('menuBtnAdmin').style.display = 'flex'; }
-                else { alert("Bạn không có quyền truy cập trang này."); window.location.href = "./index.html"; }
-            } catch { window.location.href = "./index.html"; }
-        }
-        checkAdminAccess();
-
-        // TABS
-        window.switchTab = function(tabName) {
-            const btnOverview = $('tabBtnOverview'), btnIpLogs = $('tabBtnIpLogs');
-            const contentOverview = $('tabContentOverview'), contentIpLogs = $('tabContentIpLogs');
-            if (tabName === 'overview') {
-                btnOverview.classList.add('active'); btnIpLogs.classList.remove('active');
-                contentOverview.style.display = 'block'; contentIpLogs.style.display = 'none';
-            } else {
-                btnIpLogs.classList.add('active'); btnOverview.classList.remove('active');
-                contentIpLogs.style.display = 'block'; contentOverview.style.display = 'none';
-                fetchIpLogs();
+        async function checkUser() {
+            const { data: { session }, error } = await supabase.auth.getSession();
+            if (error || !session) {
+                window.location.href = "./landing.html"; return;
             }
-        };
+            const user = session.user;
+            const displayName = user.email ? user.email.split('@')[0] : "Người dùng";
+            $('userName').textContent = displayName;
+            $('userEmail').textContent = user.email;
+            
+            const avatarBox = $('avatarContainer'); const avatarBtn = $('btnAvatar');
+            const firstChar = displayName.charAt(0).toUpperCase();
+            avatarBox.textContent = firstChar;
+            avatarBtn.textContent = firstChar;
 
-        // PASSWORD TOGGLE
-        $('toggleAdminPassword').addEventListener('click', function() {
-            const input = $('adminPassword');
-            if (input.type === 'password') { input.type = 'text'; this.innerText = '🙈'; } else { input.type = 'password'; this.innerText = '🐵'; }
+            $('userAvatarMenu').classList.remove('hidden');
+        }
+        checkUser();
+        supabase.auth.onAuthStateChange(() => checkUser());
+
+        function logout() { supabase.auth.signOut().then(() => { window.location.href = "./landing.html"; }); }
+        $('btnLogoutMain').addEventListener('click', logout);
+        $('btnLogoutHeader').addEventListener('click', logout);
+
+        $('btnAvatar').addEventListener('click', (e) => { e.stopPropagation(); $('avatarDropdown').classList.remove('hidden'); setTimeout(() => $('avatarDropdown').classList.remove('opacity-0', 'scale-95'), 10); });
+        document.addEventListener('click', () => { if (!$('avatarDropdown').classList.contains('hidden')) { $('avatarDropdown').classList.add('opacity-0', 'scale-95'); setTimeout(() => $('avatarDropdown').classList.add('hidden'), 200); } });
+
+        function loadHistory() {
+            const history = JSON.parse(localStorage.getItem('myPromptHistory') || '[]');
+            const list = $('historyList');
+            if (history.length === 0) return; 
+
+            list.innerHTML = ''; 
+            [...history].reverse().forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-200 dark:border-slate-700';
+                div.innerHTML = `
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="text-xs font-bold text-slate-500">${new Date(item.date).toLocaleString('vi-VN')}</span>
+                        <span class="text-sm font-bold text-pink-500">${item.score} điểm</span>
+                    </div>
+                    <p class="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2 truncate">${escapeHtml(item.prompt)}</p>
+                `;
+                list.appendChild(div);
+            });
+        }
+        loadHistory();
+
+        $('btnExport').addEventListener('click', () => {
+            const data = localStorage.getItem('myPromptHistory') || '[]';
+            const blob = new Blob([data], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = `lich-su-prompt-${new Date().getTime()}.json`; a.click();
+            URL.revokeObjectURL(url);
         });
 
-        // LOGIN
-        async function handleLogin() {
-            const pwd = $('adminPassword').value.trim(); if (!pwd) return;
-            const btn = $('btnAdminLogin'); btn.disabled = true; btn.innerHTML = 'Đang kiểm tra...';
-            try {
-                const response = await fetch(`${API_URL}/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: pwd }) });
-                const data = await response.json();
-                if (response.ok && data.token) {
-                    adminToken = data.token;
-                    sessionStorage.setItem('adminToken', adminToken);
-                    $('adminLoginBox').style.display = 'none'; $('adminDashboard').style.display = 'block';
-                    switchTab('overview'); fetchHistory();
-                } else {
-                    $('adminError').style.display = 'block'; $('adminError').textContent = data.detail || "Sai mật khẩu.";
-                    btn.disabled = false; btn.innerHTML = 'Đăng nhập ngay';
-                }
-            } catch {
-                $('adminError').style.display = 'block'; $('adminError').textContent = "Lỗi kết nối Server.";
-                btn.disabled = false; btn.innerHTML = 'Đăng nhập ngay';
+        $('btnClearHistory').addEventListener('click', () => {
+            if (confirm("Bạn có chắc chắn muốn xóa toàn bộ lịch sử trên máy này không?")) {
+                localStorage.removeItem('myPromptHistory'); location.reload();
             }
-        }
-        $('btnAdminLogin').addEventListener('click', handleLogin);
-        $('adminPassword').addEventListener('keypress', (e) => { if (e.key === 'Enter') { e.preventDefault(); handleLogin(); } });
-
-        // LOGOUT
-        $('btnAdminLogout').addEventListener('click', () => {
-            adminToken = null; sessionStorage.removeItem('adminToken');
-            $('adminLoginBox').style.display = 'block'; $('adminDashboard').style.display = 'none';
-            $('adminPassword').value = ''; $('adminError').style.display = 'none';
-            $('btnAdminLogin').disabled = false; $('btnAdminLogin').innerHTML = 'Đăng nhập ngay';
-            if (chart1) { chart1.destroy(); chart1 = null; } if (chart2) { chart2.destroy(); chart2 = null; }
         });
-
-        // CHART THEME
-        function updateChartsTheme(isDark) {
-            const textColor = isDark ? '#94a3b8' : '#64748b';
-            [chart1, chart2].forEach(c => { if (c) { c.options.plugins.legend.labels.color = textColor; c.options.scales.x.ticks.color = textColor; c.options.scales.y.ticks.color = textColor; c.update(); } });
-        }
-
-        // DELETE PROMPT
-        window.deletePrompt = async function(id) {
-            if (!confirm("Bạn có chắc chắn muốn xóa prompt này không?")) return;
-            try {
-                const res = await fetch(`${API_URL}/admin/delete_prompt/${id}`, { method: 'DELETE', headers: { 'X-Admin-Token': adminToken } });
-                if (res.ok) fetchHistory(); else alert("Lỗi khi xóa prompt!");
-            } catch { alert("Lỗi kết nối!"); }
-        };
-
-        // FETCH HISTORY
-        async function fetchHistory() {
-            const tbody = $('adminHistoryList');
-            tbody.innerHTML = '<tr><td colspan="5" class="text-center py-6 text-slate-500 text-xs">Đang tải...</td></tr>';
-            try {
-                const response = await fetch(`${API_URL}/history`, { method: 'GET', headers: { 'X-Admin-Token': adminToken } });
-                const data = await response.json();
-                if (!response.ok || !data.history) { tbody.innerHTML = '<tr><td colspan="5" class="text-center py-6 text-red-500 text-xs">Lỗi tải dữ liệu.</td></tr>'; return; }
-
-                tbody.replaceChildren();
-                let totalScore = 0, cleanCount = 0;
-                const errorCounts = {};
-                const scoreDist = { '0-3': 0, '4-6': 0, '7-8': 0, '9-10': 0 };
-
-                data.history.forEach(item => {
-                    totalScore += item.total_score;
-                    if (!item.errors || item.errors.length === 0) cleanCount++;
-                    (item.errors || []).forEach(e => { errorCounts[e.code] = (errorCounts[e.code] || 0) + 1; });
-                    const s = item.total_score;
-                    if (s <= 3) scoreDist['0-3']++; else if (s <= 6) scoreDist['4-6']++; else if (s <= 8) scoreDist['7-8']++; else scoreDist['9-10']++;
-                });
-
-                const n = data.history.length;
-                if (n > 0) {
-                    $('statTotal').textContent = n;
-                    $('statAvg').textContent = (totalScore / n).toFixed(1);
-                    $('statClean').textContent = `${Math.round((cleanCount / n) * 100)}%`;
-                } else {
-                    $('statTotal').textContent = '0'; $('statAvg').textContent = '0.0'; $('statClean').textContent = '0%';
-                }
-
-                // Render table rows
-                if (n === 0) {
-                    tbody.innerHTML = '<tr><td colspan="5" class="text-center py-6 text-slate-500 text-xs">Chưa có dữ liệu.</td></tr>';
-                } else {
-                    data.history.forEach(item => {
-                        const tr = document.createElement('tr');
-                        tr.className = 'border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/40';
-                        const errBadges = (item.errors || []).map(e =>
-                            `<span class="inline-block px-1.5 py-0.5 mr-1 mb-1 rounded text-[9px] font-bold bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300">${escapeHtml(e.code)}</span>`
-                        ).join('') || '<span class="text-green-600 text-[10px] font-bold">Sạch</span>';
-                        tr.innerHTML = `
-                            <td class="px-4 py-2 text-[11px] text-slate-500 whitespace-nowrap">${new Date(item.created_at).toLocaleString('vi-VN')}</td>
-                            <td class="px-4 py-2 max-w-xs"><div class="line-clamp-2 text-[11px] text-slate-700 dark:text-slate-300">${escapeHtml(item.prompt)}</div></td>
-                            <td class="px-4 py-2"><span class="font-bold text-pink-500">${item.total_score}</span></td>
-                            <td class="px-4 py-2">${errBadges}</td>
-                            <td class="px-4 py-2 text-center"><button onclick="deletePrompt('${escapeHtml(String(item.id))}')" class="text-red-500 hover:text-red-700 text-sm" title="Xóa">🗑</button></td>
-                        `;
-                        tbody.appendChild(tr);
-                    });
-                }
-
-                // Chart 1: Top errors (doughnut)
-                if (chart1) chart1.destroy();
-                const errLabels = Object.keys(errorCounts).length ? Object.keys(errorCounts).map(c => ERROR_NAMES[c] || c) : ['Không có lỗi'];
-                const errData = Object.keys(errorCounts).length ? Object.values(errorCounts) : [1];
-                const palette = ['#ec4899','#3b82f6','#22c55e','#f59e0b','#8b5cf6','#ef4444','#06b6d4','#84cc16','#f97316','#6366f1'];
-                chart1 = new Chart($('errorChart').getContext('2d'), {
-                    type: 'doughnut',
-                    data: {
-                        labels: errLabels,
-                        datasets: [{ data: errData, backgroundColor: palette, borderWidth: 0 }]
-                    },
-                    options: {
-                        responsive: true, maintainAspectRatio: false, cutout: '60%',
-                        plugins: { legend: { position: 'bottom', labels: { color: document.documentElement.classList.contains('dark') ? '#94a3b8' : '#64748b', font: { size: 10 }, boxWidth: 10 } } }
-                    }
-                });
-
-                // Chart 2: Score distribution (bar)
-                if (chart2) chart2.destroy();
-                chart2 = new Chart($('scoreChart').getContext('2d'), {
-                    type: 'bar',
-                    data: {
-                        labels: ['0-3', '4-6', '7-8', '9-10'],
-                        datasets: [{
-                            label: 'Số prompt',
-                            data: [scoreDist['0-3'], scoreDist['4-6'], scoreDist['7-8'], scoreDist['9-10']],
-                            backgroundColor: ['#ef4444', '#f59e0b', '#3b82f6', '#22c55e'],
-                            borderRadius: 6, borderSkipped: false
-                        }]
-                    },
-                    options: {
-                        responsive: true, maintainAspectRatio: false,
-                        plugins: { legend: { display: false } },
-                        scales: {
-                            x: { ticks: { color: document.documentElement.classList.contains('dark') ? '#94a3b8' : '#64748b', font: { size: 10 } }, grid: { display: false } },
-                            y: { beginAtZero: true, ticks: { color: document.documentElement.classList.contains('dark') ? '#94a3b8' : '#64748b', font: { size: 10 }, precision: 0 }, grid: { color: 'rgba(148,163,184,.15)' } }
-                        }
-                    }
-                });
-            } catch (e) {
-                console.error(e);
-                tbody.innerHTML = '<tr><td colspan="5" class="text-center py-6 text-red-500 text-xs">Lỗi kết nối Server.</td></tr>';
-            }
-        }
-
-        // FETCH IP LOGS
-        async function fetchIpLogs() {
-            const tbody = $('ipLogsList');
-            tbody.innerHTML = '<tr><td colspan="3" class="text-center py-6 text-slate-500 text-xs">Đang tải...</td></tr>';
-            try {
-                const res = await fetch(`${API_URL}/admin/ip_logs`, { headers: { 'X-Admin-Token': adminToken } });
-                const data = await res.json();
-                if (!res.ok || !data.logs) { tbody.innerHTML = '<tr><td colspan="3" class="text-center py-6 text-red-500 text-xs">Lỗi tải dữ liệu IP.</td></tr>'; return; }
-                if (data.logs.length === 0) { tbody.innerHTML = '<tr><td colspan="3" class="text-center py-6 text-slate-500 text-xs">Chưa có log nào.</td></tr>'; return; }
-                tbody.replaceChildren();
-                data.logs.forEach(log => {
-                    const tr = document.createElement('tr');
-                    tr.className = 'border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/40';
-                    tr.innerHTML = `
-                        <td class="px-4 py-2 text-[11px] text-slate-500 whitespace-nowrap">${new Date(log.created_at || log.timestamp).toLocaleString('vi-VN')}</td>
-                        <td class="px-4 py-2 text-[11px] font-mono text-slate-700 dark:text-slate-300">${escapeHtml(log.ip || '—')}</td>
-                        <td class="px-4 py-2 text-[11px] text-slate-600 dark:text-slate-400">${escapeHtml(log.user_agent || '—')}</td>
-                    `;
-                    tbody.appendChild(tr);
-                });
-            } catch {
-                tbody.innerHTML = '<tr><td colspan="3" class="text-center py-6 text-red-500 text-xs">Lỗi kết nối Server.</td></tr>';
-            }
-        }
-
-        // TỰ ĐỘNG ĐĂNG NHẬP LẠI NẾU CÓ TOKEN TRONG SESSION
-        (function autoRestore() {
-            const t = sessionStorage.getItem('adminToken');
-            if (t) {
-                adminToken = t;
-                $('adminLoginBox').style.display = 'none';
-                $('adminDashboard').style.display = 'block';
-                switchTab('overview');
-                fetchHistory();
-            }
-        })();
     </script>
 </body>
 </html>
