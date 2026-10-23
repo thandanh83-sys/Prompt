@@ -1,7 +1,4 @@
 # error_rules.py
-# Bộ luật chi tiết cho toàn bộ 17 mã lỗi trong rules_v38.py
-# Cấu trúc 10 trường: name, description, conditions, exclusions, evidence_req, related_criteria, overlap_rule, severity, fix, examples.
-
 ERROR_RULES = {
     # --- NHÓM A: HÌNH THỨC ---
     "A01": {
@@ -144,12 +141,12 @@ ERROR_RULES = {
     # --- NHÓM D: LOGIC ---
     "D01": {
         "name": "Mâu thuẫn nội bộ",
-        "description": "Các yêu cầu đá nhau, không thể thỏa mãn đồ_ng thời.",
+        "description": "Các yêu cầu đá nhau, không thể thỏa mãn đồng thời.",
         "conditions": ["Yêu cầu A và B trực tiếp phủ định nhau."],
         "exclusions": ["Mâu thuẫn do hiểu sai ngữ pháp."],
         "evidence_req": "Trích 2 vế mâu thuẫn.",
         "related_criteria": ["P14"],
-        "overlaprule": "Không gắn D02 nếu không phải bất khả thi.",
+        "overlap_rule": "Không gắn D02 nếu không phải bất khả thi.",
         "severity": "Nghiêm trọng",
         "fix": "Loại bỏ 1 trong 2 yêu cầu.",
         "examples": {"positive": ["Viết bài 1000 chữ nhưng dưới 100 chữ."], "negative": ["Viết bài 500-1000 chữ."]}
