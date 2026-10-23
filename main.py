@@ -43,11 +43,10 @@ if not ADMIN_PASSWORD or not ADMIN_SECRET_TOKEN or not GROQ_API_KEY:
 
 api_key_header = APIKeyHeader(name="X-Admin-Token", auto_error=False)
 
-# Cấu hình CORS
+# Cấu hình CORS (Đảm bảo không bị block từ GitHub Pages)
 DEFAULT_ORIGINS = ["https://thandanh83-sys.github.io"]
 env_origins = os.environ.get("ALLOWED_ORIGINS", "")
 configured_origins = [origin.strip() for origin in env_origins.split(",") if origin.strip()]
-# Always keep the deployed GitHub Pages origin allowlisted, while retaining any configured origins.
 ALLOWED_ORIGINS = list(dict.fromkeys([*DEFAULT_ORIGINS, *configured_origins]))
 
 def get_client_ip(request: Request) -> str:
@@ -136,7 +135,7 @@ def call_llm(system_prompt: str, user_prompt: str) -> str:
             messages=messages,
             response_format={"type": "json_object"},
             temperature=0.0,
-            timeout=10.0 # ĐÃ GIẢM XUỐNG 10S ĐỂ TRÁNH TIMEOUT CỦA RENDER
+            timeout=15.0 # Tối ưu thời gian
         )
         return resp.choices[0].message.content
     except Exception as e:
@@ -148,7 +147,7 @@ def call_llm(system_prompt: str, user_prompt: str) -> str:
             response = temp_model.generate_content(
                 json.dumps({"prompt_can_cham": user_prompt}, ensure_ascii=False),
                 generation_config=genai.types.GenerationConfig(response_mime_type="application/json", temperature=0.0),
-                request_options={"timeout": 15} # ĐÃ GIẢM XUỐNG 15S
+                request_options={"timeout": 20} # Tối ưu thời gian
             )
             if not response.text: raise ValueError("Gemini trả về chuỗi rỗng.")
             logger.info("Gemini trả về thành công (Fallback).")
@@ -172,31 +171,19 @@ LAST_CLEANUP_TIME = 0
 def bg_cleanup_history():
     global LAST_CLEANUP_TIME
     current_time = time.time()
-    
-    # Chỉ chạy 1 tiếng 1 lần để tránh spam DB
-    if current_time - LAST_CLEANUP_TIME < 3600: 
-        return
-        
+    if current_time - LAST_CLEANUP_TIME < 3600: return
     if not supabase: return
     try:
-        # 1. XÓA DỮ LIỆU CŨ HƠN 7 NGÀY
         seven_days_ago = (datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=7)).isoformat()
         supabase.table("history").delete().lt("created_at", seven_days_ago).execute()
-        logger.info("Đã dọn dẹp lịch sử cũ hơn 7 ngày.")
-
-        # 2. GIỚI HẠN SỐ LƯỢNG BẢN GHI (Giới hạn ở mức 500)
         count_res = supabase.table("history").select("id", count="exact").limit(1).execute()
         total_records = count_res.count
-
         if total_records and total_records > 500:
             records_to_delete_count = total_records - 400 
             oldest_res = supabase.table("history").select("id").order("created_at", ascending=True).limit(records_to_delete_count).execute()
-            
             if oldest_res.data:
                 ids_to_delete = [row["id"] for row in oldest_res.data]
                 supabase.table("history").delete().in_("id", ids_to_delete).execute()
-                logger.info(f"Đã xóa {records_to_delete_count} bản ghi cũ nhất do vượt quá 500 bản ghi.")
-
         LAST_CLEANUP_TIME = current_time
     except Exception as e:
         logger.warning(f"LỖI BACKGROUND: Không thể dọn dẹp lịch sử: {e}")
@@ -227,14 +214,9 @@ def admin_login(request: Request, req: LoginRequest, client_ip: str = Depends(ve
     if secrets.compare_digest(req.password, ADMIN_PASSWORD):
         if supabase:
             try:
-                supabase.table("admin_login_logs").insert({
-                    "ip_address": client_ip,
-                    "user_agent": request.headers.get("user-agent", "Unknown")
-                }).execute()
-                logger.info(f"Admin đăng nhập từ IP: {client_ip}")
+                supabase.table("admin_login_logs").insert({"ip_address": client_ip, "user_agent": request.headers.get("user-agent", "Unknown")}).execute()
             except Exception as e:
                 logger.error(f"Lỗi lưu log IP Admin: {e}")
-                
         return {"token": ADMIN_SECRET_TOKEN}
     raise HTTPException(status_code=401, detail="Sai mật khẩu")
 
@@ -247,7 +229,6 @@ def get_ip_logs(token: str = Depends(api_key_header), client_ip: str = Depends(v
         res = supabase.table("admin_login_logs").select("*").order("login_time", desc=True).limit(50).execute()
         return {"logs": res.data}
     except Exception as e:
-        logger.error(f"Lỗi lấy log IP: {e}")
         raise HTTPException(status_code=500, detail="Lỗi máy chủ khi lấy log IP")
 
 @app.get("/history")
@@ -259,10 +240,8 @@ def get_history(token: str = Depends(api_key_header), client_ip: str = Depends(v
         res = supabase.table("history").select("id, prompt, type, total_score, created_at, errors").order("created_at", desc=True).limit(100).execute()
         return {"history": res.data}
     except Exception as e:
-        logger.error(f"Lỗi lấy lịch sử: {e}")
         raise HTTPException(status_code=500, detail="Lỗi máy chủ")
 
-# --- API XÓA PROMPT (DÀNH CHO ADMIN) ---
 @app.delete("/admin/delete_prompt/{prompt_id}")
 def delete_prompt(prompt_id: int, token: str = Depends(api_key_header), client_ip: str = Depends(verify_admin_ip)):
     if not token or not secrets.compare_digest(token, ADMIN_SECRET_TOKEN):
@@ -272,7 +251,6 @@ def delete_prompt(prompt_id: int, token: str = Depends(api_key_header), client_i
         supabase.table("history").delete().eq("id", prompt_id).execute()
         return {"status": "success", "message": "Đã xóa Prompt"}
     except Exception as e:
-        logger.error(f"Lỗi xóa prompt: {e}")
         raise HTTPException(status_code=500, detail="Lỗi khi xóa")
 
 @app.post("/evaluate")
@@ -325,22 +303,18 @@ MÃ LỖI:
 CHỈ TRẢ VỀ CHUỖI JSON HỢP LỆ. KHÔNG THÊM BẤT KỲ VĂN BẢN NÀO KHÁC.
 """
         
-        ai_data = None
-        for attempt in range(2):
-            try:
-                raw_text = call_llm(system_prompt, prompt_text)
-                if not raw_text: raise ReportValidationError("AI trả về rỗng.")
-                
-                json_str = extract_json(raw_text)
-                ai_data = json.loads(json_str)
-                validate_full_report(ai_data, main_criteria, tech_criteria, prompt_text)
-                break 
-            except (json.JSONDecodeError, ReportValidationError) as e:
-                logger.warning(f"Lần {attempt+1}: Lỗi ({e}). Đang thử lại...")
-                ai_data = None
-
-        if ai_data is None:
-            return JSONResponse(status_code=502, content={"error": "AI trả về dữ liệu không hợp lệ. Vui lòng thử lại."})
+        # TỐI ƯU: CHỈ GỌI 1 LẦN, KHÔNG LẶP LẠI ĐỂ TRÁNH TIMEOUT
+        try:
+            raw_text = call_llm(system_prompt, prompt_text)
+            if not raw_text: raise ReportValidationError("AI trả về rỗng.")
+            
+            json_str = extract_json(raw_text)
+            ai_data = json.loads(json_str)
+            validate_full_report(ai_data, main_criteria, tech_criteria, prompt_text)
+        except Exception as e:
+            logger.error(f"Lỗi khi gọi AI hoặc Validate JSON: {e}")
+            # Trả về lỗi 502 ngay lập tức nếu AI trả về sai định dạng
+            return JSONResponse(status_code=502, content={"error": "AI trả về dữ liệu không hợp lệ. Vui lòng thử lại với câu lệnh ngắn hơn."})
 
         final_score = calculate_final_score(ai_data["scores"], main_criteria, tech_criteria)
         display_details = {all_criteria[k]["name"]: v for k, v in ai_data["scores"].items() if k in all_criteria}
