@@ -42,6 +42,7 @@ CRITERIA_PROMPT = {
     "P14": {"name": "Không mâu thuẫn", "weight": 0.2, "rubric": "0-2: Nhiều mâu thuẫn. 3-4: Có mâu thuẫn. 5-6: Ít mâu thuẫn. 7-10: Không mâu thuẫn."}
 }
 
+# (Giữ nguyên các CRITERIA_STEM, TEMPLATE, META, TABLE, ROLE_PLAY, FEW_SHOT, COT, FORMATTED_OUTPUT, CREATIVE như cũ)
 CRITERIA_STEM = {
     "S01": {"name": "Xác định dạng bài/dữ kiện", "weight": 1.5, "rubric": "0-2: Không rõ dạng bài. 3-4: Dạng bài hoặc dữ kiện được nêu nhưng còn thiếu rõ ràng. 5-6: Dạng bài và phần lớn dữ kiện đã rõ. 7-10: Rõ ràng chi tiết."},
     "S02": {"name": "Yêu cầu tìm gì", "weight": 1.5, "rubric": "0-2: Không rõ cần tìm gì. 3-4: Nêu điều cần tìm nhưng còn mơ hồ. 5-6: Mục tiêu tìm kiếm khá rõ, còn thiếu một giới hạn nhỏ. 7-10: Rõ mục tiêu."},
