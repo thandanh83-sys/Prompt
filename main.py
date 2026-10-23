@@ -115,7 +115,7 @@ def call_llm(system_prompt: str, user_prompt: str) -> str:
     
     try:
         resp = client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
+            model="openai/gpt-oss-120b",
             messages=messages,
             response_format={"type": "json_object"},
             temperature=0.1, 
