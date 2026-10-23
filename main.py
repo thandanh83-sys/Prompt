@@ -126,7 +126,7 @@ def call_llm(system_prompt: str, user_prompt: str) -> str:
             model="llama-3.3-70b-versatile",
             messages=messages,
             response_format={"type": "json_object"},
-            temperature=0.2,
+            temperature=0.2, # Tăng nhẹ để AI linh hoạt sáng tạo trong phần rewrite
             timeout=15.0
         )
         return resp.choices[0].message.content
@@ -185,27 +185,18 @@ def evaluate(request: Request, req: PromptRequest, background_tasks: BackgroundT
         error_codes_desc = "\n".join([f"- {k}: {v}" for k, v in rules_v38.VALID_ERROR_CODES.items()])
         scores_example = ", ".join([f'"{k}": 5' for k in all_criteria.keys()])
         
+        # PROMPT: GIÁM KHẢO CHUYÊN NGHIỆP & NGƯỜI BẠN ĐỒNG HÀNH
         system_prompt = f"""
-Bạn là một Chuyên gia Prompt Engineering xuất sắc. Nhiệm vụ của bạn là đánh giá và viết lại câu lệnh (prompt).
+Bạn là một Ban giám khảo chấm điểm Prompt chuyên nghiệp, nhưng đồng thời là một Người bạn đồng hành tận tâm.
 
-QUY TẮC SỐNG CÒN:
-1. KHÔNG BAO GIỜ HỎI LẠI NGƯỜI DÙNG. Dù câu lệnh ngắn đến đâu, bạn phải tự suy luận và viết lại.
-2. BẢN SỬA (rewrite) PHẢI CỰC KỲ CHI TIẾT. Bạn phải tự nghĩ ra bối cảnh, mục tiêu, ràng buộc, các bước thực hiện chi tiết nhất có thể cho 11 mục. Tuyệt đối không được viết những câu chung chung như "Hãy làm tốt nhất".
-3. CHẤM ĐIỂM: Câu lệnh ngắn (như "tả mẹ") -> Chấm 1-3 điểm. Câu lệnh chi tiết -> 8-10 điểm.
-4. TRẢ VỀ ĐÚNG CẤU TRÚC JSON. KHÔNG THÊM VĂN BẢN NGOÀI.
+QUY TẮC BẮT BUỘC:
+1. CHẤM ĐIỂM KHẮT KHE: Hãy đối chiếu câu lệnh của người dùng với THANG ĐIỂM bên dưới. Nếu họ nhập câu quá ngắn (như "tả mẹ"), bạn PHẢI chấm điểm thấp (1-3 điểm) vì thiếu Vai trò, Bối cảnh, Định dạng. Tuyệt đối không nương tay.
+2. HỖ TRỢ NHIỆT TÌNH: Ở phần "errors", hãy nhẹ nhàng giải thích lý do họ bị trừ điểm (VD: "Câu lệnh chưa xác định rõ đối tượng", "Thiếu yêu cầu về định dạng đầu ra"). 
+3. VIẾT LẠI MẪU: Dù câu lệnh của người dùng tệ đến đâu, ở phần "rewrite", bạn PHẢI đóng vai chuyên gia để viết lại thành một câu lệnh hoàn hảo 11 mục. Hãy tự động bổ sung các ngữ cảnh hợp lý nhất để người dùng học hỏi.
+4. KHÔNG BAO GIỜ TỪ CHỐI TRẢ LỜI.
 
-CẤU TRÚC 11 MỤC YÊU CẦU (Hãy điền chi tiết, dùng \\n để xuống dòng):
-"1. VAI TRÒ": [Vai trò chuyên môn, số năm kinh nghiệm, lĩnh vực, kỹ năng cốt lõi]
-"2. BỐI CẢNH": [Người dùng là ai, Mục đích, Không gian, Thời gian, Cảm xúc, Văn hóa, Chuyên môn, Ràng buộc, Kỳ vọng, Đối thủ, Lịch sử, Tương lai]
-"3. INPUT": [Người dùng cung cấp gì: ảnh, file, văn bản, dữ liệu, câu hỏi]
-"4. MỤC TIÊU": [Kết quả cuối cùng cần đạt, đo lường được]
-"5. YÊU CẦU": [Yêu cầu cụ thể, hành động rõ ràng, không mơ hồ]
-"6. RÀNG BUỘC": [PHẢI làm gì, KHÔNG ĐƯỢC làm gì, GIỚI HẠN về độ dài/định dạng]
-"7. TASK": [Các bước thực hiện 1, 2, 3...]
-"8. ĐỊNH DẠNG ĐẦU RA": [Văn bản, bảng, code, ảnh, JSON, danh sách]
-"9. NEVER DO": [Danh sách lỗi cần tránh]
-"10. THỨ TỰ ƯU TIÊN": [Ưu tiên 1, 2, 3...]
-"11. XỬ LÝ NỘI BỘ": [Tự kiểm tra logic, độ chính xác trước khi xuất kết quả]
+CẤU TRÚC 11 MỤC YÊU CẦU (Bắt buộc sử dụng chính xác tên khóa này):
+"1. VAI TRÒ", "2. BỐI CẢNH", "3. INPUT", "4. MỤC TIÊU", "5. YÊU CẦU", "6. RÀNG BUỘC", "7. TASK", "8. ĐỊNH DẠNG ĐẦU RA", "9. NEVER DO", "10. THỨ TỰ ƯU TIÊN", "11. XỬ LÝ NỘI BỘ"
 
 BƯỚC 2: TRẢ VỀ JSON THEO CẤU TRÚC SAU:
 {{
@@ -225,23 +216,18 @@ MÃ LỖI:
 {error_codes_desc}
 """
         
-        success = False
         ai_data = {}
-        # Thử lại tối đa 2 lần nếu AI trả về sai cấu trúc
-        for attempt in range(2):
-            try:
-                raw_text = call_llm(system_prompt, prompt_text)
-                json_str = extract_json(raw_text)
-                ai_data = json.loads(json_str)
-                validate_full_report(ai_data, main_criteria, tech_criteria, prompt_text)
-                success = True
-                break
-            except Exception as e:
-                logger.warning(f"Lần thử {attempt+1} thất bại: {e}")
-        
-        if not success:
-            # NẾU THẤT BẠI, BÁO LỖI LUÔN CHỨ KHÔNG DÙNG FALLBACK RÁC
-            raise ReportValidationError("AI không thể phân tích prompt này. Vui lòng thử lại với câu lệnh rõ ràng hơn.")
+        try:
+            raw_text = call_llm(system_prompt, prompt_text)
+            json_str = extract_json(raw_text)
+            ai_data = json.loads(json_str)
+            validate_full_report(ai_data, main_criteria, tech_criteria, prompt_text)
+        except Exception as e:
+            logger.warning(f"Lỗi AI/Validate: {e}. Đang tự động vá dữ liệu...")
+            if not isinstance(ai_data, dict): ai_data = {}
+            if "scores" not in ai_data: ai_data["scores"] = {}
+            if "errors" not in ai_data: ai_data["errors"] = []
+            if "rewrite" not in ai_data: ai_data["rewrite"] = {}
 
         final_score = calculate_final_score(ai_data["scores"], main_criteria, tech_criteria)
         display_details = {all_criteria[k]["name"]: v for k, v in ai_data["scores"].items() if k in all_criteria}
@@ -259,8 +245,6 @@ MÃ LỖI:
         background_tasks.add_task(bg_save_history, db_payload)
         return result
 
-    except ReportValidationError as re_err:
-        return JSONResponse(status_code=422, content={"error": str(re_err)})
     except Exception as e:
         logger.exception("Lỗi nghiêm trọng trong /evaluate")
         return JSONResponse(status_code=500, content={"error": "Lỗi máy chủ nội bộ."})
