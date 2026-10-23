@@ -6,6 +6,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     
+    <!-- Đã thêm thẻ theme-color để sửa triệt để lỗi setAttribute null -->
     <meta name="theme-color" content="#f8f7fc">
     <title>Đánh giá Prompt - Trợ lý AI</title>
     
@@ -522,6 +523,7 @@
                         rewrite: cachedResult.rewrite
                     };
 
+                    lastResult = data; // Gán để nút Copy hoạt động
                     render(data);
                     return; // Dừng luồng, không chạy fetch API
                 }
