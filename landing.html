@@ -6,7 +6,6 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     
-    <!-- Đã thêm thẻ theme-color để sửa triệt để lỗi setAttribute null -->
     <meta name="theme-color" content="#f8f7fc">
     <title>Đánh giá Prompt - Trợ lý AI</title>
     
@@ -213,7 +212,6 @@
 
         <div id="resultArea" class="w-full mx-auto mt-8 space-y-6" style="display: none;">
             
-            <!-- Khối Điểm tổng và Phân loại -->
             <div class="bg-white/80 dark:bg-[#1e293b]/80 backdrop-blur-md border border-slate-200 dark:border-slate-700/60 shadow-xl rounded-3xl p-6">
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                     <div class="flex flex-col w-full md:w-1/2">
@@ -237,7 +235,6 @@
                 </div>
             </div>
 
-            <!-- Điểm sáng -->
             <div id="highlightArea" class="bg-white/80 dark:bg-[#1e293b]/80 backdrop-blur-md border border-slate-200 dark:border-slate-700/60 shadow-xl rounded-3xl p-6">
                 <h3 class="font-bold text-sm mb-3 text-green-700 dark:text-green-400 flex items-center gap-2">
                     <span class="text-lg">🌟</span> Điểm sáng của bạn
@@ -246,7 +243,6 @@
                 </ul>
             </div>
 
-            <!-- Điểm nên luyện thêm (Lỗi) -->
             <div class="bg-white/80 dark:bg-[#1e293b]/80 backdrop-blur-md border border-slate-200 dark:border-slate-700/60 shadow-xl rounded-3xl p-6">
                 <h3 class="font-bold text-sm mb-4 text-slate-800 dark:text-slate-200 flex items-center gap-2">
                     <span class="w-2.5 h-2.5 rounded-full bg-red-500"></span> Điểm nên luyện thêm
@@ -254,13 +250,11 @@
                 <div id="errorListArea" class="space-y-4"></div>
             </div>
 
-            <!-- Chi tiết điểm -->
             <div class="bg-white/80 dark:bg-[#1e293b]/80 backdrop-blur-md border border-slate-200 dark:border-slate-700/60 shadow-xl rounded-3xl p-6">
                 <h3 class="font-bold text-sm mb-5 text-slate-800 dark:text-slate-200 flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-blue-500"></span> Chi tiết điểm</h3>
                 <div id="criteriaList" class="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5"></div>
             </div>
 
-            <!-- Bản sửa hoàn chỉnh -->
             <div class="bg-white/80 dark:bg-[#1e293b]/80 backdrop-blur-md border border-slate-200 dark:border-slate-700/60 shadow-xl rounded-3xl overflow-hidden">
                 <div class="flex justify-between items-center px-5 py-4 border-b border-slate-200 dark:border-slate-700/50 bg-slate-50 dark:bg-slate-800/40">
                     <h3 class="font-bold text-sm text-slate-800 dark:text-slate-200 flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-indigo-500"></span> Bản sửa hoàn chỉnh</h3>
@@ -269,7 +263,7 @@
                         <span id="copyBtnText">Sao chép</span>
                     </button>
                 </div>
-                <div id="rewriteList" class="p-6 space-y-0 text-sm"></div>
+                <div id="rewriteList" class="p-6 space-y-6 text-sm"></div>
             </div>
             
         </div>
@@ -327,6 +321,7 @@
 
         <div class="mt-6 flex items-center justify-center">
             <label class="flex items-center gap-2.5 cursor-pointer group" title="Tắt thông báo">
+                <!-- Đã đổi chữ tại đây -->
                 <input type="checkbox" id="chkDontShowAgain" title="Tắt thông báo">
                 <span class="text-sm font-medium text-slate-300 group-hover:text-white transition-colors">Tắt thông báo</span>
             </label>
@@ -350,14 +345,19 @@
             if (themeColor) themeColor.setAttribute('content', dark ? '#0b1120' : '#f8f7fc');
         }
         
+        function getTodayDateString() {
+            const d = new Date();
+            return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        }
+
         function closeGuideModal() {
             const chk = document.getElementById('chkDontShowAgain');
             const modal = document.getElementById('guideModal');
             
             if (chk && chk.checked) {
-                try { localStorage.setItem('promptGuideRead', 'true'); } catch (e) {}
+                try { localStorage.setItem('promptGuideReadDate', getTodayDateString()); } catch (e) {}
             } else {
-                try { localStorage.removeItem('promptGuideRead'); } catch (e) {}
+                try { localStorage.removeItem('promptGuideReadDate'); } catch (e) {}
             }
             
             if (modal) {
@@ -377,11 +377,12 @@
             }
 
             const guideModal = document.getElementById('guideModal');
-            let isRead = null;
-            try { isRead = localStorage.getItem('promptGuideRead'); } catch (e) {}
+            const todayStr = getTodayDateString();
+            let readDate = null;
+            try { readDate = localStorage.getItem('promptGuideReadDate'); } catch (e) {}
             
             if (guideModal) {
-                if (isRead !== 'true') {
+                if (readDate !== todayStr) { 
                     guideModal.style.display = 'flex';
                     setTimeout(() => { guideModal.style.opacity = '1'; }, 10);
                 } else {
@@ -401,6 +402,24 @@
         const SECTION_NAMES = ["1. VAI TRÒ", "2. BỐI CẢNH", "3. INPUT", "4. MỤC TIÊU", "5. YÊU CẦU", "6. RÀNG BUỘC", "7. TASK", "8. ĐỊNH DẠNG ĐẦU RA", "9. NEVER DO", "10. THỨ TỰ ƯU TIÊN", "11. XỬ LÝ NỘI BỘ"];
         const $ = id => document.getElementById(id);
         let lastResult = null;
+
+        // HÀM FORMAT TEXT: Tự động xuống dòng cho 1. 2. 3. và - - - chuẩn chỉnh 100%
+        function formatContent(text) {
+            if (!text) return '';
+            // 1. Chuyển đổi ký tự literal \n thành xuống dòng thật
+            let formatted = text.replace(/\\n/g, '\n');
+            
+            // 2. Thêm xuống dòng trước các số thứ tự (1., 2., 3.) nếu nó bị dính vào câu trước
+            formatted = formatted.replace(/([^\n])\s*(\d+[\.\)])\s+/g, '$1\n$2 ');
+            
+            // 3. Thêm xuống dòng trước các dấu gạch đầu dòng (-) nếu dính chùm
+            formatted = formatted.replace(/([^\n])\s*([-*+])\s+/g, '$1\n$2 ');
+            
+            // 4. Xoá các dòng trống thừa (nếu có nhiều hơn 1 dòng trống)
+            formatted = formatted.replace(/\n\s*\n/g, '\n');
+            
+            return formatted.trim();
+        }
 
         function saveToLocalStorage(promptText, resultData) {
             try {
@@ -523,9 +542,9 @@
                         rewrite: cachedResult.rewrite
                     };
 
-                    lastResult = data; // Gán để nút Copy hoạt động
+                    lastResult = data;
                     render(data);
-                    return; // Dừng luồng, không chạy fetch API
+                    return; 
                 }
             } catch (e) {
                 console.error("Lỗi đọc lịch sử:", e);
@@ -625,19 +644,17 @@
                 errorListArea.appendChild(successDiv);
             }
 
+            // BẢN SỬA 11 MỤC (Đã xóa đường kẻ ngang, thêm khoảng cách margin)
             $('rewriteList').replaceChildren();
             SECTION_NAMES.forEach(sec => {
                 let contentText = r.rewrite?.[sec] ?? 'AI chưa trả về nội dung cho mục này.';
                 
-                // Sửa lỗi AI trả về chuỗi \n (hoặc \\n) thành xuống dòng thật
-                contentText = contentText.replace(/\\n/g, '\n').replace(/\\n/g, '\n');
-                
-                // Tự động thêm xuống dòng trước các số 1. 2. 3. hoặc dấu - nếu dính chùm
-                contentText = contentText.replace(/(\d+\.\s)/g, '\n$1').replace(/(\-\s)/g, '\n$1');
-                contentText = contentText.replace(/\n\s*\n/g, '\n'); 
+                // Sử dụng hàm formatContent để tự động ngắt dòng đẹp mắt
+                contentText = formatContent(contentText);
 
                 const item = document.createElement('div'); 
-                item.className = 'py-5 border-b border-slate-200 dark:border-slate-700 last:border-0 last:pb-0 first:pt-0'; 
+                // Bỏ border-b, chỉ dùng margin-bottom để tạo khoảng cách
+                item.className = 'mb-6 last:mb-0'; 
                 item.innerHTML = `<p class="font-bold text-pink-500 mb-2 text-[13px] uppercase">${sec}</p><p class="text-slate-700 dark:text-slate-300 whitespace-pre-wrap break-words text-sm leading-relaxed">${contentText}</p>`;
                 $('rewriteList').appendChild(item);
             });
@@ -650,8 +667,8 @@
             if (!lastResult) return; let text = ""; 
             SECTION_NAMES.forEach(sec => { 
                 let contentText = lastResult.rewrite[sec] || ''; 
-                // Đảm bảo copy ra cũng có xuống dòng chuẩn
-                contentText = contentText.replace(/\\n/g, '\n').replace(/\\n/g, '\n').replace(/(\d+\.\s)/g, '\n$1').replace(/(\-\s)/g, '\n$1');
+                // Đảm bảo copy ra cũng được format ngắt dòng chuẩn chỉnh
+                contentText = formatContent(contentText);
                 text += `${sec}:\n${contentText}\n\n`; 
             });
             try {
