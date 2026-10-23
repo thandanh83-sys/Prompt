@@ -180,7 +180,7 @@
         });
     </script>
 
-    <main class="w-full max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 md:pt-32 pb-32 flex-grow flex flex-col z-10 min-h-screen">
+    <main class="w-full max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 md:pt-32 pb-16 flex-grow flex flex-col z-10 min-h-screen">
         
         <div class="text-center mb-8 md:mb-10">
             <h1 class="text-3xl sm:text-4xl md:text-5xl font-extrabold mb-4">
@@ -252,7 +252,6 @@
 
             <div class="bg-white/80 dark:bg-[#1e293b]/80 backdrop-blur-md border border-slate-200 dark:border-slate-700/60 shadow-xl rounded-3xl p-6">
                 <h3 class="font-bold text-sm mb-5 text-slate-800 dark:text-slate-200 flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-blue-500"></span> Chi tiết điểm</h3>
-                <!-- ĐÃ ÉP CHIA 2 CỘT TRÊN MỌI THIẾT BỊ -->
                 <div id="criteriaList" class="grid grid-cols-2 gap-x-4 sm:gap-x-8 gap-y-4 sm:gap-y-5"></div>
             </div>
 
@@ -269,6 +268,11 @@
             
         </div>
     </main>
+
+    <!-- FOOTER THÊM VÀO GIỐNG INDEX -->
+    <footer class="border-t border-slate-200 dark:border-white/10 py-8 text-center text-slate-500 text-sm relative z-10 mt-auto">
+        <p>© 2026 Trợ lý AI - Nghiên cứu AI & Tư duy.</p>
+    </footer>
 
     <div id="loginModal" class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm hidden opacity-0 transition-opacity duration-300">
         <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-sm p-6 relative border border-slate-200 dark:border-slate-700">
@@ -615,7 +619,6 @@
             Object.entries(r.details).forEach(([name, score]) => {
                 const cleanName = name.replace(/[\.\s]+$/, '');
                 const row = document.createElement('div'); 
-                // Đã tinh chỉnh lại khoảng cách chữ cho 2 cột trên mobile
                 row.innerHTML = `<div class="flex justify-between items-start mb-1.5 gap-2"><span class="text-[11px] font-semibold text-slate-600 dark:text-slate-400 leading-tight break-words">${cleanName}</span><span class="text-xs font-bold text-slate-800 dark:text-slate-200 shrink-0">${score}</span></div><div class="w-full bg-slate-100 dark:bg-[#0f172a] rounded-full h-1.5 sm:h-2"><div class="h-1.5 sm:h-2 rounded-full bg-gradient-to-r from-pink-500 to-blue-500" style="width: ${score * 10}%"></div></div>`;
                 $('criteriaList').appendChild(row);
             });
