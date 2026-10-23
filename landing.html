@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
-    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     
     <meta name="theme-color" content="#f8f7fc">
@@ -26,6 +26,7 @@
     </script>
     
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Thư viện Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>tailwind.config = { darkMode: 'class' }</script>
 
@@ -243,7 +244,7 @@
                         </div>
                     </div>
 
-                    <!-- ĐIỂM SÁNG CỦA BẠN (Khôi phục) -->
+                    <!-- ĐIỂM SÁNG CỦA BẠN -->
                     <div id="highlightArea" class="bg-green-50/50 dark:bg-green-900/10 border border-green-200 dark:border-green-800/50 shadow-sm rounded-3xl p-6">
                         <h3 class="font-bold text-sm mb-3 text-green-700 dark:text-green-400 flex items-center gap-2">
                             <span class="text-lg">🌟</span> Điểm sáng của bạn
@@ -259,7 +260,7 @@
                         <div id="criteriaList" class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4"></div>
                     </div>
 
-                    <!-- THẦY HƯỚNG DẪN SỬA PROMPT (Khôi phục & Fix AI) -->
+                    <!-- THẦY HƯỚNG DẪN SỬA PROMPT -->
                     <section id="teacherArea" class="bg-white/80 dark:bg-[#1e293b]/80 backdrop-blur-md border border-slate-200 dark:border-slate-700/60 shadow-xl rounded-3xl p-6">
                         <h3 class="font-bold text-sm mb-2 text-slate-800 dark:text-slate-200 flex items-center gap-2">
                             <span class="w-2 h-2 rounded-full bg-purple-500"></span> Thầy hướng dẫn sửa prompt
@@ -272,7 +273,7 @@
                         </div>
                     </section>
 
-                    <!-- LỖI PHÁT HIỆN (Khôi phục) -->
+                    <!-- LỖI PHÁT HIỆN -->
                     <div class="bg-white/80 dark:bg-[#1e293b]/80 backdrop-blur-md border border-slate-200 dark:border-slate-700/60 shadow-xl rounded-3xl p-6">
                         <h3 class="font-bold text-sm mb-4 text-slate-800 dark:text-slate-200 flex items-center gap-2">
                             <span class="w-2.5 h-2.5 rounded-full bg-red-500"></span> Lỗi phát hiện
@@ -388,7 +389,9 @@
         const API_URL = "https://prompt-tx2e.onrender.com"; 
         const SUPABASE_URL = "https://egncrbearrwfoslryuga.supabase.co";
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVnbmNyYmVhcnJ3Zm9zbHJ5dWdhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI1MDk2MzgsImV4cCI6MjEwODA4NTYzOH0.jX8rz7Fk5wIqdbDqb6ZwKUiMs-wggVRj-dLk2dqlYFM"; 
-        const supabase = window.supabase?.createClient ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+        
+        // ĐÃ SỬA: Đổi tên biến thành supabaseClient để không trùng với thư viện CDN
+        const supabaseClient = window.supabase?.createClient ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 
         const SECTION_NAMES = ["1. VAI TRÒ", "2. BỐI CẢNH", "3. INPUT", "4. MỤC TIÊU", "5. YÊU CẦU", "6. RÀNG BUỘC", "7. TASK", "8. ĐỊNH DẠNG ĐẦU RA", "9. NEVER DO", "10. THỨ TỰ ƯU TIÊN", "11. XỬ LÝ NỘI BỘ"];
         const $ = id => document.getElementById(id);
@@ -428,8 +431,8 @@
         }
 
         async function checkAuthState() {
-            if (!supabase) return;
-            const { data: { session } } = await supabase.auth.getSession();
+            if (!supabaseClient) return;
+            const { data: { session } } = await supabaseClient.auth.getSession();
             if (session) {
                 $('btnShowLogin').classList.add('hidden'); $('userAvatarMenu').classList.remove('hidden');
                 const displayName = session.user.email.split('@')[0];
@@ -446,17 +449,23 @@
         
         $('btnSendMagicLink').addEventListener('click', async () => {
             const email = $('loginEmail').value.trim(); const errorMsg = $('loginError'); const btn = $('btnSendMagicLink');
-            if (!supabase) { errorMsg.textContent = 'Lỗi tải thư viện đăng nhập.'; errorMsg.classList.remove('hidden'); return; }
+            if (!supabaseClient) { errorMsg.textContent = 'Lỗi tải thư viện đăng nhập.'; errorMsg.classList.remove('hidden'); return; }
             if (!email) { errorMsg.textContent = "Vui lòng nhập email!"; errorMsg.classList.remove('hidden'); return; }
             btn.textContent = "Đang gửi..."; btn.disabled = true; errorMsg.classList.add('hidden');
-            const { error } = await supabase.auth.signInWithOtp({ email: email, options: { emailRedirectTo: window.location.href } });
+            
+            const { error } = await supabaseClient.auth.signInWithOtp({ email: email, options: { emailRedirectTo: window.location.href } });
+            
             if (error) { errorMsg.textContent = error.message; errorMsg.classList.remove('hidden'); btn.textContent = "Gửi link đăng nhập"; btn.disabled = false; } 
             else { alert("Đã gửi link! Vui lòng kiểm tra hộp thư (hoặc mục Spam)."); $('btnCloseLoginModal').click(); btn.textContent = "Gửi link đăng nhập"; btn.disabled = false; }
         });
 
         $('btnAvatar').addEventListener('click', (e) => { e.stopPropagation(); $('avatarDropdown').classList.remove('hidden'); setTimeout(() => $('avatarDropdown').classList.remove('opacity-0', 'scale-95'), 10); });
         document.addEventListener('click', () => { if (!$('avatarDropdown').classList.contains('hidden')) { $('avatarDropdown').classList.add('opacity-0', 'scale-95'); setTimeout(() => $('avatarDropdown').classList.add('hidden'), 200); } });
-        $('btnLogoutHeader').addEventListener('click', async () => { if(supabase) await supabase.auth.signOut(); window.location.reload(); });
+        
+        $('btnLogoutHeader').addEventListener('click', async () => { 
+            if(supabaseClient) await supabaseClient.auth.signOut();
+            window.location.reload(); 
+        });
 
         function copyTextToClipboard(text) {
             if (navigator.clipboard && window.isSecureContext) return navigator.clipboard.writeText(text);
@@ -554,16 +563,14 @@
                 $('criteriaList').appendChild(row);
             });
 
-            // 3. RENDER THẦY HƯỚNG DẪN SỬA PROMPT (Tự động tạo từ điểm yếu & lỗi)
+            // 3. RENDER THẦY HƯỚNG DẪN SỬA PROMPT
             const teacherContainer = $("teacherFeedback");
             teacherContainer.replaceChildren();
             
             const weakCriteria = [];
             Object.entries(r.details).forEach(([name, score]) => {
                 if (score < 7) {
-                    // Tìm lỗi tương ứng để làm lý do
                     let reason = "Tiêu chí này đang ở mức cần cải thiện. Bạn nên xem lại phần 'Lỗi phát hiện' để biết cách sửa cụ thể.";
-                    // Lấy ngẫu nhiên 1 gợi ý từ lỗi nếu có
                     if (r.errors && r.errors.length > 0) {
                         const matchingError = r.errors.find(e => e.hint);
                         if (matchingError) reason = matchingError.hint;
