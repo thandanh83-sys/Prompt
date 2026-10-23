@@ -102,21 +102,21 @@ CRITERIA_FEW_SHOT = {
 }
 
 CRITERIA_COT = {
-    "C01": {"name": "Yêu cầu giải quyết có cấu trúc", "weight": 1.5, "rubric": "0-2: Không yêu cầu. 3-4: Yêu cầu chung chung. 5-6: Yêu {" cầu chia nhỏ vấn đề.name 7-10: Yêu cầu quy trình giải quyết từng bước rõ ràng":, có thể theo dõi." "},
-    "C02":Khả năng kiểm tra lập luận", "weight": 1.2, "rubric": "0-2: Không có. 3-4: Yêu cầu kiểm tra sơ sài. 5-6: Yêu cầu giải thích lý do. 7-10: Yêu cầu phép tính/lập luận phải được chứng minh và có bước kiểm tra chéo."},
+    "C01": {"name": "Yêu cầu giải quyết có cấu trúc", "weight": 1.5, "rubric": "0-2: Không yêu cầu. 3-4: Yêu cầu chung chung. 5-6: Yêu cầu chia nhỏ vấn đề. 7-10: Yêu cầu quy trình giải quyết từng bước rõ ràng, có thể theo dõi."},
+    "C02": {"name": "Khả năng kiểm tra lập luận", "weight": 1.2, "rubric": "0-2: Không có. 3-4: Yêu cầu kiểm tra sơ sài. 5-6: Yêu cầu giải thích lý do. 7-10: Yêu cầu phép tính/lập luận phải được chứng minh và có bước kiểm tra chéo."},
     "C03": {"name": "Kết luận rõ ràng", "weight": 0.8, "rubric": "0-2: Không yêu cầu. 3-4: Kết luận mơ hồ. 5-6: Yêu cầu đưa ra đáp án cuối cùng. 7-10: Yêu cầu tách biệt rõ ràng giữa quá trình suy luận và kết quả cuối cùng."}
 }
 
-CRITERIA _FORMATTED_OUTPUT = {
+CRITERIA_FORMATTED_OUTPUT = {
     "FO01": {"name": "Schema và kiểu dữ liệu", "weight": 1.5, "rubric": "0-2: Không xác định định dạng. 3-4: Xác định chung (VD: JSON). 5-6: Xác định cấu trúc cơ bản. 7-10: Cung cấp schema chi tiết, quy định rõ kiểu dữ liệu (string, int, array...)."},
-    "FO02": {"name": "Trường bắt buộc", "weight":0 1.0, "rub.ric": "0-2: Kh8ông có. 3-4: C,ó đề cập. 5- "6: Liệt kê các trường. 7-10: Chỉ định rõ trường nào là bắt buộc, trường nào là tùy chọn."},
+    "FO02": {"name": "Trường bắt buộc", "weight": 1.0, "rubric": "0-2: Không có. 3-4: Có đề cập. 5-6: Liệt kê các trường. 7-10: Chỉ định rõ trường nào là bắt buộc, trường nào là tùy chọn."},
     "FO03": {"name": "Quy tắc xử lý lỗi", "weight": 1.0, "rubric": "0-2: Không có. 3-4: Có đề cập. 5-6: Hướng dẫn chung. 7-10: Quy định rõ cách xử lý nếu AI không thể tạo ra định dạng đó (VD: trả về lỗi null)."}
 }
 
 CRITERIA_CREATIVE = {
     "CG01": {"name": "Mục tiêu sáng tạo", "weight": 1.5, "rubric": "0-2: Không có mục tiêu. 3-4: Mục tiêu mơ hồ. 5-6: Mục tiêu rõ ràng. 7-10: Mục tiêu được định nghĩa sắc nét, có thể đo lường (VD: viết truyện cười, viết kịch bản 3 hồi)."},
     "CG02": {"name": "Đối tượng độc giả", "weight": 1.2, "rubric": "0-2: Không có. 3-4: Đối tượng chung. 5-6: Đối tượng cụ thể. 7-10: Đối tượng chi tiết (độ tuổi, sở thích, trình độ)."},
-    "CG03": {"name": "Phong cách và ràng buộc", "weight":rubric": "0-2: Không có ràng buộc. 3-4: Ràng buộc lỏng lẻo. 5-6: Chỉ định phong cách (VD: hài hước). 7-10: Chỉ định rõ phong cách, tông giọng và các ràng buộc (số từ, vần điệu)."}
+    "CG03": {"name": "Phong cách và ràng buộc", "weight": 0.8, "rubric": "0-2: Không có ràng buộc. 3-4: Ràng buộc lỏng lẻo. 5-6: Chỉ định phong cách (VD: hài hước). 7-10: Chỉ định rõ phong cách, tông giọng và các ràng buộc (số từ, vần điệu)."}
 }
 
 REQUIRED_REWRITE_SECTIONS = [
