@@ -17,7 +17,7 @@ from slowapi import Limiter
 from slowapi.errors import RateLimitExceeded
 
 import rules_v38
-import error_rules  # BẮT BUỘC PHẢI CÓ FILE NÀY
+import error_rules
 from validator import validate_full_report, calculate_final_score, ReportValidationError
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
@@ -75,9 +75,6 @@ app.add_middleware(
 class PromptRequest(BaseModel):
     prompt: str
 
-class LoginRequest(BaseModel):
-    password: str
-
 # Chỉ sử dụng Groq
 client = Groq(api_key=GROQ_API_KEY)
 
@@ -122,12 +119,12 @@ def call_llm(system_prompt: str, user_prompt: str) -> str:
             messages=messages,
             response_format={"type": "json_object"},
             temperature=0.1, 
-            timeout=25.0
+            timeout=30.0
         )
         return resp.choices[0].message.content
     except Exception as e:
         logger.error(f"Groq thất bại: {e}")
-        raise HTTPException(status_code=503, detail="Hệ thống AI đang quá tải. Vui lòng thử lại sau.")
+        raise HTTPException(status_code=503, detail="Hệ thống AI đang quá tải hoặc API Key bị lỗi. Vui lòng thử lại sau.")
 
 def bg_save_history(payload: dict):
     if not supabase: return
@@ -349,6 +346,8 @@ Quy tắc bắt buộc:
 
     except ReportValidationError as re_err:
         return JSONResponse(status_code=422, content={"error": str(re_err)})
+    except HTTPException as http_err:
+        raise http_err  # Cho phép FastAPI trả về đúng lỗi 503 thay vì biến thành 500
     except Exception as e:
         logger.exception("Lỗi nghiêm trọng trong /evaluate")
         return JSONResponse(status_code=500, content={"error": "Lỗi máy chủ nội bộ."})
