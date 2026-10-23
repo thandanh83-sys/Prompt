@@ -17,7 +17,6 @@ from supabase import create_client, Client
 from slowapi import Limiter
 from slowapi.errors import RateLimitExceeded
 
-# Import các module tự viết
 import rules_v38
 from validator import validate_full_report, calculate_final_score, ReportValidationError
 
@@ -129,7 +128,7 @@ def call_llm(system_prompt: str, user_prompt: str) -> str:
             model="llama-3.3-70b-versatile",
             messages=messages,
             response_format={"type": "json_object"},
-            temperature=0.3, # Tăng nhẹ để AI tự tin sáng tạo, mở rộng ngữ cảnh
+            temperature=0.2,
             timeout=15.0
         )
         logger.info("Groq trả về thành công.")
@@ -143,7 +142,7 @@ def call_llm(system_prompt: str, user_prompt: str) -> str:
             temp_model = genai.GenerativeModel('gemini-1.5-flash', system_instruction=system_prompt)
             response = temp_model.generate_content(
                 json.dumps({"prompt_can_cham": user_prompt}, ensure_ascii=False),
-                generation_config=genai.types.GenerationConfig(response_mime_type="application/json", temperature=0.3),
+                generation_config=genai.types.GenerationConfig(response_mime_type="application/json", temperature=0.2),
                 request_options={"timeout": 20}
             )
             if not response.text: raise ValueError("Gemini trả về chuỗi rỗng.")
@@ -202,39 +201,42 @@ def evaluate(request: Request, req: PromptRequest, background_tasks: BackgroundT
         all_criteria = {**main_criteria, **tech_criteria}
         criteria_desc = "".join([f"- ID {k} ({v['name']}): {v['rubric']}\n" for k, v in all_criteria.items()])
         error_codes_desc = "\n".join([f"- {k}: {v}" for k, v in rules_v38.VALID_ERROR_CODES.items()])
-        scores_example = ", ".join([f'"{k}": 8' for k in all_criteria.keys()])
+        scores_example = ", ".join([f'"{k}": 5' for k in all_criteria.keys()])
         
         SECTION_NAMES = ["1. VAI TRÒ", "2. BỐI CẢNH", "3. INPUT", "4. MỤC TIÊU", "5. YÊU CẦU", "6. RÀNG BUỘC", "7. TASK", "8. ĐỊNH DẠNG ĐẦU RA", "9. NEVER DO", "10. THỨ TỰ ƯU TIÊN", "11. XỬ LÝ NỘI BỘ"]
 
-        # --- SYSTEM PROMPT ĐÃ ĐƯỢC VIẾT LẠI ĐỂ ÉP AI TỰ SUY LUẬN ---
         system_prompt = f"""
 Bạn là một Chuyên gia Prompt Engineering xuất sắc. Nhiệm vụ của bạn là đánh giá câu lệnh (prompt) của người dùng và viết lại nó thành một Prompt chuẩn 11 mục.
 
-QUY TẮC SỐNG CÒN:
+QUY TẮC BẮT BUỘC:
 1. Người dùng có thể chỉ nhập 1-2 từ (ví dụ: "tả mẹ", "code web"). Bạn TUYỆT ĐỐI KHÔNG ĐƯỢC bắt họ nhập thêm. KHÔNG ĐƯỢC trả về câu "Vui lòng cung cấp thêm chi tiết".
-2. BẠN PHẢI TỰ ĐỘNG ĐÓNG VAI CHUYÊN GIA, TỰ SUY LUẬN VÀ MỞ RỘNG NGỮ CẢNH để điền đầy đủ 11 mục.
-3. CHẤM ĐIỂM: Hãy chấm điểm dựa trên câu lệnh GỐC của người dùng. 
-   - Nếu câu lệnh quá ngắn, sơ sài (như "tả mẹ"): Chấm điểm thấp (1-3 điểm) vì thiếu Bối cảnh, Yêu cầu, Định dạng.
-   - Nếu câu lệnh đã chi tiết, rõ ý: Chấm điểm cao (7-10 điểm).
-4. BẢN SỬA (rewrite): Phải là một Prompt hoàn chỉnh 11 mục do bạn tự tay viết ra, dựa trên ý tưởng của người dùng.
+2. BẠN PHẢI TỰ ĐỘNG ĐÓNG VAI CHUYÊN GIA, TỰ SUY LUẬN VÀ MỞ RỘNG NGỮ CẢNH để điền đầy đủ 11 mục dưới đây.
+3. CHẤM ĐIỂM NGHIÊM NGẶT: Đối chiếu với THANG ĐIỂM. Nếu câu lệnh quá ngắn, sơ sài (như "tả mẹ"): Chấm điểm thấp (1-3 điểm). Nếu câu lệnh đã chi tiết, rõ ý: Chấm điểm cao (7-10 điểm).
+4. BẢN SỬA (rewrite): Phải là một Prompt hoàn chỉnh 11 mục do bạn tự tay viết ra.
+5. ĐỊNH DẠNG ĐẶC BIỆT: Trong phần "rewrite", mỗi mục bạn PHẢI sử dụng ký tự `\\n` để xuống dòng cho các ý nhỏ (gạch đầu dòng). Không được viết dính chùm.
+6. KHÔNG TRẢ VỀ VĂN BẢN THƯỜNG. CHỈ TRẢ VỀ JSON.
 
-BƯỚC 1: XÁC ĐỊNH LĨNH VỰC VÀ TỰ ĐỘNG MỞ RỘNG NGỮ CẢNH.
-BƯỚC 2: TRẢ VỀ JSON (Sử dụng \\n để xuống dòng):
+CẤU TRÚC 11 MỤC BẮT BUỘC (Hãy điền chi tiết vào phần rewrite):
+"1. VAI TRÒ": [Vai trò chuyên môn, số năm kinh nghiệm, lĩnh vực, kỹ năng cốt lõi]
+"2. BỐI CẢNH": [Người dùng là ai, Mục đích, Không gian, Thời gian, Cảm xúc, Văn hóa, Chuyên môn, Ràng buộc, Kỳ vọng, Đối thủ, Lịch sử, Tương lai] (Dùng \\n để xuống dòng từng ý)
+"3. INPUT": [Người dùng cung cấp gì: ảnh, file, văn bản, dữ liệu, câu hỏi]
+"4. MỤC TIÊU": [Kết quả cuối cùng cần đạt, đo lường được]
+"5. YÊU CẦU": [Yêu cầu cụ thể, hành động rõ ràng, không mơ hồ]
+"6. RÀNG BUỘC": [PHẢI làm gì, KHÔNG ĐƯỢC làm gì, GIỚI HẠN về độ dài/định dạng] (Dùng \\n để xuống dòng)
+"7. TASK": [Các bước thực hiện 1, 2, 3...] (Dùng \\n để xuống dòng)
+"8. ĐỊNH DẠNG ĐẦU RA": [Văn bản, bảng, code, ảnh, JSON, danh sách]
+"9. NEVER DO": [Danh sách lỗi cần tránh]
+"10. THỨ TỰ ƯU TIÊN": [Ưu tiên 1, 2, 3...]
+"11. XỬ LÝ NỘI BỘ": [Tự kiểm tra logic, độ chính xác trước khi xuất kết quả]
+
+BƯỚC 2: TRẢ VỀ JSON THEO CẤU TRÚC SAU:
 {{
   "scores": {{ {scores_example} }},
   "errors": [ {{"code": "[Mã lỗi]", "evidence": "[Trích dẫn nguyên văn từ prompt gốc]"}} ],
   "rewrite": {{ 
-    "1. VAI TRÒ": "Bạn là...", 
-    "2. BỐI CẢNH": "Bối cảnh là...", 
-    "3. INPUT": "Đầu vào là...", 
-    "4. MỤC TIÊU": "Mục tiêu là...", 
-    "5. YÊU CẦU": "...", 
-    "6. RÀNG BUỘC": "...", 
-    "7. TASK": "...", 
-    "8. ĐỊNH DẠNG ĐẦU RA": "...", 
-    "9. NEVER DO": "...", 
-    "10. THỨ TỰ ƯU TIÊN": "...", 
-    "11. XỬ LÝ NỘI BỘ": "..."
+    "1. VAI TRÒ": "...", "2. BỐI CẢNH": "...", "3. INPUT": "...", "4. MỤC TIÊU": "...", "5. YÊU CẦU": "...",
+    "6. RÀNG BUỘC": "...", "7. TASK": "...", "8. ĐỊNH DẠNG ĐẦU RA": "...", "9. NEVER DO": "...", 
+    "10. THỨ TỰ ƯU TIÊN": "...", "11. XỬ LÝ NỘI BỘ": "..."
   }}
 }}
 
@@ -243,8 +245,6 @@ THANG ĐIỂM (RUBRIC):
 
 MÃ LỖI:
 {error_codes_desc}
-
-CHỈ TRẢ VỀ CHUỖI JSON HỢP LỆ, KHÔNG CÓ BẤT KỲ VĂN BẢN NÀO KHÁC.
 """
         
         ai_data = {}
@@ -254,30 +254,26 @@ CHỈ TRẢ VỀ CHUỖI JSON HỢP LỆ, KHÔNG CÓ BẤT KỲ VĂN BẢN NÀO 
             raw_text = call_llm(system_prompt, prompt_text)
             json_str = extract_json(raw_text)
             ai_data = json.loads(json_str)
-            # Validate kiểm tra xem đủ 11 mục chưa
+            
             validate_full_report(ai_data, main_criteria, tech_criteria, prompt_text)
             
         except Exception as e:
             error_msg = str(e)
             logger.warning(f"Lỗi AI/Validate: {error_msg}. Đang tiến hành cứu vớt dữ liệu...")
             
-            # NẾU AI TRẢ VỀ THIẾU, TA TỰ ĐỘNG BÙ VÀO ĐỂ KHÔNG BÁO LỖI ĐỎ
             if not isinstance(ai_data, dict): ai_data = {}
             if "scores" not in ai_data or not isinstance(ai_data["scores"], dict): ai_data["scores"] = {}
             if "errors" not in ai_data or not isinstance(ai_data["errors"], list): ai_data["errors"] = []
             if "rewrite" not in ai_data or not isinstance(ai_data["rewrite"], dict): ai_data["rewrite"] = {}
             
-            # Điền điểm mặc định nếu AI bỏ sót
             for k in all_criteria.keys():
-                if k not in ai_data["scores"]: 
-                    ai_data["scores"][k] = 1
+                if k not in ai_data["scores"]: ai_data["scores"][k] = 1
             
-            # Điền văn bản mặc định nếu AI bỏ sót (Tự tạo một prompt mẫu cơ bản)
             for sec in SECTION_NAMES:
                 if sec not in ai_data["rewrite"] or not ai_data["rewrite"][sec]: 
                     if sec == "1. VAI TRÒ": ai_data["rewrite"][sec] = "Bạn là một chuyên gia trong lĩnh vực này."
                     elif sec == "7. TASK": ai_data["rewrite"][sec] = f"Hãy thực hiện yêu cầu: {prompt_text}"
-                    else: ai_data["rewrite"][sec] = "Hệ thống AI đang tự động bổ sung ngữ cảnh, vui lòng bấm Đánh giá lại để AI viết chi tiết hơn."
+                    else: ai_data["rewrite"][sec] = f"Hệ thống AI đang bổ sung ngữ cảnh cho mục {sec}."
 
         final_score = calculate_final_score(ai_data["scores"], main_criteria, tech_criteria)
         display_details = {all_criteria[k]["name"]: v for k, v in ai_data["scores"].items() if k in all_criteria}
