@@ -54,7 +54,6 @@ def verify_admin_ip(request: Request):
     client_ip = get_client_ip(request)
     if ADMIN_ALLOWED_IPS:
         if client_ip not in ADMIN_ALLOWED_IPS:
-            logger.warning(f"TỪ CHỐI TRUY CẬP ADMIN: IP lạ {client_ip}.")
             raise HTTPException(status_code=403, detail="Truy cập bị từ chối.")
     return client_ip
 
@@ -123,34 +122,29 @@ def call_llm(system_prompt: str, user_prompt: str) -> str:
     ]
     
     try:
-        logger.info("Đang gọi Groq (Primary)...")
         resp = client.chat.completions.create(
             model="llama-3.3-70b-versatile",
             messages=messages,
             response_format={"type": "json_object"},
-            temperature=0.1,
+            temperature=0.2,
             timeout=15.0
         )
-        logger.info("Groq trả về thành công.")
         return resp.choices[0].message.content
     except Exception as e:
         logger.warning(f"Groq thất bại: {e}. Chuyển sang Gemini...")
 
     if gemini_model:
         try:
-            logger.info("Đang gọi Gemini (Fallback)...")
             temp_model = genai.GenerativeModel('gemini-1.5-flash', system_instruction=system_prompt)
             response = temp_model.generate_content(
                 json.dumps({"prompt_can_cham": user_prompt}, ensure_ascii=False),
-                generation_config=genai.types.GenerationConfig(response_mime_type="application/json", temperature=0.1),
+                generation_config=genai.types.GenerationConfig(response_mime_type="application/json", temperature=0.2),
                 request_options={"timeout": 20}
             )
-            if not response.text: raise ValueError("Gemini trả về chuỗi rỗng.")
-            logger.info("Gemini trả về thành công (Fallback).")
             return response.text
         except Exception as e:
             logger.error(f"Gemini cũng thất bại: {e}")
-            raise HTTPException(status_code=503, detail="Hệ thống AI đang quá tải, vui lòng thử lại.")
+            raise HTTPException(status_code=503, detail="Hệ thống AI đang quá tải.")
     else:
         raise HTTPException(status_code=503, detail="Groq gặp sự cố và chưa cấu hình Gemini.")
 
@@ -170,18 +164,6 @@ def health_check(): return {"status": "ok"}
 @app.get("/check_admin_ip")
 def check_admin_ip(client_ip: str = Depends(verify_admin_ip)):
     return {"is_admin": True}
-
-@app.post("/login")
-@limiter.limit("5/minute")
-def admin_login(request: Request, req: LoginRequest, client_ip: str = Depends(verify_admin_ip)):
-    if secrets.compare_digest(req.password, ADMIN_PASSWORD):
-        if supabase:
-            try:
-                supabase.table("admin_login_logs").insert({"ip_address": client_ip, "user_agent": request.headers.get("user-agent", "Unknown")}).execute()
-            except Exception as e:
-                logger.error(f"Lỗi lưu log IP Admin: {e}")
-        return {"token": ADMIN_SECRET_TOKEN}
-    raise HTTPException(status_code=401, detail="Sai mật khẩu")
 
 @app.post("/evaluate")
 @limiter.limit(RATE_LIMIT)
@@ -203,27 +185,23 @@ def evaluate(request: Request, req: PromptRequest, background_tasks: BackgroundT
         error_codes_desc = "\n".join([f"- {k}: {v}" for k, v in rules_v38.VALID_ERROR_CODES.items()])
         scores_example = ", ".join([f'"{k}": 5' for k in all_criteria.keys()])
         
-        SECTION_NAMES = ["1. VAI TRÒ", "2. BỐI CẢNH", "3. INPUT", "4. MỤC TIÊU", "5. YÊU CẦU", "6. RÀNG BUỘC", "7. TASK", "8. ĐỊNH DẠNG ĐẦU RA", "9. NEVER DO", "10. THỨ TỰ ƯU TIÊN", "11. XỬ LÝ NỘI BỘ"]
-
         system_prompt = f"""
-Bạn là một Chuyên gia Prompt Engineering xuất sắc. Nhiệm vụ của bạn là đánh giá câu lệnh (prompt) của người dùng và viết lại nó thành một Prompt chuẩn 11 mục.
+Bạn là một Chuyên gia Prompt Engineering xuất sắc. Nhiệm vụ của bạn là đánh giá và viết lại câu lệnh (prompt).
 
 QUY TẮC SỐNG CÒN:
-1. Người dùng có thể nhập câu ngắn hoặc chưa đầy đủ (ví dụ: "tả mẹ", "so sánh 2 bài văn"). Bạn TUYỆT ĐỐI KHÔNG ĐƯỢC HỎI LẠI. KHÔNG ĐƯỢC trả về văn bản thường.
-2. BẠN PHẢI TỰ ĐỘNG ĐÓNG VAI CHUYÊN GIA, TỰ SUY LUẬN VÀ MỞ RỘNG NGỮ CẢNH để điền đầy đủ 11 mục. Hãy giả định rằng người dùng muốn bạn tạo ra một Prompt mẫu hoàn chỉnh.
-3. CHẤM ĐIỂM NGHIÊM NGẶT: Đối chiếu với THANG ĐIỂM. Nếu câu lệnh quá ngắn, sơ sài: Chấm điểm thấp (1-3 điểm). Nếu câu lệnh đã chi tiết: Chấm điểm cao (7-10 điểm).
-4. BẢN SỬA (rewrite): Phải là một Prompt hoàn chỉnh 11 mục do bạn tự tay viết ra.
-5. ĐỊNH DẠNG ĐẶC BIỆT: Trong phần "rewrite", mỗi mục bạn PHẢI sử dụng ký tự `\\n` để xuống dòng cho các ý nhỏ (gạch đầu dòng). Không được viết dính chùm.
-6. BẮT BUỘC TRẢ VỀ JSON CÓ 3 KEY: "scores", "errors", "rewrite". NẾU THIẾU BẤT KỲ KEY NÀO, BẠN SẼ BỊ PHẠT.
+1. KHÔNG BAO GIỜ HỎI LẠI NGƯỜI DÙNG. Dù câu lệnh ngắn đến đâu, bạn phải tự suy luận và viết lại.
+2. BẢN SỬA (rewrite) PHẢI CỰC KỲ CHI TIẾT. Bạn phải tự nghĩ ra bối cảnh, mục tiêu, ràng buộc, các bước thực hiện chi tiết nhất có thể cho 11 mục. Tuyệt đối không được viết những câu chung chung như "Hãy làm tốt nhất".
+3. CHẤM ĐIỂM: Câu lệnh ngắn (như "tả mẹ") -> Chấm 1-3 điểm. Câu lệnh chi tiết -> 8-10 điểm.
+4. TRẢ VỀ ĐÚNG CẤU TRÚC JSON. KHÔNG THÊM VĂN BẢN NGOÀI.
 
-CẤU TRÚC 11 MỤC BẮT BUỘC (Hãy điền chi tiết vào phần rewrite):
+CẤU TRÚC 11 MỤC YÊU CẦU (Hãy điền chi tiết, dùng \\n để xuống dòng):
 "1. VAI TRÒ": [Vai trò chuyên môn, số năm kinh nghiệm, lĩnh vực, kỹ năng cốt lõi]
-"2. BỐI CẢNH": [Người dùng là ai, Mục đích, Không gian, Thời gian, Cảm xúc, Văn hóa, Chuyên môn, Ràng buộc, Kỳ vọng, Đối thủ, Lịch sử, Tương lai] (Dùng \\n để xuống dòng từng ý)
+"2. BỐI CẢNH": [Người dùng là ai, Mục đích, Không gian, Thời gian, Cảm xúc, Văn hóa, Chuyên môn, Ràng buộc, Kỳ vọng, Đối thủ, Lịch sử, Tương lai]
 "3. INPUT": [Người dùng cung cấp gì: ảnh, file, văn bản, dữ liệu, câu hỏi]
 "4. MỤC TIÊU": [Kết quả cuối cùng cần đạt, đo lường được]
 "5. YÊU CẦU": [Yêu cầu cụ thể, hành động rõ ràng, không mơ hồ]
-"6. RÀNG BUỘC": [PHẢI làm gì, KHÔNG ĐƯỢC làm gì, GIỚI HẠN về độ dài/định dạng] (Dùng \\n để xuống dòng)
-"7. TASK": [Các bước thực hiện 1, 2, 3...] (Dùng \\n để xuống dòng)
+"6. RÀNG BUỘC": [PHẢI làm gì, KHÔNG ĐƯỢC làm gì, GIỚI HẠN về độ dài/định dạng]
+"7. TASK": [Các bước thực hiện 1, 2, 3...]
 "8. ĐỊNH DẠNG ĐẦU RA": [Văn bản, bảng, code, ảnh, JSON, danh sách]
 "9. NEVER DO": [Danh sách lỗi cần tránh]
 "10. THỨ TỰ ƯU TIÊN": [Ưu tiên 1, 2, 3...]
@@ -247,40 +225,23 @@ MÃ LỖI:
 {error_codes_desc}
 """
         
-        ai_data = {}
         success = False
-        max_retries = 2
-
-        # VÒNG LẶP THỬ LẠI: Nếu AI trả về sai, tự động gọi lại
-        for attempt in range(max_retries):
+        ai_data = {}
+        # Thử lại tối đa 2 lần nếu AI trả về sai cấu trúc
+        for attempt in range(2):
             try:
                 raw_text = call_llm(system_prompt, prompt_text)
                 json_str = extract_json(raw_text)
                 ai_data = json.loads(json_str)
-                
-                # Validate chặt chẽ, nếu sai sẽ văng lỗi và chạy lại vòng lặp
                 validate_full_report(ai_data, main_criteria, tech_criteria, prompt_text)
                 success = True
-                break # Nếu thành công thì thoát vòng lặp
+                break
             except Exception as e:
                 logger.warning(f"Lần thử {attempt+1} thất bại: {e}")
         
-        # NẾU THỬ 2 LẦN VẪN LỖI -> DÙNG FALLBACK
         if not success:
-            logger.error("Đã thử 2 lần nhưng AI vẫn trả về sai. Dùng Fallback.")
-            if not isinstance(ai_data, dict): ai_data = {}
-            if "scores" not in ai_data or not isinstance(ai_data["scores"], dict): ai_data["scores"] = {}
-            if "errors" not in ai_data or not isinstance(ai_data["errors"], list): ai_data["errors"] = []
-            if "rewrite" not in ai_data or not isinstance(ai_data["rewrite"], dict): ai_data["rewrite"] = {}
-            
-            for k in all_criteria.keys():
-                if k not in ai_data["scores"]: ai_data["scores"][k] = 1
-            
-            for sec in SECTION_NAMES:
-                if sec not in ai_data["rewrite"] or not ai_data["rewrite"][sec]: 
-                    if sec == "1. VAI TRÒ": ai_data["rewrite"][sec] = "Bạn là một chuyên gia trong lĩnh vực này."
-                    elif sec == "7. TASK": ai_data["rewrite"][sec] = f"Hãy thực hiện yêu cầu: {prompt_text}"
-                    else: ai_data["rewrite"][sec] = f"Hệ thống AI đang bổ sung ngữ cảnh cho mục {sec}."
+            # NẾU THẤT BẠI, BÁO LỖI LUÔN CHỨ KHÔNG DÙNG FALLBACK RÁC
+            raise ReportValidationError("AI không thể phân tích prompt này. Vui lòng thử lại với câu lệnh rõ ràng hơn.")
 
         final_score = calculate_final_score(ai_data["scores"], main_criteria, tech_criteria)
         display_details = {all_criteria[k]["name"]: v for k, v in ai_data["scores"].items() if k in all_criteria}
@@ -298,6 +259,8 @@ MÃ LỖI:
         background_tasks.add_task(bg_save_history, db_payload)
         return result
 
+    except ReportValidationError as re_err:
+        return JSONResponse(status_code=422, content={"error": str(re_err)})
     except Exception as e:
         logger.exception("Lỗi nghiêm trọng trong /evaluate")
         return JSONResponse(status_code=500, content={"error": "Lỗi máy chủ nội bộ."})
