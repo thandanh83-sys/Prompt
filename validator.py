@@ -12,67 +12,90 @@ def normalize_text(text: str) -> str:
     return re.sub(r"\s+", " ", text).strip().casefold()
 
 def validate_scores_only(ai_scores: dict, criteria: dict) -> bool:
-    if not isinstance(ai_scores, dict): ai_scores = {}
-    expected_ids = set(criteria.keys())
-    
-    for crit_id, score in ai_scores.items():
-        try:
-            val = float(score) if not isinstance(score, bool) else 0
-        except (ValueError, TypeError):
-            val = 1.0
-        val = max(0.0, min(10.0, val))
-        ai_scores[crit_id] = val
+    if not isinstance(ai_scores, dict): 
+        raise ReportValidationError("Trường 'scores' phải là dict.")
         
-    for k in expected_ids:
-        if k not in ai_scores:
-            ai_scores[k] = 1.0
+    expected_ids = set(criteria.keys())
+    received_ids = set(ai_scores.keys())
+    
+    if expected_ids != received_ids:
+        missing = expected_ids - received_ids
+        extra = received_ids - expected_ids
+        raise ReportValidationError(f"ID điểm không khớp. Thiếu: {missing}, Thừa: {extra}")
+        
+    for crit_id, score in ai_scores.items():
+        if type(score) is not int:
+            raise ReportValidationError(f"Điểm của '{crit_id}' phải là số nguyên (nhận được {type(score).__name__}).")
+        if not (0 <= score <= 10):
+            raise ReportValidationError(f"Điểm của '{crit_id}' phải nằm trong khoảng 0-10.")
     return True
 
 def validate_full_report(ai_json: dict, main_criteria: dict, tech_criteria: dict, original_prompt: str) -> bool:
-    if not isinstance(ai_json, dict): ai_json = {}
+    if not isinstance(ai_json, dict): 
+        raise ReportValidationError("Dữ liệu AI không phải JSON Object.")
         
-    if "scores" not in ai_json or not isinstance(ai_json["scores"], dict): ai_json["scores"] = {}
-    if "errors" not in ai_json or not isinstance(ai_json["errors"], list): ai_json["errors"] = []
-    if "rewrite" not in ai_json or not isinstance(ai_json["rewrite"], dict): ai_json["rewrite"] = {}
+    required_keys = {"scores", "errors", "rewrite"}
+    if set(ai_json.keys()) != required_keys:
+        raise ReportValidationError(f"JSON phải có chính xác các key: {required_keys}")
+
+    if set(main_criteria.keys()) & set(tech_criteria.keys()):
+        raise ReportValidationError("Lỗi hệ thống: ID tiêu chí bị trùng giữa Main và Tech.")
 
     all_criteria = {**main_criteria, **tech_criteria}
     validate_scores_only(ai_json["scores"], all_criteria)
 
-    valid_errors = []
-    for err in ai_json["errors"]:
-        if isinstance(err, dict) and err.get("code") in rules_v38.VALID_ERROR_CODES:
-            valid_errors.append({
-                "code": err["code"], 
-                "evidence": str(err.get("evidence", "")),
-                "hint": str(err.get("hint", "Hãy bổ sung thêm thông tin chi tiết."))
-            })
-    ai_json["errors"] = valid_errors
-
-    expected_sections = rules_v38.REQUIRED_REWRITE_SECTIONS
-    normalized_rewrite = {}
+    errors = ai_json["errors"]
+    if not isinstance(errors, list): 
+        raise ReportValidationError("Trường 'errors' phải là list.")
+        
+    prompt_norm = normalize_text(original_prompt)
     
-    for expected in expected_sections:
-        found_val = ai_json["rewrite"].get(expected)
-        if isinstance(found_val, str) and found_val.strip():
-            val_text = found_val.strip()
-            if not val_text.startswith("-") and not val_text.startswith("*"):
-                val_text = val_text.replace(" - ", "\n- ").replace(" + ", "\n+ ")
-            normalized_rewrite[expected] = val_text
-        else:
-            normalized_rewrite[expected] = "Chưa cung cấp thông tin."
+    # Các lỗi thiếu thông tin không thể trích dẫn nguyên văn
+    MISSING_INFO_ERRORS = {"B01", "C02", "C04"}
+
+    for err in errors:
+        if not isinstance(err, dict) or set(err.keys()) != {"code", "evidence"}:
+            raise ReportValidationError("Mỗi lỗi phải là dict chứa chính xác 'code' và 'evidence'.")
+        
+        if not isinstance(err["code"], str) or err["code"] not in rules_v38.VALID_ERROR_CODES:
+            raise ReportValidationError(f"Mã lỗi '{err['code']}' không hợp lệ.")
             
-    ai_json["rewrite"] = normalized_rewrite
+        evidence = err["evidence"]
+        if not isinstance(evidence, str):
+            raise ReportValidationError("Trường 'evidence' phải là chuỗi.")
+            
+        ev_norm = normalize_text(evidence)
+        if not ev_norm:
+            raise ReportValidationError(f"Lỗi '{err['code']}' phải có bằng chứng trích dẫn hoặc mô tả.")
+            
+        # Nếu không phải lỗi thiếu thông tin, bắt buộc evidence phải có trong prompt gốc
+        if err["code"] not in MISSING_INFO_ERRORS:
+            if ev_norm not in prompt_norm:
+                raise ReportValidationError(f"Bằng chứng '{evidence}' không có trong prompt gốc.")
+
+    rewrite = ai_json["rewrite"]
+    if not isinstance(rewrite, dict): 
+        raise ReportValidationError("Trường 'rewrite' phải là dict.")
+        
+    expected_sections = rules_v38.REQUIRED_REWRITE_SECTIONS
+    received_sections = list(rewrite.keys())
+    if received_sections != expected_sections:
+        raise ReportValidationError("Bản sửa phải có đúng 11 mục theo thứ tự quy định; cần kiểm tra mục thiếu, thừa hoặc sai thứ tự.")
+        
+    for sec, val in rewrite.items():
+        if not isinstance(val, str) or not val.strip():
+            raise ReportValidationError(f"Mục '{sec}' trong bản sửa không được để trống.")
+            
     return True
 
 def _calc_tier_score(ai_scores: dict, criteria: dict) -> Decimal:
     total_weight = Decimal("0")
     weighted_score = Decimal("0")
     for crit_id, info in criteria.items():
-        score = ai_scores.get(crit_id, 1.0)
-        score_dec = Decimal(str(score))
+        score = ai_scores[crit_id]
         weight = Decimal(str(info["weight"]))
         total_weight += weight
-        weighted_score += score_dec * weight
+        weighted_score += Decimal(score) * weight
     return weighted_score / total_weight if total_weight > 0 else Decimal("0")
 
 def calculate_final_score(ai_scores: dict, main_criteria: dict, tech_criteria: dict) -> float:
