@@ -6,7 +6,6 @@ import logging
 import secrets
 import datetime
 import uvicorn
-import google.generativeai as genai
 from fastapi import FastAPI, Request, HTTPException, Depends, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -18,7 +17,7 @@ from slowapi import Limiter
 from slowapi.errors import RateLimitExceeded
 
 import rules_v38
-import error_rules
+import error_rules  # BẮT BUỘC PHẢI CÓ FILE NÀY
 from validator import validate_full_report, calculate_final_score, ReportValidationError
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
@@ -30,7 +29,6 @@ RATE_LIMIT = "20/minute"
 ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD")
 ADMIN_SECRET_TOKEN = os.environ.get("ADMIN_SECRET_TOKEN")
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
-GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 
 ADMIN_ALLOWED_IPS = os.environ.get("ADMIN_ALLOWED_IPS", "").split(",")
 ADMIN_ALLOWED_IPS = [ip.strip() for ip in ADMIN_ALLOWED_IPS if ip.strip()]
@@ -80,12 +78,8 @@ class PromptRequest(BaseModel):
 class LoginRequest(BaseModel):
     password: str
 
+# Chỉ sử dụng Groq
 client = Groq(api_key=GROQ_API_KEY)
-if GEMINI_API_KEY:
-    genai.configure(api_key=GEMINI_API_KEY)
-    gemini_model = genai.GenerativeModel('gemini-1.5-flash')
-else:
-    gemini_model = None
 
 supabase_url = os.environ.get("SUPABASE_URL", "")
 supabase_key = os.environ.get("SUPABASE_KEY", "")
@@ -127,27 +121,13 @@ def call_llm(system_prompt: str, user_prompt: str) -> str:
             model="llama-3.3-70b-versatile",
             messages=messages,
             response_format={"type": "json_object"},
-            temperature=0.1, # Hạ xuống 0.1 để AI tập trung và tuân thủ luật tốt hơn
-            timeout=20.0
+            temperature=0.1, 
+            timeout=25.0
         )
         return resp.choices[0].message.content
     except Exception as e:
-        logger.warning(f"Groq thất bại: {e}. Chuyển sang Gemini...")
-
-    if gemini_model:
-        try:
-            temp_model = genai.GenerativeModel('gemini-1.5-flash', system_instruction=system_prompt)
-            response = temp_model.generate_content(
-                json.dumps({"prompt_can_cham": user_prompt}, ensure_ascii=False),
-                generation_config=genai.types.GenerationConfig(response_mime_type="application/json", temperature=0.1),
-                request_options={"timeout": 25}
-            )
-            return response.text
-        except Exception as e:
-            logger.error(f"Gemini cũng thất bại: {e}")
-            raise HTTPException(status_code=503, detail="Hệ thống AI đang quá tải.")
-    else:
-        raise HTTPException(status_code=503, detail="Groq gặp sự cố và chưa cấu hình Gemini.")
+        logger.error(f"Groq thất bại: {e}")
+        raise HTTPException(status_code=503, detail="Hệ thống AI đang quá tải. Vui lòng thử lại sau.")
 
 def bg_save_history(payload: dict):
     if not supabase: return
@@ -202,7 +182,6 @@ def evaluate(request: Request, req: PromptRequest, background_tasks: BackgroundT
   + Ví dụ KHÔNG LỖI: {ex_negative}
 """
         
-        # SYSTEM PROMPT MỚI DỰA TRÊN ĐẶC TẢ
         system_prompt = f"""
 # PROMPT LINTER — SYSTEM PROMPT CHO CHẾ ĐỘ AI
 
