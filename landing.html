@@ -212,6 +212,7 @@
 
         <div id="resultArea" class="w-full mx-auto mt-8 space-y-6" style="display: none;">
             
+            <!-- Khối Điểm tổng và Phân loại -->
             <div class="bg-white/80 dark:bg-[#1e293b]/80 backdrop-blur-md border border-slate-200 dark:border-slate-700/60 shadow-xl rounded-3xl p-6">
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                     <div class="flex flex-col w-full md:w-1/2">
@@ -235,6 +236,7 @@
                 </div>
             </div>
 
+            <!-- Điểm sáng -->
             <div id="highlightArea" class="bg-white/80 dark:bg-[#1e293b]/80 backdrop-blur-md border border-slate-200 dark:border-slate-700/60 shadow-xl rounded-3xl p-6">
                 <h3 class="font-bold text-sm mb-3 text-green-700 dark:text-green-400 flex items-center gap-2">
                     <span class="text-lg">🌟</span> Điểm sáng của bạn
@@ -243,6 +245,7 @@
                 </ul>
             </div>
 
+            <!-- Điểm nên luyện thêm (Lỗi) -->
             <div class="bg-white/80 dark:bg-[#1e293b]/80 backdrop-blur-md border border-slate-200 dark:border-slate-700/60 shadow-xl rounded-3xl p-6">
                 <h3 class="font-bold text-sm mb-4 text-slate-800 dark:text-slate-200 flex items-center gap-2">
                     <span class="w-2.5 h-2.5 rounded-full bg-red-500"></span> Điểm nên luyện thêm
@@ -250,11 +253,13 @@
                 <div id="errorListArea" class="space-y-4"></div>
             </div>
 
+            <!-- Chi tiết điểm -->
             <div class="bg-white/80 dark:bg-[#1e293b]/80 backdrop-blur-md border border-slate-200 dark:border-slate-700/60 shadow-xl rounded-3xl p-6">
                 <h3 class="font-bold text-sm mb-5 text-slate-800 dark:text-slate-200 flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-blue-500"></span> Chi tiết điểm</h3>
                 <div id="criteriaList" class="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5"></div>
             </div>
 
+            <!-- Bản sửa hoàn chỉnh -->
             <div class="bg-white/80 dark:bg-[#1e293b]/80 backdrop-blur-md border border-slate-200 dark:border-slate-700/60 shadow-xl rounded-3xl overflow-hidden">
                 <div class="flex justify-between items-center px-5 py-4 border-b border-slate-200 dark:border-slate-700/50 bg-slate-50 dark:bg-slate-800/40">
                     <h3 class="font-bold text-sm text-slate-800 dark:text-slate-200 flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-indigo-500"></span> Bản sửa hoàn chỉnh</h3>
@@ -407,6 +412,7 @@
                     prompt: promptText.slice(0, 2000),
                     score: resultData.total,
                     type: resultData.type,
+                    techniques: resultData.techniques || [],
                     rewrite: resultData.rewrite,
                     errors: resultData.errors,
                     details: resultData.details
@@ -491,6 +497,38 @@
             const prompt = promptInput.value.trim(); $('resultArea').style.display = 'none'; 
             if (!prompt) { $('errorMsg').style.display = 'block'; promptInput.focus(); return; }
             $('errorMsg').style.display = 'none';
+
+            // === KIỂM TRA LỊCH SỬ LOCALSTORAGE (CACHE) ===
+            try {
+                let history = JSON.parse(localStorage.getItem('myPromptHistory') || '[]');
+                const cachedResult = history.find(item => item.prompt === prompt.slice(0, 2000));
+                
+                if (cachedResult) {
+                    $('errorMsg').textContent = "⚡ Đã tải kết quả từ lịch sử (Không tốn lượt gọi AI).";
+                    $('errorMsg').className = "text-blue-500 text-xs mt-2 font-medium";
+                    $('errorMsg').style.display = 'block';
+                    
+                    setTimeout(() => { 
+                        $('errorMsg').style.display = 'none'; 
+                        $('errorMsg').className = "text-red-500 text-xs mt-2 font-medium"; 
+                    }, 5000);
+
+                    const data = {
+                        total: cachedResult.score,
+                        type: cachedResult.type,
+                        techniques: cachedResult.techniques || [],
+                        details: cachedResult.details,
+                        errors: cachedResult.errors,
+                        rewrite: cachedResult.rewrite
+                    };
+
+                    render(data);
+                    return; // Dừng luồng, không chạy fetch API
+                }
+            } catch (e) {
+                console.error("Lỗi đọc lịch sử:", e);
+            }
+            // ==============================================
             
             const btn = $('btnEvaluate'); const btnText = $('btnText'); const spinner = $('loadingSpinner');
             btn.disabled = true; spinner.classList.remove('hidden');
@@ -594,7 +632,7 @@
                 
                 // Tự động thêm xuống dòng trước các số 1. 2. 3. hoặc dấu - nếu dính chùm
                 contentText = contentText.replace(/(\d+\.\s)/g, '\n$1').replace(/(\-\s)/g, '\n$1');
-                contentText = contentText.replace(/\n\s*\n/g, '\n'); // Xóa dòng trống thừa
+                contentText = contentText.replace(/\n\s*\n/g, '\n'); 
 
                 const item = document.createElement('div'); 
                 item.className = 'py-5 border-b border-slate-200 dark:border-slate-700 last:border-0 last:pb-0 first:pt-0'; 
