@@ -70,7 +70,11 @@ def validate_full_report(ai_json: dict, main_criteria: dict, tech_criteria: dict
             
         # Nếu không phải lỗi thiếu thông tin, bắt buộc evidence phải có trong prompt gốc
         if err["code"] not in MISSING_INFO_ERRORS:
-            if ev_norm not in prompt_norm:
+            # LÀM SẠCH BẰNG CHỨNG: Xóa ngoặc kép, ngoặc đơn ở đầu/cuối để tránh AI trả về '"tả mẹ"'
+            ev_clean = evidence.strip(' "\'\n\r\t')
+            ev_clean_norm = normalize_text(ev_clean)
+            
+            if ev_clean_norm not in prompt_norm and prompt_norm not in ev_clean_norm:
                 raise ReportValidationError(f"Bằng chứng '{evidence}' không có trong prompt gốc.")
 
     rewrite = ai_json["rewrite"]
