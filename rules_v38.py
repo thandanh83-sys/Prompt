@@ -116,7 +116,7 @@ CRITERIA_FORMATTED_OUTPUT = {
 CRITERIA_CREATIVE = {
     "CG01": {"name": "Mục tiêu sáng tạo", "weight": 1.5, "rubric": "0-2: Không có mục tiêu. 3-4: Mục tiêu mơ hồ. 5-6: Mục tiêu rõ ràng. 7-10: Mục tiêu được định nghĩa sắc nét, có thể đo lường (VD: viết truyện cười, viết kịch bản 3 hồi)."},
     "CG02": {"name": "Đối tượng độc giả", "weight": 1.2, "rubric": "0-2: Không có. 3-4: Đối tượng chung. 5-6: Đối tượng cụ thể. 7-10: Đối tượng chi tiết (độ tuổi, sở thích, trình độ)."},
-    "CG03": {"name": "Phong cách và ràng buộc", "weight": 0.8, "rubric": "0-2: Không có ràng buộc. 3-4: Ràng buộc lỏng lẻo. 5-6: Chỉ định phong cách (VD: hài hước). 7-10: Chỉ định rõ phong cách, tông giọng và các ràng buộc (số từ, vần điệu)."}
+    "CG03": {"name": "Phong cách và ràng buộc", "weight": 1.0, "rubric": "0-2: Không có ràng buộc. 3-4: Ràng buộc lỏng lẻo. 5-6: Chỉ định phong cách (VD: hài hước). 7-10: Chỉ định rõ phong cách, tông giọng và các ràng buộc (số từ, vần điệu)."}
 }
 
 REQUIRED_REWRITE_SECTIONS = [
