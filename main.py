@@ -36,6 +36,47 @@ ADMIN_ALLOWED_IPS = [ip.strip() for ip in ADMIN_ALLOWED_IPS if ip.strip()]
 if not ADMIN_PASSWORD or not ADMIN_SECRET_TOKEN or not GROQ_API_KEY:
     raise RuntimeError("LỖI BẢO MẬT: Thiếu biến môi trường bắt buộc trên Render.")
 
+api_key_header = APIKeyHeader(name="X-Admin-Token", auto_error=False)
+
+DEFAULT_ORIGINS = ["https://thandanh83-sys.github.io"]
+env_origins = os.environ.get("ALLOWED_ORIGINS", "")
+configured_origins = [origin.strip() for origin in env_origins.split(",") if origin.strip()]
+ALLOWED_ORIGINS = list(dict.fromkeys([*DEFAULT_ORIGINS, *configured_origins]))
+
+def get_client_ip(request: Request) -> str:
+    forwarded = request.headers.get("x-forwarded-for")
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+    return request.client.host if request.client else "unknown"
+
+def verify_admin_ip(request: Request):
+    client_ip = get_client_ip(request)
+    if ADMIN_ALLOWED_IPS:
+        if client_ip not in ADMIN_ALLOWED_IPS:
+            raise HTTPException(status_code=403, detail="Truy cập bị từ chối.")
+    return client_ip
+
+# Khởi tạo FastAPI và Limiter
+limiter = Limiter(key_func=get_client_ip)
+app = FastAPI()
+app.state.limiter = limiter
+
+@app.exception_handler(RateLimitExceeded)
+async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
+    return JSONResponse(status_code=429, content={"error": "Bạn đã đạt giới hạn sử dụng, vui lòng thử lại sau 1 phút."})
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=ALLOWED_ORIGINS,
+    allow_origin_regex=r"https://.*\.vercel\.app",
+    allow_methods=["GET", "POST", "DELETE", "OPTIONS"],
+    allow_headers=["Content-Type", "X-Admin-Token"],
+)
+
+class PromptRequest(BaseModel):
+    prompt: str
+
+# Sử dụng Groq với model mới nhất
 client = Groq(api_key=GROQ_API_KEY)
 
 supabase_url = os.environ.get("SUPABASE_URL", "")
@@ -103,7 +144,12 @@ def read_root(): return {"status": "Backend đang chạy ổn định!"}
 @app.get("/health")
 def health_check(): return {"status": "ok"}
 
+@app.get("/check_admin_ip")
+def check_admin_ip(client_ip: str = Depends(verify_admin_ip)):
+    return {"is_admin": True}
+
 @app.post("/evaluate")
+@limiter.limit(RATE_LIMIT)
 def evaluate(request: Request, req: PromptRequest, background_tasks: BackgroundTasks):
     prompt_text = req.prompt.strip()
     if not prompt_text: return JSONResponse(status_code=400, content={"error": "Prompt trống."})
@@ -127,7 +173,7 @@ def evaluate(request: Request, req: PromptRequest, background_tasks: BackgroundT
         for code, rule in error_rules.ERROR_RULES.items():
             error_codes_desc += f"- {code}: {rule['name']}\n"
         
-        # RÚT GỌN TỐI ĐA SYSTEM PROMPT
+        # RÚT GỌN TỐI ĐA SYSTEM PROMPT ĐỂ TRÁNH LỖI 413
         system_prompt = f"""
 Bạn là chuyên gia chấm điểm Prompt. Hãy chấm điểm các tiêu chí sau (0-10):
 {criteria_desc}
