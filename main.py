@@ -128,7 +128,7 @@ def call_llm(system_prompt: str, user_prompt: str) -> str:
             model="llama-3.3-70b-versatile",
             messages=messages,
             response_format={"type": "json_object"},
-            temperature=0.2,
+            temperature=0.1,
             timeout=15.0
         )
         logger.info("Groq trả về thành công.")
@@ -142,7 +142,7 @@ def call_llm(system_prompt: str, user_prompt: str) -> str:
             temp_model = genai.GenerativeModel('gemini-1.5-flash', system_instruction=system_prompt)
             response = temp_model.generate_content(
                 json.dumps({"prompt_can_cham": user_prompt}, ensure_ascii=False),
-                generation_config=genai.types.GenerationConfig(response_mime_type="application/json", temperature=0.2),
+                generation_config=genai.types.GenerationConfig(response_mime_type="application/json", temperature=0.1),
                 request_options={"timeout": 20}
             )
             if not response.text: raise ValueError("Gemini trả về chuỗi rỗng.")
@@ -150,7 +150,7 @@ def call_llm(system_prompt: str, user_prompt: str) -> str:
             return response.text
         except Exception as e:
             logger.error(f"Gemini cũng thất bại: {e}")
-            raise HTTPException(status_code=503, detail="Hệ thống AI đang quá tải.")
+            raise HTTPException(status_code=503, detail="Hệ thống AI đang quá tải, vui lòng thử lại.")
     else:
         raise HTTPException(status_code=503, detail="Groq gặp sự cố và chưa cấu hình Gemini.")
 
@@ -208,13 +208,13 @@ def evaluate(request: Request, req: PromptRequest, background_tasks: BackgroundT
         system_prompt = f"""
 Bạn là một Chuyên gia Prompt Engineering xuất sắc. Nhiệm vụ của bạn là đánh giá câu lệnh (prompt) của người dùng và viết lại nó thành một Prompt chuẩn 11 mục.
 
-QUY TẮC BẮT BUỘC:
-1. Người dùng có thể chỉ nhập 1-2 từ (ví dụ: "tả mẹ", "code web"). Bạn TUYỆT ĐỐI KHÔNG ĐƯỢC bắt họ nhập thêm. KHÔNG ĐƯỢC trả về câu "Vui lòng cung cấp thêm chi tiết".
-2. BẠN PHẢI TỰ ĐỘNG ĐÓNG VAI CHUYÊN GIA, TỰ SUY LUẬN VÀ MỞ RỘNG NGỮ CẢNH để điền đầy đủ 11 mục dưới đây.
-3. CHẤM ĐIỂM NGHIÊM NGẶT: Đối chiếu với THANG ĐIỂM. Nếu câu lệnh quá ngắn, sơ sài (như "tả mẹ"): Chấm điểm thấp (1-3 điểm). Nếu câu lệnh đã chi tiết, rõ ý: Chấm điểm cao (7-10 điểm).
+QUY TẮC SỐNG CÒN:
+1. Người dùng có thể nhập câu ngắn hoặc chưa đầy đủ (ví dụ: "tả mẹ", "so sánh 2 bài văn"). Bạn TUYỆT ĐỐI KHÔNG ĐƯỢC HỎI LẠI. KHÔNG ĐƯỢC trả về văn bản thường.
+2. BẠN PHẢI TỰ ĐỘNG ĐÓNG VAI CHUYÊN GIA, TỰ SUY LUẬN VÀ MỞ RỘNG NGỮ CẢNH để điền đầy đủ 11 mục. Hãy giả định rằng người dùng muốn bạn tạo ra một Prompt mẫu hoàn chỉnh.
+3. CHẤM ĐIỂM NGHIÊM NGẶT: Đối chiếu với THANG ĐIỂM. Nếu câu lệnh quá ngắn, sơ sài: Chấm điểm thấp (1-3 điểm). Nếu câu lệnh đã chi tiết: Chấm điểm cao (7-10 điểm).
 4. BẢN SỬA (rewrite): Phải là một Prompt hoàn chỉnh 11 mục do bạn tự tay viết ra.
 5. ĐỊNH DẠNG ĐẶC BIỆT: Trong phần "rewrite", mỗi mục bạn PHẢI sử dụng ký tự `\\n` để xuống dòng cho các ý nhỏ (gạch đầu dòng). Không được viết dính chùm.
-6. KHÔNG TRẢ VỀ VĂN BẢN THƯỜNG. CHỈ TRẢ VỀ JSON.
+6. BẮT BUỘC TRẢ VỀ JSON CÓ 3 KEY: "scores", "errors", "rewrite". NẾU THIẾU BẤT KỲ KEY NÀO, BẠN SẼ BỊ PHẠT.
 
 CẤU TRÚC 11 MỤC BẮT BUỘC (Hãy điền chi tiết vào phần rewrite):
 "1. VAI TRÒ": [Vai trò chuyên môn, số năm kinh nghiệm, lĩnh vực, kỹ năng cốt lõi]
@@ -248,19 +248,26 @@ MÃ LỖI:
 """
         
         ai_data = {}
-        error_msg = ""
+        success = False
+        max_retries = 2
+
+        # VÒNG LẶP THỬ LẠI: Nếu AI trả về sai, tự động gọi lại
+        for attempt in range(max_retries):
+            try:
+                raw_text = call_llm(system_prompt, prompt_text)
+                json_str = extract_json(raw_text)
+                ai_data = json.loads(json_str)
+                
+                # Validate chặt chẽ, nếu sai sẽ văng lỗi và chạy lại vòng lặp
+                validate_full_report(ai_data, main_criteria, tech_criteria, prompt_text)
+                success = True
+                break # Nếu thành công thì thoát vòng lặp
+            except Exception as e:
+                logger.warning(f"Lần thử {attempt+1} thất bại: {e}")
         
-        try:
-            raw_text = call_llm(system_prompt, prompt_text)
-            json_str = extract_json(raw_text)
-            ai_data = json.loads(json_str)
-            
-            validate_full_report(ai_data, main_criteria, tech_criteria, prompt_text)
-            
-        except Exception as e:
-            error_msg = str(e)
-            logger.warning(f"Lỗi AI/Validate: {error_msg}. Đang tiến hành cứu vớt dữ liệu...")
-            
+        # NẾU THỬ 2 LẦN VẪN LỖI -> DÙNG FALLBACK
+        if not success:
+            logger.error("Đã thử 2 lần nhưng AI vẫn trả về sai. Dùng Fallback.")
             if not isinstance(ai_data, dict): ai_data = {}
             if "scores" not in ai_data or not isinstance(ai_data["scores"], dict): ai_data["scores"] = {}
             if "errors" not in ai_data or not isinstance(ai_data["errors"], list): ai_data["errors"] = []
