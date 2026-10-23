@@ -39,13 +39,19 @@
         .app-header { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); border-color: rgba(0,0,0,.06); transition: all .2s; }
         .dark .app-header { background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(12px); border-color: rgba(255,255,255,.1); }
         
-        .brand-text { background: linear-gradient(100deg, #ec4899, #a052c8 52%, #3979f5); -webkit-background-clip: text; background-clip: text; color: transparent; }
+        /* Đã bỏ inline-block và padding để chữ không bị lỗi dòng, chỉ giữ lại line-height chuẩn */
+        .brand-text { 
+            background: linear-gradient(100deg, #ec4899, #a052c8 52%, #3979f5); 
+            -webkit-background-clip: text; 
+            background-clip: text; 
+            color: transparent; 
+            line-height: 1.2;
+        }
         .btn-glow { box-shadow: 0 4px 20px rgba(236,72,153,.3); transition: all .2s ease; }
         .btn-glow:hover { box-shadow: 0 6px 25px rgba(59,130,246,.5); transform: translateY(-2px); }
         
         .menu-dropdown { transition: all .2s ease-in-out; transform-origin: top left; width: min(280px, calc(100vw - 32px)); max-height: calc(100dvh - 100px); overflow-y: auto; box-sizing: border-box; }
         
-        /* Sửa lỗi viền đỏ khi focus vào ô nhập liệu */
         #promptInput { white-space: pre-wrap; overflow-wrap: anywhere; outline: none !important; box-shadow: none; }
         #promptInput:focus { border-color: #ec4899 !important; box-shadow: 0 0 0 1px #ec4899 !important; }
         
@@ -159,16 +165,18 @@
         });
     </script>
 
-    <!-- MAIN CONTENT (GIAO DIỆN 1 CỘT) -->
-    <!-- Đã tăng pt-32 lên pt-36 md:pt-40 để đẩy nội dung xuống thấp hơn, không bị header che -->
-    <main class="w-full max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pt-32 md:pt-40 pb-32 flex-grow flex flex-col mt-2 z-10 min-h-screen">
+    <!-- MAIN CONTENT -->
+    <!-- Giảm pt-40 xuống pt-28 md:pt-32 để kéo nội dung lên gần Header hơn -->
+    <main class="w-full max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 md:pt-32 pb-32 flex-grow flex flex-col z-10 min-h-screen">
         
-        <!-- Đã giảm mb-8 lg:mb-10 thành mb-5 md:mb-6 để kéo các thứ bên dưới lại gần tiêu đề hơn -->
-        <div class="text-center mb-5 md:mb-6">
-            <h1 class="text-3xl sm:text-4xl md:text-5xl font-extrabold mb-3 flex items-center justify-center gap-2">
+        <!-- Bỏ các class flex ở h1, thêm mb-4 để tách tiêu đề và mô tả -->
+        <div class="text-center mb-8 md:mb-10">
+            <h1 class="text-3xl sm:text-4xl md:text-5xl font-extrabold mb-4">
                 <span class="brand-text">Trợ lý tối ưu hoá Prompt</span>
             </h1>
-            <p class="text-slate-500 dark:text-slate-400 text-sm md:text-base lg:text-lg font-medium">AI tự động nhận diện lĩnh vực và tạo Prompt chuẩn chuyên gia.</p>
+            <p class="text-slate-500 dark:text-slate-400 text-sm md:text-base lg:text-lg font-medium">
+                AI tự động nhận diện lĩnh vực và tạo Prompt chuẩn chuyên gia.
+            </p>
         </div>
 
         <!-- FORM NHẬP LIỆU (Căn giữa) -->
@@ -229,7 +237,6 @@
             <!-- CHI TIẾT ĐIỂM (Chia 2 cột) -->
             <div class="bg-white/80 dark:bg-[#1e293b]/80 backdrop-blur-md border border-slate-200 dark:border-slate-700/60 shadow-xl rounded-3xl p-6">
                 <h3 class="font-bold text-sm mb-5 text-slate-800 dark:text-slate-200 flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-blue-500"></span> Chi tiết điểm</h3>
-                <!-- Chia 2 cột trên màn hình md trở lên, màn nhỏ thì 1 cột -->
                 <div id="criteriaList" class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5"></div>
             </div>
 
@@ -528,7 +535,6 @@
             $('criteriaList').replaceChildren();
             Object.entries(r.details).forEach(([name, score]) => {
                 const row = document.createElement('div'); 
-                // Hiển thị dạng 2 cột nhờ class bên ngoài, text dài sẽ tự wrap
                 row.innerHTML = `<div class="flex justify-between items-start mb-1.5 gap-2"><span class="text-[11px] font-semibold text-slate-600 dark:text-slate-400 leading-tight break-words">${name}</span><span class="text-xs font-bold text-slate-800 dark:text-slate-200 shrink-0">${score}</span></div><div class="w-full bg-slate-100 dark:bg-[#0f172a] rounded-full h-1.5"><div class="h-1.5 rounded-full ${score >= 7 ? 'bg-green-500' : score >= 4 ? 'bg-yellow-500' : 'bg-red-500'}" style="width: ${score * 10}%"></div></div>`;
                 $('criteriaList').appendChild(row);
             });
