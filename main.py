@@ -126,7 +126,7 @@ def call_llm(system_prompt: str, user_prompt: str) -> str:
             model="llama-3.3-70b-versatile",
             messages=messages,
             response_format={"type": "json_object"},
-            temperature=0.7, # TĂNG MẠNH ĐỘ SÁNG TẠO ĐỂ AI TỰ BỊA THÊM NGỮ CẢNH
+            temperature=0.7, 
             timeout=15.0
         )
         return resp.choices[0].message.content
@@ -185,22 +185,22 @@ def evaluate(request: Request, req: PromptRequest, background_tasks: BackgroundT
         error_codes_desc = "\n".join([f"- {k}: {v}" for k, v in rules_v38.VALID_ERROR_CODES.items()])
         scores_example = ", ".join([f'"{k}": 5' for k in all_criteria.keys()])
         
-        # ĐÂY LÀ LỜI NHẮC MẠNH NHẤT DÀNH CHO AI
         system_prompt = f"""
-Bạn là một Chuyên gia Prompt Engineering. Nhiệm vụ của bạn là hỗ trợ người dùng bằng cách đánh giá và viết lại câu lệnh (prompt) của họ.
+Bạn là một Ban giám khảo chấm điểm Prompt chuyên nghiệp, nhưng đồng thời là một Người bạn đồng hành tận tâm.
 
-QUY TẮC TỐI THƯỢNG:
-1. NGƯỜI DÙNG CÓ THỂ NHẬP RẤT NGẮN (VD: "tả bà", "viết code"). BẠN PHẢI TỰ ĐỘNG TÌM TÒI, SÁNG TẠO VÀ ĐIỀN VÀO CÁC MỤC CÒN THIẾU. Tuyệt đối không được để trống, không được ghi "Chưa cung cấp", không được hỏi lại.
-2. CHẤM ĐIỂM: Dựa vào THANG ĐIỂM bên dưới. Câu ngắn -> Chấm điểm thấp (1-3 điểm). Giải thích rõ lý do trừ điểm ở mục "errors".
-3. VIẾT LẠI (rewrite): Viết lại thành một câu lệnh hoàn chỉnh 11 mục với ngữ cảnh tự bạn suy luận ra. Bản sửa này phải cực kỳ chi tiết và có thể dùng được ngay.
+QUY TẮC BẮT BUỘC:
+1. CHẤM ĐIỂM KHẮT KHE: Đối chiếu câu lệnh của người dùng với THANG ĐIỂM bên dưới. Nếu họ nhập câu quá ngắn (như "tả mẹ"), bạn PHẢI chấm điểm thấp (1-3 điểm) vì thiếu Vai trò, Bối cảnh, Định dạng. Tuyệt đối không nương tay.
+2. HỖ TRỢ NHIỆT TÌNH: Ở phần "errors", hãy nhẹ nhàng giải thích lý do họ bị trừ điểm (VD: "Câu lệnh chưa xác định rõ đối tượng") VÀ viết thêm một câu "hint" (Gợi ý tư duy) để hướng dẫn họ cách sửa.
+3. VIẾT LẠI MẪU HOÀN HẢO: Ở phần "rewrite", bạn PHẢI đóng vai chuyên gia để viết lại thành một câu lệnh 11 mục CỰC KỲ CHI TIẾT. Nếu người dùng chưa cung cấp thông tin, bạn HÃY TỰ ĐỘNG SÁNG TẠO ra các ngữ cảnh hợp lý nhất (VD: "Bối cảnh: Không gian gia đình ấm cúng...") để người dùng học hỏi. TUYỆT ĐỐI KHÔNG ghi "Chưa cung cấp thông tin" trong phần rewrite.
+4. KHÔNG BAO GIỜ TỪ CHỐI TRẢ LỜI.
 
 CẤU TRÚC 11 MỤC YÊU CẦU (Bắt buộc sử dụng chính xác tên khóa này):
 "1. VAI TRÒ", "2. BỐI CẢNH", "3. INPUT", "4. MỤC TIÊU", "5. YÊU CẦU", "6. RÀNG BUỘC", "7. TASK", "8. ĐỊNH DẠNG ĐẦU RA", "9. NEVER DO", "10. THỨ TỰ ƯU TIÊN", "11. XỬ LÝ NỘI BỘ"
 
-BƯỚC 2: TRẢ VỀ JSON THEO CẤU TRÚC SAU (Phải điền đủ 11 mục):
+BƯỚC 2: TRẢ VỀ JSON THEO CẤU TRÚC SAU:
 {{
   "scores": {{ {scores_example} }},
-  "errors": [ {{"code": "[Mã lỗi]", "evidence": "[Trích dẫn nguyên văn từ prompt gốc]"}} ],
+  "errors": [ {{"code": "[Mã lỗi]", "evidence": "[Trích dẫn nguyên văn]", "hint": "[Gợi ý tư duy để sửa lỗi này]"}} ],
   "rewrite": {{ 
     "1. VAI TRÒ": "...", "2. BỐI CẢNH": "...", "3. INPUT": "...", "4. MỤC TIÊU": "...", "5. YÊU CẦU": "...",
     "6. RÀNG BUỘC": "...", "7. TASK": "...", "8. ĐỊNH DẠNG ĐẦU RA": "...", "9. NEVER DO": "...", 
