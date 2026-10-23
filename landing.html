@@ -252,7 +252,8 @@
 
             <div class="bg-white/80 dark:bg-[#1e293b]/80 backdrop-blur-md border border-slate-200 dark:border-slate-700/60 shadow-xl rounded-3xl p-6">
                 <h3 class="font-bold text-sm mb-5 text-slate-800 dark:text-slate-200 flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-blue-500"></span> Chi tiết điểm</h3>
-                <div id="criteriaList" class="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5"></div>
+                <!-- ĐÃ ÉP CHIA 2 CỘT TRÊN MỌI THIẾT BỊ -->
+                <div id="criteriaList" class="grid grid-cols-2 gap-x-4 sm:gap-x-8 gap-y-4 sm:gap-y-5"></div>
             </div>
 
             <div class="bg-white/80 dark:bg-[#1e293b]/80 backdrop-blur-md border border-slate-200 dark:border-slate-700/60 shadow-xl rounded-3xl overflow-hidden">
@@ -321,7 +322,6 @@
 
         <div class="mt-6 flex items-center justify-center">
             <label class="flex items-center gap-2.5 cursor-pointer group" title="Tắt thông báo">
-                <!-- Đã đổi chữ tại đây -->
                 <input type="checkbox" id="chkDontShowAgain" title="Tắt thông báo">
                 <span class="text-sm font-medium text-slate-300 group-hover:text-white transition-colors">Tắt thông báo</span>
             </label>
@@ -615,7 +615,8 @@
             Object.entries(r.details).forEach(([name, score]) => {
                 const cleanName = name.replace(/[\.\s]+$/, '');
                 const row = document.createElement('div'); 
-                row.innerHTML = `<div class="flex justify-between items-start mb-1.5 gap-2"><span class="text-[11px] font-semibold text-slate-600 dark:text-slate-400 leading-tight break-words">${cleanName}</span><span class="text-xs font-bold text-slate-800 dark:text-slate-200 shrink-0">${score}</span></div><div class="w-full bg-slate-100 dark:bg-[#0f172a] rounded-full h-2"><div class="h-2 rounded-full bg-gradient-to-r from-pink-500 to-blue-500" style="width: ${score * 10}%"></div></div>`;
+                // Đã tinh chỉnh lại khoảng cách chữ cho 2 cột trên mobile
+                row.innerHTML = `<div class="flex justify-between items-start mb-1.5 gap-2"><span class="text-[11px] font-semibold text-slate-600 dark:text-slate-400 leading-tight break-words">${cleanName}</span><span class="text-xs font-bold text-slate-800 dark:text-slate-200 shrink-0">${score}</span></div><div class="w-full bg-slate-100 dark:bg-[#0f172a] rounded-full h-1.5 sm:h-2"><div class="h-1.5 sm:h-2 rounded-full bg-gradient-to-r from-pink-500 to-blue-500" style="width: ${score * 10}%"></div></div>`;
                 $('criteriaList').appendChild(row);
             });
 
