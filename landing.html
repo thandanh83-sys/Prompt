@@ -25,7 +25,6 @@
         }
     </script>
     
-    <!-- 2 THẺ SCRIPT QUAN TRỌNG NHẤT ĐỂ GIAO DIỆN KHÔNG BỊ VỠ -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>tailwind.config = { darkMode: 'class' }</script>
@@ -58,6 +57,13 @@
         .toast-success { border-left: 4px solid #22c55e; }
         .toast-error { border-left: 4px solid #ef4444; }
         .toast-show { opacity: 1; transform: translateY(0); }
+
+        /* Hiệu ứng cho khung chờ kết quả trên Desktop */
+        .empty-state-pulse { animation: pulse-border 2s infinite; }
+        @keyframes pulse-border {
+            0%, 100% { border-color: rgba(148, 163, 184, 0.3); }
+            50% { border-color: rgba(148, 163, 184, 0.7); }
+        }
     </style>
 
     <script>
@@ -91,7 +97,6 @@
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
                 </button>
                 
-                <!-- MENU DROPDOWN -->
                 <div id="dropdownMenu" class="menu-dropdown absolute top-12 md:top-14 left-0 bg-white/80 dark:bg-[#1e293b]/80 backdrop-blur-2xl border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl hidden opacity-0 scale-95 z-50 p-2">
                     <div class="flex flex-col gap-1">
                         <a href="./index.html" class="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors">
@@ -168,73 +173,94 @@
         });
     </script>
 
-    <!-- MAIN CONTENT -->
-    <main class="w-full max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 md:pt-32 pb-32 flex-grow flex flex-col mt-4 z-10 min-h-screen">
+    <!-- MAIN CONTENT (RESPONSIVE 2 CỘT TRÊN DESKTOP) -->
+    <main class="w-full max-w-2xl lg:max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 md:pt-32 pb-32 flex-grow flex flex-col mt-4 z-10 min-h-screen">
         
-        <div class="text-center mb-8">
-            <h1 class="text-2xl sm:text-3xl md:text-4xl font-extrabold mb-3 flex items-center justify-center gap-2">
+        <div class="text-center mb-8 lg:mb-12">
+            <h1 class="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold mb-3 flex items-center justify-center gap-2">
                 <span class="brand-text">Trợ lý tối ưu hoá Prompt</span>
             </h1>
-            <p class="text-slate-500 dark:text-slate-400 text-sm md:text-base font-medium">AI tự động nhận diện lĩnh vực và tạo Prompt chuẩn chuyên gia.</p>
+            <p class="text-slate-500 dark:text-slate-400 text-sm md:text-base lg:text-lg font-medium">AI tự động nhận diện lĩnh vực và tạo Prompt chuẩn chuyên gia.</p>
         </div>
 
-        <!-- Ô NHẬP LIỆU -->
-        <div class="bg-white/80 dark:bg-[#1e293b]/80 backdrop-blur-md border border-slate-200 dark:border-slate-700/60 shadow-xl rounded-3xl p-5 md:p-6 mb-8 transition-colors">
-            <div class="relative">
-                <textarea id="promptInput" maxlength="5000" class="w-full h-40 p-4 pb-10 rounded-2xl bg-slate-50 dark:bg-[#0f172a] border border-slate-200 dark:border-slate-700/60 focus:outline-none focus:ring-1 focus:ring-pink-500 focus:border-pink-500 resize-none text-slate-800 dark:text-slate-100 placeholder-slate-400 text-sm transition-all" placeholder="Mô tả điều bạn muốn AI thực hiện..."></textarea>
-                <div class="absolute bottom-3 right-4 flex items-center gap-3">
-                    <span id="charCount" class="text-[11px] font-medium text-slate-500">0/5000</span>
-                    <button id="btnClearInput" class="hidden text-slate-400 hover:text-red-500"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button>
-                </div>
-            </div>
-            <p id="longPromptWarning" class="text-yellow-500 text-xs mt-2 font-medium" style="display: none;">⚠️ Prompt khá dài, AI có thể mất 30-60 giây.</p>
-            <p id="errorMsg" class="text-red-500 text-xs mt-2 font-medium" style="display: none;">Vui lòng nhập prompt!</p>
+        <!-- GRID CONTAINER -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
             
-            <div class="mt-5">
-                <button id="btnEvaluate" class="w-full py-4 rounded-2xl font-bold bg-gradient-to-r from-pink-500 to-blue-500 text-white shadow-lg btn-glow disabled:opacity-50 transition-all text-base flex items-center justify-center gap-2">
-                    <span id="btnText">Đánh giá & Viết lại</span>
-                    <svg id="loadingSpinner" class="hidden animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                </button>
-            </div>
-        </div>
-
-        <!-- KHỐI KẾT QUẢ -->
-        <div id="resultArea" class="space-y-6" style="display: none;">
-            <div class="bg-white/80 dark:bg-[#1e293b]/80 backdrop-blur-md border border-slate-200 dark:border-slate-700/60 shadow-xl rounded-3xl p-6 md:p-8 flex flex-col gap-6 relative overflow-hidden transition-colors">
-                <div class="bg-slate-50 dark:bg-[#0f172a] border border-slate-200 dark:border-slate-700/60 rounded-2xl p-5 transition-colors">
-                    <p class="text-[11px] text-slate-500 font-bold mb-1 tracking-widest uppercase">ĐIỂM TỔNG</p>
-                    <div class="flex items-baseline gap-2 mb-4">
-                        <span id="totalScore" class="text-[4rem] leading-none font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-blue-500">0.0</span>
-                        <span class="text-slate-500 text-lg font-medium">/ 10</span>
-                    </div>
-                    <div class="w-full bg-slate-200 dark:bg-[#1e293b] h-2 rounded-full transition-colors">
-                        <div id="scoreBar" class="bg-gradient-to-r from-pink-500 to-blue-500 h-2 rounded-full w-0 transition-all duration-1000"></div>
+            <!-- CỘT TRÁI: FORM NHẬP LIỆU (5/12) -->
+            <div class="lg:col-span-5 bg-white/80 dark:bg-[#1e293b]/80 backdrop-blur-md border border-slate-200 dark:border-slate-700/60 shadow-xl rounded-3xl p-5 md:p-6 transition-all lg:sticky lg:top-28">
+                <div class="relative">
+                    <textarea id="promptInput" maxlength="5000" class="w-full h-40 md:h-64 p-4 pb-10 rounded-2xl bg-slate-50 dark:bg-[#0f172a] border border-slate-200 dark:border-slate-700/60 focus:outline-none focus:ring-1 focus:ring-pink-500 focus:border-pink-500 resize-none text-slate-800 dark:text-slate-100 placeholder-slate-400 text-sm transition-all" placeholder="Mô tả điều bạn muốn AI thực hiện..."></textarea>
+                    <div class="absolute bottom-3 right-4 flex items-center gap-3">
+                        <span id="charCount" class="text-[11px] font-medium text-slate-500">0/5000</span>
+                        <button id="btnClearInput" class="hidden text-slate-400 hover:text-red-500"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button>
                     </div>
                 </div>
-
-                <div class="bg-slate-50 dark:bg-[#0f172a] border border-slate-200 dark:border-slate-700/60 rounded-2xl p-5 transition-colors">
-                    <p class="text-[11px] text-slate-500 font-bold mb-3 tracking-widest uppercase">PHÂN LOẠI</p>
-                    <div class="flex flex-col items-start gap-2">
-                        <span id="promptType" class="px-4 py-1.5 bg-blue-500 text-white text-[13px] font-bold rounded-full">TEMPLATE</span>
-                        <div id="techniqueBadges" class="flex flex-wrap gap-2"></div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="bg-white/80 dark:bg-[#1e293b]/80 backdrop-blur-md border border-slate-200 dark:border-slate-700/60 shadow-xl rounded-3xl p-6 transition-colors">
-                <h3 class="font-bold text-sm mb-5 text-slate-800 dark:text-slate-200 flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-blue-500"></span> Chi tiết điểm</h3>
-                <div id="criteriaList" class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-4"></div>
-            </div>
-
-            <div class="bg-white/80 dark:bg-[#1e293b]/80 backdrop-blur-md border border-slate-200 dark:border-slate-700/60 shadow-xl rounded-3xl overflow-hidden transition-colors">
-                <div class="flex justify-between items-center px-5 py-4 border-b border-slate-200 dark:border-slate-700/50 bg-slate-50 dark:bg-slate-800/40">
-                    <h3 class="font-bold text-sm text-slate-800 dark:text-slate-200 flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-indigo-500"></span> Bản sửa hoàn chỉnh</h3>
-                    <button id="btnCopyAll" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 rounded-md border border-slate-200 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 transition">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
-                        <span id="copyBtnText">Sao chép</span>
+                <p id="longPromptWarning" class="text-yellow-500 text-xs mt-2 font-medium" style="display: none;">⚠️ Prompt khá dài, AI có thể mất 30-60 giây.</p>
+                <p id="errorMsg" class="text-red-500 text-xs mt-2 font-medium" style="display: none;">Vui lòng nhập prompt!</p>
+                
+                <div class="mt-5">
+                    <button id="btnEvaluate" class="w-full py-4 rounded-2xl font-bold bg-gradient-to-r from-pink-500 to-blue-500 text-white shadow-lg btn-glow disabled:opacity-50 transition-all text-base flex items-center justify-center gap-2">
+                        <span id="btnText">Đánh giá & Viết lại</span>
+                        <svg id="loadingSpinner" class="hidden animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                     </button>
                 </div>
-                <div id="rewriteList" class="p-5 space-y-5 text-sm"></div>
+            </div>
+
+            <!-- CỘT PHẢI: KẾT QUẢ (7/12) -->
+            <div class="lg:col-span-7 flex flex-col h-full">
+                
+                <!-- TRẠNG THÁI RỖNG (Chỉ hiện trên desktop khi chưa đánh giá) -->
+                <div id="emptyState" class="hidden lg:flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 border-2 border-dashed border-slate-300 dark:border-slate-700 empty-state-pulse rounded-3xl p-10 h-full min-h-[500px]">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-20 h-20 mb-4 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                    <p class="text-lg font-medium">Kết quả đánh giá sẽ xuất hiện ở đây</p>
+                    <p class="text-sm mt-2">Hãy nhập Prompt bên trái và bấm Đánh giá</p>
+                </div>
+
+                <!-- KHỐI KẾT QUẢ -->
+                <div id="resultArea" class="space-y-6 w-full" style="display: none;">
+                    
+                    <!-- Khối Điểm và Phân loại (Chia 2 cột trên màn to) -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Điểm Tổng -->
+                        <div class="bg-white/80 dark:bg-[#1e293b]/80 backdrop-blur-md border border-slate-200 dark:border-slate-700/60 shadow-xl rounded-3xl p-6 transition-colors flex flex-col justify-center">
+                            <p class="text-[11px] text-slate-500 font-bold mb-1 tracking-widest uppercase">ĐIỂM TỔNG</p>
+                            <div class="flex items-baseline gap-2 mb-4">
+                                <span id="totalScore" class="text-[4rem] leading-none font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-blue-500">0.0</span>
+                                <span class="text-slate-500 text-lg font-medium">/ 10</span>
+                            </div>
+                            <div class="w-full bg-slate-200 dark:bg-[#1e293b] h-2 rounded-full transition-colors">
+                                <div id="scoreBar" class="bg-gradient-to-r from-pink-500 to-blue-500 h-2 rounded-full w-0 transition-all duration-1000"></div>
+                            </div>
+                        </div>
+
+                        <!-- Phân Loại -->
+                        <div class="bg-white/80 dark:bg-[#1e293b]/80 backdrop-blur-md border border-slate-200 dark:border-slate-700/60 shadow-xl rounded-3xl p-6 transition-colors flex flex-col justify-center">
+                            <p class="text-[11px] text-slate-500 font-bold mb-3 tracking-widest uppercase">PHÂN LOẠI</p>
+                            <div class="flex flex-col items-start gap-2">
+                                <span id="promptType" class="px-4 py-1.5 bg-blue-500 text-white text-[13px] font-bold rounded-full">TEMPLATE</span>
+                                <div id="techniqueBadges" class="flex flex-wrap gap-2"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Chi tiết điểm -->
+                    <div class="bg-white/80 dark:bg-[#1e293b]/80 backdrop-blur-md border border-slate-200 dark:border-slate-700/60 shadow-xl rounded-3xl p-6 transition-colors">
+                        <h3 class="font-bold text-sm mb-5 text-slate-800 dark:text-slate-200 flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-blue-500"></span> Chi tiết điểm</h3>
+                        <div id="criteriaList" class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4"></div>
+                    </div>
+
+                    <!-- Bản sửa hoàn chỉnh -->
+                    <div class="bg-white/80 dark:bg-[#1e293b]/80 backdrop-blur-md border border-slate-200 dark:border-slate-700/60 shadow-xl rounded-3xl overflow-hidden transition-colors">
+                        <div class="flex justify-between items-center px-5 py-4 border-b border-slate-200 dark:border-slate-700/50 bg-slate-50 dark:bg-slate-800/40">
+                            <h3 class="font-bold text-sm text-slate-800 dark:text-slate-200 flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-indigo-500"></span> Bản sửa hoàn chỉnh</h3>
+                            <button id="btnCopyAll" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 rounded-md border border-slate-200 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 transition">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+                                <span id="copyBtnText">Sao chép</span>
+                            </button>
+                        </div>
+                        <div id="rewriteList" class="p-5 space-y-5 text-sm"></div>
+                    </div>
+                </div>
             </div>
         </div>
     </main>
@@ -251,11 +277,9 @@
         </div>
     </div>
 
-    <!-- MODAL HƯỚNG DẪN SỬ DỤNG (ĐÃ SỬA SÁNG/TỐI TỰ ĐỘNG) -->
+    <!-- MODAL HƯỚNG DẪN SỬ DỤNG -->
     <div id="guideModal" style="display: flex !important;" class="fixed inset-0 z-[99999] items-center justify-center p-4 bg-black/70 backdrop-blur-md opacity-100 transition-opacity duration-300">
         <div class="bg-white dark:bg-[#1e293b] border border-slate-200 dark:border-slate-700/50 rounded-3xl shadow-2xl w-full max-w-[400px] p-6 sm:p-7 relative">
-            
-            <!-- Nút X -->
             <button type="button" onclick="document.getElementById('guideModal').style.display='none';" class="absolute top-5 right-5 text-slate-500 hover:text-slate-800 bg-slate-100 hover:bg-slate-200 dark:text-slate-300 dark:hover:text-white dark:bg-slate-700/50 dark:hover:bg-slate-600 w-8 h-8 rounded-full flex items-center justify-center transition-colors">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
             </button>
@@ -397,6 +421,9 @@
             if (!prompt) { $('errorMsg').style.display = 'block'; promptInput.focus(); return; }
             $('errorMsg').style.display = 'none';
             
+            // Đảm bảo emptyState bị ẩn đi khi bắt đầu load
+            if($('emptyState')) $('emptyState').style.display = 'none';
+
             const btn = $('btnEvaluate'); const btnText = $('btnText'); const spinner = $('loadingSpinner');
             btn.disabled = true; spinner.classList.remove('hidden');
             let seconds = 0; btnText.textContent = 'Đang kết nối (0s)...';
@@ -421,6 +448,8 @@
                 
             } catch (e) { 
                 $('errorMsg').textContent = e.message || "Đã xảy ra lỗi."; $('errorMsg').style.display = 'block'; 
+                // Nếu lỗi, hiện lại trạng thái rỗng trên desktop
+                if($('emptyState') && window.innerWidth >= 1024) $('emptyState').style.display = 'flex';
             } finally { 
                 clearInterval(timer); btn.disabled = false; spinner.classList.add('hidden'); btnText.textContent = 'Đánh giá & Viết lại'; 
             }
@@ -458,7 +487,11 @@
             });
             
             $('resultArea').style.display = 'block';
-            setTimeout(() => { $('resultArea').scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 100);
+            
+            // Trên mobile, khi kết quả hiện ra thì cuộn xuống xem kết quả
+            if(window.innerWidth < 1024) {
+                setTimeout(() => { $('resultArea').scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 100);
+            }
         }
 
         $('btnCopyAll').addEventListener('click', async () => {
