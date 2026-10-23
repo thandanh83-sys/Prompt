@@ -34,12 +34,18 @@
         body { -webkit-tap-highlight-color: transparent; overflow-x: hidden; background-color: transparent !important; overscroll-behavior-y: none; min-height: 100vh; min-height: 100dvh; padding-top: env(safe-area-inset-top, 0px); }
         .page-bg { position: fixed; inset: 0; z-index: -1; pointer-events: none; background-color: #f8f7fc; background-image: radial-gradient(circle at 50% -20%, rgba(236,72,153,0.15) 0%, transparent 70%), radial-gradient(circle at 50% 120%, rgba(59,130,246,0.15) 0%, transparent 70%); }
         html.dark .page-bg { background-color: #0b1120; background-image: radial-gradient(ellipse at 50% -10%, rgba(236, 72, 153, 0.5) 0%, rgba(168, 85, 247, 0.3) 50%, transparent 80%), radial-gradient(ellipse at 50% 110%, rgba(59, 130, 246, 0.4) 0%, transparent 80%); }
+        
         .app-header { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); border-color: rgba(0,0,0,.06); transition: all .2s; }
         .dark .app-header { background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(12px); border-color: rgba(255,255,255,.1); }
+        
         .brand-text { background: linear-gradient(100deg, #ec4899, #a052c8 52%, #3979f5); -webkit-background-clip: text; background-clip: text; color: transparent; }
         .btn-glow { box-shadow: 0 4px 20px rgba(236,72,153,.3); transition: all .2s ease; }
         .btn-glow:hover { box-shadow: 0 6px 25px rgba(59,130,246,.5); transform: translateY(-2px); }
-        .menu-dropdown { transition: all .2s ease-in-out; transform-origin: top left; width: min(280px, calc(100vw - 32px)); max-height: calc(100dvh - 100px); overflow-y: auto; box-sizing: border-box; }
+        
+        /* MENU NỀN ĐẶC (Không bị lộ chữ bên dưới) */
+        .menu-dropdown { transition: all .2s ease-in-out; transform-origin: top left; width: min(280px, calc(100vw - 32px)); max-height: calc(100dvh - 100px); overflow-y: auto; box-sizing: border-box; background-color: #ffffff; }
+        .dark .menu-dropdown { background-color: #1e293b; }
+        
         #promptInput { white-space: pre-wrap; overflow-wrap: anywhere; }
         .toast-msg { background-color: #1e293b; color: white; padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 500; box-shadow: 0 4px 6px rgba(0,0,0,.1); opacity: 0; transform: translateY(20px); transition: all .3s ease; pointer-events: auto; display: flex; align-items: center; gap: 8px; white-space: nowrap; z-index: 99999; }
         .toast-success { border-left: 4px solid #22c55e; }
@@ -71,12 +77,15 @@
     <!-- HEADER -->
     <header class="app-header fixed top-0 left-0 w-full z-50 border-b pt-[env(safe-area-inset-top,0px)]">
         <div class="w-full max-w-7xl mx-auto px-3 sm:px-6 h-16 md:h-20 grid grid-cols-3 items-center">
+            
+            <!-- CỘT 1: BÊN TRÁI (MENU) -->
             <div class="flex items-center justify-start relative z-50">
                 <button id="btnHamburger" class="w-10 h-10 shrink-0 flex items-center justify-center rounded-full text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
                 </button>
                 
-                <div id="dropdownMenu" class="menu-dropdown absolute top-12 md:top-14 left-0 bg-white/95 dark:bg-[#1e293b]/95 backdrop-blur-xl border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl hidden opacity-0 scale-95 z-50 p-2">
+                <!-- MENU DROPDOWN -->
+                <div id="dropdownMenu" class="menu-dropdown absolute top-12 md:top-14 left-0 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl hidden opacity-0 scale-95 z-50 p-2">
                     <div class="flex flex-col gap-1">
                         <a href="./index.html" class="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors">
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-pink-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
@@ -94,7 +103,18 @@
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-slate-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
                             Trang cá nhân
                         </a>
+                        
                         <div class="h-px bg-slate-100 dark:bg-slate-700/50 my-1 mx-2"></div>
+                        
+                        <!-- PHẦN ADMIN ĐÃ ĐƯỢC ĐEM TRỞ LẠI -->
+                        <div id="adminMenuDivider" class="h-px bg-slate-100 dark:bg-slate-700/50 my-1 mx-2" style="display:none;"></div>
+                        <a id="menuBtnAdmin" href="./admin.html" class="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-green-50 dark:hover:bg-green-900/20 text-sm font-semibold text-green-600 dark:text-green-400 transition-colors" style="display:none;">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-green-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                            Quản trị viên
+                        </a>
+                        
+                        <div class="h-px bg-slate-100 dark:bg-slate-700/50 my-1 mx-2"></div>
+                        
                         <button id="themeToggleMenu" class="w-full flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors text-left">
                             <span id="themeIconMenu" class="w-5 h-5 flex items-center justify-center shrink-0"></span>
                             <span id="themeTextMenu">Chế độ Tối</span>
@@ -103,6 +123,7 @@
                 </div>
             </div>
 
+            <!-- CỘT 2: Ở GIỮA (LOGO) -->
             <div class="flex items-center justify-center z-40">
                 <a href="./index.html" class="flex items-center gap-1.5 min-w-0 no-underline focus:outline-none">
                     <svg class="w-5 h-5 sm:w-6 sm:h-6 shrink-0" viewBox="0 0 24 24"><defs><linearGradient id="brandSparkGradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ec4899"/><stop offset="100%" stop-color="#3b82f6"/></linearGradient></defs><path fill="url(#brandSparkGradient)" d="M12 2L14.7 9.3 22 12l-7.3 2.7L12 22l-2.7-7.3L2 12l7.3-2.7L12 2Z"/></svg>
@@ -110,6 +131,7 @@
                 </a>
             </div>
             
+            <!-- CỘT 3: BÊN PHẢI -->
             <div class="flex items-center justify-end z-50">
                 <button id="btnShowLogin" class="px-3 py-1.5 md:px-5 md:py-2.5 rounded-full text-xs md:text-sm font-bold text-white bg-gradient-to-r from-pink-500 to-blue-500 shadow-sm hover:scale-105 transition-all">
                     Đăng nhập
@@ -208,11 +230,9 @@
         </div>
     </div>
 
-    <!-- MODAL HƯỚNG DẪN SỬ DỤNG (DÙNG CHIÊU BẠO LỰC) -->
+    <!-- MODAL HƯỚNG DẪN SỬ DỤNG -->
     <div id="guideModal" style="display: flex !important;" class="fixed inset-0 z-[99999] items-center justify-center p-4 bg-black/70 backdrop-blur-md opacity-100 transition-opacity duration-300">
         <div class="bg-[#1e293b] border border-slate-700/50 rounded-3xl shadow-2xl w-full max-w-[400px] p-6 sm:p-7 relative">
-            
-            <!-- Nút X - Dùng onclick trực tiếp -->
             <button type="button" onclick="document.getElementById('guideModal').style.display='none';" class="absolute top-5 right-5 text-slate-300 hover:text-white bg-slate-700/50 hover:bg-slate-600 w-8 h-8 rounded-full flex items-center justify-center transition-colors">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
             </button>
@@ -243,23 +263,11 @@
                 </div>
             </div>
             
-            <!-- Nút Đã hiểu - Dùng onclick trực tiếp -->
             <button type="button" onclick="document.getElementById('guideModal').style.display='none';" class="w-full py-3.5 rounded-xl font-bold text-white bg-gradient-to-r from-pink-500 to-blue-500 shadow-md transition-all text-[15px]">
                 Đã hiểu, Bắt đầu
             </button>
         </div>
     </div>
-
-    <!-- SCRIPT "BẠO LỰC" KÍCH HOẠT MODAL -->
-    <script>
-        setTimeout(function() {
-            var modal = document.getElementById('guideModal');
-            if (modal) {
-                modal.style.display = 'flex';
-                modal.style.opacity = '1';
-            }
-        }, 0);
-    </script>
 
     <div id="toastContainer" class="fixed bottom-5 left-1/2 transform -translate-x-1/2 z-[99999] flex flex-col gap-2 pointer-events-none"></div>
 
@@ -279,8 +287,8 @@
 
         function applyTheme(dark) {
             document.documentElement.classList.toggle('dark', dark); document.documentElement.classList.toggle('light', !dark);
-            $('themeIconMenu').innerHTML = dark ? sunSVG : moonSVG; 
-            $('themeTextMenu').textContent = dark ? 'Chế độ Sáng' : 'Chế độ Tối';
+            if($('themeIconMenu')) $('themeIconMenu').innerHTML = dark ? sunSVG : moonSVG; 
+            if($('themeTextMenu')) $('themeTextMenu').textContent = dark ? 'Chế độ Sáng' : 'Chế độ Tối';
             try { window.localStorage.setItem('theme', dark ? 'dark' : 'light'); } catch (error) { }
             const themeColor = document.querySelector('meta[name="theme-color"]'); 
             if (themeColor) themeColor.setAttribute('content', dark ? '#0b1120' : '#f8f7fc');
@@ -291,6 +299,24 @@
             e.preventDefault(); e.stopPropagation(); 
             applyTheme(!document.documentElement.classList.contains('dark')); 
         });
+
+        // SCRIPT "BẠO LỰC" KÍCH HOẠT MODAL HƯỚNG DẪN
+        setTimeout(function() {
+            var modal = document.getElementById('guideModal');
+            if (modal) { modal.style.display = 'flex'; modal.style.opacity = '1'; }
+        }, 0);
+
+        // ĐÃ ĐEM HÀM CHECK ADMIN QUAY LẠI
+        async function checkAdminAccess() {
+            try {
+                const res = await fetch(`${API_URL}/check_admin_ip`);
+                if (res.ok) { 
+                    if($('adminMenuDivider')) $('adminMenuDivider').style.display = 'block'; 
+                    if($('menuBtnAdmin')) $('menuBtnAdmin').style.display = 'flex'; 
+                } 
+            } catch (e) { console.log("Không thể xác thực IP Admin."); }
+        }
+        checkAdminAccess();
 
         // AUTH SUPABASE
         async function checkAuthState() {
