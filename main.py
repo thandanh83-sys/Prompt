@@ -17,7 +17,7 @@ from slowapi import Limiter
 from slowapi.errors import RateLimitExceeded
 
 import rules_v38
-import error_rules
+import error_rules  # BẮT BUỘC PHẢI CÓ FILE NÀY
 from validator import validate_full_report, calculate_final_score, ReportValidationError
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
@@ -75,8 +75,8 @@ app.add_middleware(
 class PromptRequest(BaseModel):
     prompt: str
 
-# Tắt tự động thử lại của Groq để tránh treo server khi bị rate limit
-client = Groq(api_key=GROQ_API_KEY, max_retries=0)
+# Sử dụng Groq với model mới nhất
+client = Groq(api_key=GROQ_API_KEY)
 
 supabase_url = os.environ.get("SUPABASE_URL", "")
 supabase_key = os.environ.get("SUPABASE_KEY", "")
@@ -113,34 +113,18 @@ def call_llm(system_prompt: str, user_prompt: str) -> str:
         {"role": "user", "content": "Dữ liệu prompt cần đánh giá:\n" + json.dumps({"prompt_can_cham": user_prompt}, ensure_ascii=False)},
     ]
     
-    # DANH SÁCH 3 MODEL CHUẨN XÁC (Đã loại bỏ hoàn toàn llama-3.3-70b)
-    models_to_try = [
-        "llama-3.1-8b-instant",                      # Ưu tiên 1 (Chính - Nhanh, nhẹ, 14.4k req/ngày)
-        "meta-llama/llama-4-scout-17b-16e-instruct", # Ưu tiên 2 (Phụ 1 - Gánh prompt dài)
-        "openai/gpt-oss-120b"                        # Ưu tiên 3 (Phụ 2 - Chất lượng chuyên gia)
-    ]
-    
-    last_error = None
-    
-    for model_id in models_to_try:
-        try:
-            logger.info(f"Đang thử gọi model: {model_id}")
-            resp = client.chat.completions.create(
-                model=model_id,
-                messages=messages,
-                response_format={"type": "json_object"},
-                temperature=0.1, 
-                timeout=30.0
-            )
-            logger.info(f"Gọi thành công model: {model_id}")
-            return resp.choices[0].message.content
-        except Exception as e:
-            logger.warning(f"Model {model_id} thất bại: {e}")
-            last_error = e
-            continue
-            
-    logger.error(f"Tất cả model đều thất bại. Lỗi cuối cùng: {last_error}")
-    raise HTTPException(status_code=503, detail="Hệ thống AI đang quá tải hoặc API Key bị lỗi. Vui lòng thử lại sau.")
+    try:
+        resp = client.chat.completions.create(
+            model="openai/gpt-oss-120b", # <-- MODEL MỚI ĐÃ CẬP NHẬT
+            messages=messages,
+            response_format={"type": "json_object"},
+            temperature=0.1, 
+            timeout=30.0
+        )
+        return resp.choices[0].message.content
+    except Exception as e:
+        logger.error(f"Groq thất bại: {e}")
+        raise HTTPException(status_code=503, detail="Hệ thống AI đang quá tải hoặc API Key bị lỗi. Vui lòng thử lại sau.")
 
 def bg_save_history(payload: dict):
     if not supabase: return
@@ -178,6 +162,7 @@ def evaluate(request: Request, req: PromptRequest, background_tasks: BackgroundT
         criteria_desc = "".join([f"- ID {k} ({v['name']}): {v['rubric']}\n" for k, v in all_criteria.items()])
         scores_example = ", ".join([f'"{k}": 5' for k in all_criteria.keys()])
         
+        # Lấy bộ luật lỗi chi tiết
         error_codes_desc = ""
         for code, rule in error_rules.ERROR_RULES.items():
             ex_positive = " | ".join(rule['examples']['positive'])
@@ -195,29 +180,37 @@ def evaluate(request: Request, req: PromptRequest, background_tasks: BackgroundT
 """
         
         system_prompt = f"""
-# PROMPT LINTER — SYSTEM PROMPT
+# PROMPT LINTER — SYSTEM PROMPT CHO CHẾ ĐỘ AI
 
-## I. VAI TRÒ
-Bạn là chuyên gia Prompt Engineering. Bạn chấm điểm khắt khe và viết lại prompt một cách xuất sắc.
+## I. VAI TRÒ VÀ NHIỆM VỤ
+Bạn là hệ thống AI chuyên đánh giá chất lượng prompt, kết hợp vai trò của chuyên gia Prompt Engineering, người kiểm định chất lượng và người hướng dẫn cải thiện prompt.
+Nhiệm vụ của bạn:
+1. Đọc và phân tích prompt gốc do hệ thống cung cấp.
+2. Chấm điểm từng tiêu chí theo đúng rubric và trọng số.
+3. Phát hiện lỗi thực sự tồn tại trong prompt gốc, sử dụng mã lỗi đã được định nghĩa.
+4. Cung cấp bằng chứng hợp lệ cho từng lỗi.
+5. Viết lại prompt để cải thiện độ rõ ràng, tính phù hợp, tính khả thi.
+6. Trả về dữ liệu JSON đúng schema để backend kiểm tra.
 
-## II. QUY TẮC BẰNG CHỨNG (CỰC KỲ QUAN TRỌNG)
-- Với lỗi thiếu thông tin (B01, C02, C04): Được phép mô tả sự vắng mặt (VD: `Không tìm thấy bối cảnh`).
-- Với TẤT CẢ CÁC LỖI CÒN LẠI: 
-  + Bắt buộc phải trích dẫn NGUYÊN VĂN (copy 100%) một đoạn text có thật trong prompt gốc. 
-  + KHÔNG được viết thêm bất kỳ lời giải thích, bình luận hay câu cảm thán nào vào phần trích dẫn này.
-  + Ví dụ: Nếu prompt gốc là "tả mẹ", evidence cho lỗi C03 chỉ được là `"tả mẹ"` (hoặc `"tả"`), TUYỆT ĐỐI KHÔNG viết `"Yêu cầu tả mẹ quá chung chung"`.
-  + Nếu không tìm thấy từ ngữ nào để trích dẫn, hãy bỏ qua lỗi đó. KHÔNG BỊA RA BẰNG CHỨNG.
+## II. QUY TẮC BẰNG CHỨNG
+Mỗi lỗi phải có trường `evidence` là chuỗi không rỗng.
+- Đối với lỗi yêu cầu trích dẫn: bằng chứng phải là đoạn văn bản nguyên văn, thực sự xuất hiện trong prompt gốc.
+- Đối với lỗi thiếu thông tin (B01, C02, C04): được phép mô tả sự vắng mặt (VD: `Không tìm thấy phần hướng dẫn cần thiết`).
+- Không sử dụng cùng một bằng chứng để gắn nhiều mã lỗi nếu các mã đó chỉ mô tả cùng một vấn đề.
 
-## III. CHẤM ĐIỂM
-Hãy chấm đầy đủ các ID sau:
+## III. NGUYÊN TẮC CHẤM ĐIỂM
+Hãy chấm đầy đủ tất cả ID trong danh sách sau (điểm từ 0-10):
 {criteria_desc}
 
-## IV. PHÁT HIỆN LỖI
+## IV. QUY TẮC PHÁT HIỆN LỖI
+Chỉ sử dụng các mã lỗi được khai báo trong bộ luật sau:
 {error_codes_desc}
 
-## V. VIẾT LẠI PROMPT (CỰC KỲ QUAN TRỌNG)
-Vì người dùng không có "người thầy" hướng dẫn, nên bản viết lại của bạn phải CỰC KỲ CHI TIẾT, DÀI VÀ SÂU SẮC. 
-Tuyệt đối không viết chung chung hay sơ sài. Phải bổ sung các placeholder nếu thiếu dữ kiện.
+- Không được ghi nhận lỗi chỉ vì có thể tưởng tượng ra một cách cải thiện prompt.
+- Không được coi các trường hợp sau là lỗi mặc định: Prompt ngắn; Không có vai trò; Không có ví dụ; Không có định dạng đầu ra; Không có thuật ngữ chuyên ngành; Có nhiều lĩnh vực nhưng chúng liên quan đến nhau; Sử dụng từ đồng nghĩa; Sử dụng danh sách hoặc cách trình bày không theo một khuôn mẫu duy nhất.
+
+## V. QUY TRÌNH VIẾT LẠI PROMPT (CỰC KỲ QUAN TRỌNG)
+Vì người dùng không có "người thầy" hướng dẫn, nên bản viết lại của bạn phải CỰC KỲ CHI TIẾT, DÀI VÀ SÂU SẮC. Tuyệt đối không viết chung chung hay sơ sài. Phải bổ sung các placeholder nếu thiếu dữ kiện.
 Phải tuân thủ chính xác 11 mục sau (đúng tên khóa, đúng thứ tự):
 1. VAI TRÒ
 2. BỐI CẢNH
@@ -234,7 +227,7 @@ Phải tuân thủ chính xác 11 mục sau (đúng tên khóa, đúng thứ t�
 **Lưu ý định dạng:** Nếu một mục có nhiều ý (gạch đầu dòng hoặc đánh số 1,2,3), bạn BẮT BUỘC phải sử dụng ký tự xuống dòng `\\n` trong JSON để khi hiển thị ra, mỗi ý nằm trên một dòng riêng biệt, không được viết dính chùm.
 
 ## VI. QUY TẮC JSON ĐẦU RA
-Chỉ trả về một JSON object hợp lệ.
+Chỉ trả về một JSON object hợp lệ. Không thêm lời mở đầu hay markdown.
 Schema bắt buộc:
 {{
   "scores": {{ {scores_example} }},
@@ -256,10 +249,14 @@ Schema bắt buộc:
 
 Quy tắc bắt buộc:
 1. JSON phải phân tích được bằng trình phân tích JSON tiêu chuẩn.
-2. Ký tự xuống dòng bên trong chuỗi phải được escape hợp lệ, chẳng hạn \\n.
-3. `scores` chỉ chứa ID tiêu chí được cung cấp và điểm nguyên từ 0 đến 10.
-4. `errors` phải là một array, mỗi phần tử chỉ chứa hai khóa `code` và `evidence`.
-5. `rewrite` phải chứa chính xác 11 khóa đã quy định, đúng thứ tự.
+2. Không có dấu phẩy thừa ở cuối object hoặc array.
+3. Dùng dấu ngoặc kép kép cho tên khóa và chuỗi.
+4. Ký tự xuống dòng bên trong chuỗi phải được escape hợp lệ, chẳng hạn \\n.
+5. `scores` chỉ chứa ID tiêu chí được cung cấp và điểm nguyên từ 0 đến 10.
+6. `errors` phải là một array, kể cả khi không phát hiện lỗi; khi không có lỗi, trả về `[]`.
+7. Mỗi phần tử của `errors` chỉ chứa hai khóa `code` và `evidence`.
+8. `rewrite` phải chứa chính xác 11 khóa đã quy định, đúng thứ tự và không có khóa thừa.
+9. Không thêm các trường như `summary`, `weak_criteria`, `total`, `severity` hoặc `explanation` vào JSON cấp cao nhất.
 """
         
         last_error = None
