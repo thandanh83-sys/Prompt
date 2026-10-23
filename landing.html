@@ -58,7 +58,6 @@
         .toast-error { border-left: 4px solid #ef4444; }
         .toast-show { opacity: 1; transform: translateY(0); }
 
-        /* Hiệu ứng cho khung chờ kết quả trên Desktop */
         .empty-state-pulse { animation: pulse-border 2s infinite; }
         @keyframes pulse-border {
             0%, 100% { border-color: rgba(148, 163, 184, 0.3); }
@@ -91,7 +90,6 @@
     <header class="app-header fixed top-0 left-0 w-full z-50 border-b pt-[env(safe-area-inset-top,0px)]">
         <div class="w-full max-w-7xl mx-auto px-3 sm:px-6 h-16 md:h-20 grid grid-cols-3 items-center">
             
-            <!-- CỘT 1: BÊN TRÁI (MENU) -->
             <div class="flex items-center justify-start relative z-50">
                 <button id="btnHamburger" class="w-10 h-10 shrink-0 flex items-center justify-center rounded-full text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
@@ -134,7 +132,6 @@
                 </div>
             </div>
 
-            <!-- CỘT 2: Ở GIỮA (LOGO) -->
             <div class="flex items-center justify-center z-40">
                 <a href="./index.html" class="flex items-center gap-1.5 min-w-0 no-underline focus:outline-none">
                     <svg class="w-5 h-5 sm:w-6 sm:h-6 shrink-0" viewBox="0 0 24 24"><defs><linearGradient id="brandSparkGradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ec4899"/><stop offset="100%" stop-color="#3b82f6"/></linearGradient></defs><path fill="url(#brandSparkGradient)" d="M12 2L14.7 9.3 22 12l-7.3 2.7L12 22l-2.7-7.3L2 12l7.3-2.7L12 2Z"/></svg>
@@ -142,7 +139,6 @@
                 </a>
             </div>
             
-            <!-- CỘT 3: BÊN PHẢI -->
             <div class="flex items-center justify-end z-50">
                 <button id="btnShowLogin" class="px-3 py-1.5 md:px-5 md:py-2.5 rounded-full text-xs md:text-sm font-bold text-white bg-gradient-to-r from-pink-500 to-blue-500 shadow-sm hover:scale-105 transition-all">
                     Đăng nhập
@@ -221,7 +217,6 @@
                     
                     <!-- Khối Điểm và Phân loại (Chia 2 cột trên màn to) -->
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <!-- Điểm Tổng -->
                         <div class="bg-white/80 dark:bg-[#1e293b]/80 backdrop-blur-md border border-slate-200 dark:border-slate-700/60 shadow-xl rounded-3xl p-6 transition-colors flex flex-col justify-center">
                             <p class="text-[11px] text-slate-500 font-bold mb-1 tracking-widest uppercase">ĐIỂM TỔNG</p>
                             <div class="flex items-baseline gap-2 mb-4">
@@ -233,7 +228,6 @@
                             </div>
                         </div>
 
-                        <!-- Phân Loại -->
                         <div class="bg-white/80 dark:bg-[#1e293b]/80 backdrop-blur-md border border-slate-200 dark:border-slate-700/60 shadow-xl rounded-3xl p-6 transition-colors flex flex-col justify-center">
                             <p class="text-[11px] text-slate-500 font-bold mb-3 tracking-widest uppercase">PHÂN LOẠI</p>
                             <div class="flex flex-col items-start gap-2">
@@ -350,7 +344,7 @@
         }, 0);
     </script>
 
-    <!-- SCRIPT LOGIC CHÍNH -->
+    <!-- SCRIPT LOGIC CHÍNH (ĐÃ ĐƯỢC FIX LỖI ĐÁNH GIÁ) -->
     <script>
         const API_URL = "https://prompt-tx2e.onrender.com"; 
         const SUPABASE_URL = "https://egncrbearrwfoslryuga.supabase.co";
@@ -361,6 +355,7 @@
         const $ = id => document.getElementById(id);
         let lastResult = null;
 
+        // --- XỬ LÝ ĐĂNG NHẬP CƠ BẢN ---
         async function checkAuthState() {
             if (!supabase) return;
             const { data: { session } } = await supabase.auth.getSession();
@@ -392,6 +387,7 @@
         document.addEventListener('click', () => { if (!$('avatarDropdown').classList.contains('hidden')) { $('avatarDropdown').classList.add('opacity-0', 'scale-95'); setTimeout(() => $('avatarDropdown').classList.add('hidden'), 200); } });
         $('btnLogoutHeader').addEventListener('click', async () => { if(supabase) await supabase.auth.signOut(); window.location.reload(); });
 
+        // --- LOGIC ĐÁNH GIÁ CHÍNH ---
         function copyTextToClipboard(text) {
             if (navigator.clipboard && window.isSecureContext) return navigator.clipboard.writeText(text);
             let textArea = document.createElement("textarea"); textArea.value = text; textArea.style.position = "absolute"; textArea.style.left = "-999999px";
@@ -417,45 +413,75 @@
         });
 
         $('btnEvaluate').addEventListener('click', async () => {
-            const prompt = promptInput.value.trim(); $('resultArea').style.display = 'none'; 
+            // 1. Kiểm tra đầu vào
+            const prompt = promptInput.value.trim(); 
+            $('resultArea').style.display = 'none'; 
             if (!prompt) { $('errorMsg').style.display = 'block'; promptInput.focus(); return; }
             $('errorMsg').style.display = 'none';
             
-            // Đảm bảo emptyState bị ẩn đi khi bắt đầu load
+            // Ẩn empty state nếu đang ở Desktop
             if($('emptyState')) $('emptyState').style.display = 'none';
 
+            // 2. Chuẩn bị UI Loading
             const btn = $('btnEvaluate'); const btnText = $('btnText'); const spinner = $('loadingSpinner');
             btn.disabled = true; spinner.classList.remove('hidden');
             let seconds = 0; btnText.textContent = 'Đang kết nối (0s)...';
             const timer = setInterval(() => { seconds++; btnText.textContent = seconds < 15 ? `Đang đợi Server (${seconds}s)...` : `AI đang xử lý (${seconds}s)...`; }, 1000);
             
+            // 3. Gọi API
             try {
                 const controller = new AbortController(); const timeoutId = setTimeout(() => controller.abort(), 180000);
-                const response = await fetch(`${API_URL}/evaluate`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt }), signal: controller.signal });
+                const response = await fetch(`${API_URL}/evaluate`, { 
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'application/json' }, 
+                    body: JSON.stringify({ prompt }), 
+                    signal: controller.signal 
+                });
                 clearTimeout(timeoutId);
                 
-                if (!response.ok) { const d = await response.json(); throw new Error(d.error || d.detail || 'Lỗi'); }
+                if (!response.ok) { 
+                    const d = await response.json(); 
+                    throw new Error(d.error || d.detail || 'Lỗi từ Server'); 
+                }
                 
                 lastResult = await response.json();
                 render(lastResult);
                 
+                // Lưu lịch sử
                 try {
                     const stored = JSON.parse(localStorage.getItem('myPromptHistory') || '[]');
                     const localHistory = Array.isArray(stored) ? stored : [];
                     localHistory.push({ date: new Date().toISOString(), prompt: prompt.slice(0,2000), score: lastResult.total, type: lastResult.type, rewrite: lastResult.rewrite, errors: lastResult.errors, details: lastResult.details });
                     localStorage.setItem('myPromptHistory', JSON.stringify(localHistory));
-                } catch (historyError) { }
+                } catch (historyError) { console.log("Lỗi lưu lịch sử:", historyError); }
                 
             } catch (e) { 
-                $('errorMsg').textContent = e.message || "Đã xảy ra lỗi."; $('errorMsg').style.display = 'block'; 
+                // 4. Hiển thị lỗi rõ ràng ra màn hình
+                console.error("Lỗi đánh giá:", e);
+                if (e.name === 'AbortError') {
+                    $('errorMsg').textContent = "Quá thời gian chờ (3 phút). Vui lòng thử lại sau."; 
+                } else {
+                    $('errorMsg').textContent = e.message || "Không thể kết nối đến Server. Vui lòng kiểm tra mạng!"; 
+                }
+                $('errorMsg').style.display = 'block'; 
+                
                 // Nếu lỗi, hiện lại trạng thái rỗng trên desktop
                 if($('emptyState') && window.innerWidth >= 1024) $('emptyState').style.display = 'flex';
             } finally { 
-                clearInterval(timer); btn.disabled = false; spinner.classList.add('hidden'); btnText.textContent = 'Đánh giá & Viết lại'; 
+                // 5. Trả lại trạng thái cho nút bấm
+                clearInterval(timer); 
+                btn.disabled = false; 
+                spinner.classList.add('hidden'); 
+                btnText.textContent = 'Đánh giá & Viết lại'; 
             }
         });
 
         function render(r) {
+            if(!r || !r.total) {
+                console.error("Dữ liệu trả về không đúng định dạng:", r);
+                return;
+            }
+
             $('totalScore').textContent = r.total; 
             const sb = $('scoreBar'); sb.style.width = `${r.total * 10}%`;
             $('promptType').textContent = r.type;
