@@ -16,6 +16,7 @@
     </script>
     
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>tailwind.config = { darkMode: 'class' }</script>
 
     <style>
@@ -27,12 +28,18 @@
         
         .app-header { background: rgba(255, 255, 255, 0.98); border-color: rgba(0,0,0,.06); transition: all .2s; box-shadow: 0 1px 5px rgba(0,0,0,0.05); }
         .dark .app-header { background: rgba(15, 23, 42, 0.98); border-color: rgba(255,255,255,.1); }
+        
         .brand-text { background: linear-gradient(100deg, #ec4899, #a052c8 52%, #3979f5); -webkit-background-clip: text; background-clip: text; color: transparent; }
         .btn-glow { box-shadow: 0 4px 20px rgba(236,72,153,.3); transition: all .2s ease; }
         .btn-glow:hover { box-shadow: 0 6px 25px rgba(59,130,246,.5); transform: translateY(-2px); }
         
         .menu-dropdown { transition: all .2s ease-in-out; transform-origin: top left; width: min(280px, calc(100vw - 32px)); max-height: calc(100dvh - 100px); overflow-y: auto; box-sizing: border-box; background-color: #ffffff !important; }
         .dark .menu-dropdown { background-color: #1e293b !important; }
+        
+        .toast-msg { background-color: #1e293b; color: white; padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 500; box-shadow: 0 4px 6px rgba(0,0,0,.1); opacity: 0; transform: translateY(20px); transition: all .3s ease; pointer-events: auto; display: flex; align-items: center; gap: 8px; white-space: nowrap; z-index: 99999; }
+        .toast-success { border-left: 4px solid #22c55e; }
+        .toast-error { border-left: 4px solid #ef4444; }
+        .toast-show { opacity: 1; transform: translateY(0); }
     </style>
 </head>
 <body class="antialiased font-sans min-h-screen relative text-slate-800 dark:text-slate-200 flex flex-col">
@@ -42,6 +49,7 @@
     <header class="app-header fixed top-0 left-0 w-full z-50 border-b pt-[env(safe-area-inset-top,0px)]">
         <div class="w-full max-w-7xl mx-auto px-3 sm:px-6 h-16 md:h-20 grid grid-cols-3 items-center">
             
+            <!-- CỘT 1: MENU -->
             <div class="flex items-center justify-start relative z-50">
                 <button id="btnHamburger" class="w-10 h-10 shrink-0 flex items-center justify-center rounded-full text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors bg-transparent border-none">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
@@ -56,9 +64,7 @@
                         <div class="h-px bg-slate-100 dark:bg-slate-700/50 my-1 mx-2"></div>
                         
                         <button id="themeToggleMenu" class="w-full flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 text-left">
-                            <span id="themeIconMenu" class="w-5 h-5 flex items-center justify-center shrink-0">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-5 h-5"><path fill="#1e3a8a" d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
-                            </span>
+                            <span id="themeIconMenu" class="w-5 h-5 flex items-center justify-center shrink-0"></span>
                             <span id="themeTextMenu">Chế độ Sáng</span>
                         </button>
                         
@@ -68,17 +74,41 @@
                 </div>
             </div>
 
+            <!-- CỘT 2: LOGO -->
             <div class="flex items-center justify-center z-40">
                 <a href="./index.html" class="flex items-center gap-1.5 min-w-0 no-underline">
                     <span class="brand-text text-sm sm:text-base font-extrabold truncate">Trợ lý AI</span>
                 </a>
             </div>
             
+            <!-- CỘT 3: ĐĂNG NHẬP -->
             <div class="flex items-center justify-end z-50">
                 <button id="btnShowLogin" class="px-3 py-1.5 md:px-5 md:py-2.5 rounded-full text-xs md:text-sm font-bold text-white bg-gradient-to-r from-pink-500 to-blue-500 shadow-sm hover:scale-105 transition-all">Đăng nhập</button>
+                <div id="userAvatarMenu" class="relative hidden">
+                    <button id="btnAvatar" class="w-9 h-9 md:w-10 md:h-10 rounded-full overflow-hidden border-2 border-pink-500 shadow-sm hover:scale-105 transition-transform flex items-center justify-center bg-gray-200 dark:bg-gray-700 text-white font-bold text-lg"></button>
+                    <div id="avatarDropdown" class="absolute right-0 top-12 w-48 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl hidden opacity-0 scale-95 transition-all z-50 p-2">
+                        <a href="./profile.html" class="block px-3 py-2 text-sm font-semibold hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg">Trang cá nhân</a>
+                        <button id="btnLogoutHeader" class="w-full text-left px-3 py-2 text-sm font-semibold text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg mt-1">Đăng xuất</button>
+                    </div>
+                </div>
             </div>
         </div>
     </header>
+
+    <!-- SCRIPT KIỂM TRA ADMIN -->
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const res = await fetch("https://prompt-tx2e.onrender.com/check_admin_ip");
+                if (res.ok) { 
+                    const adminDiv = document.getElementById('adminMenuDivider');
+                    const adminBtn = document.getElementById('menuBtnAdmin');
+                    if(adminDiv) adminDiv.style.display = 'block'; 
+                    if(adminBtn) adminBtn.style.display = 'flex'; 
+                }
+            } catch (e) { console.log("Không thể xác thực IP Admin."); }
+        });
+    </script>
 
     <!-- MAIN CONTENT -->
     <main class="w-full max-w-2xl lg:max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 md:pt-32 pb-32 flex-grow flex flex-col mt-4 z-10 min-h-screen">
@@ -151,23 +181,36 @@
                         </ul>
                     </div>
 
-                    <!-- ĐIỂM NÊN LUYỆN THÊM -->
-                    <div id="improvementArea" class="bg-white/80 dark:bg-[#1e293b]/80 backdrop-blur-md border border-slate-200 dark:border-slate-700/60 shadow-xl rounded-3xl p-6">
+                    <!-- CHI TIẾT ĐIỂM -->
+                    <div class="bg-white/80 dark:bg-[#1e293b]/80 backdrop-blur-md border border-slate-200 dark:border-slate-700/60 shadow-xl rounded-3xl p-6">
+                        <h3 class="font-bold text-sm mb-5 text-slate-800 dark:text-slate-200 flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-blue-500"></span> Chi tiết điểm</h3>
+                        <div id="criteriaList" class="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5"></div>
+                    </div>
+
+                    <!-- THẦY HƯỚNG DẪN SỬA PROMPT -->
+                    <section id="teacherArea" class="bg-white/80 dark:bg-[#1e293b]/80 backdrop-blur-md border border-slate-200 dark:border-slate-700/60 shadow-xl rounded-3xl p-6">
+                        <h3 class="font-bold text-sm mb-2 text-slate-800 dark:text-slate-200 flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-purple-500"></span> Thầy hướng dẫn sửa prompt
+                        </h3>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mb-5">
+                            Xem lý do bị trừ điểm, thông tin còn thiếu và cách sửa từng tiêu chí.
+                        </p>
+                        <div id="teacherFeedback" class="space-y-4">
+                            <!-- Render bằng JS -->
+                        </div>
+                    </section>
+
+                    <!-- LỖI PHÁT HIỆN (CÓ GỢI Ý) -->
+                    <div class="bg-white/80 dark:bg-[#1e293b]/80 backdrop-blur-md border border-slate-200 dark:border-slate-700/60 shadow-xl rounded-3xl p-6">
                         <h3 class="font-bold text-sm mb-4 text-slate-800 dark:text-slate-200 flex items-center gap-2">
-                            <span class="w-2.5 h-2.5 rounded-full bg-red-500"></span> Điểm nên luyện thêm
+                            <span class="w-2.5 h-2.5 rounded-full bg-red-500"></span> Lỗi phát hiện
                         </h3>
                         <div id="errorListArea" class="space-y-4">
                             <!-- Render bằng JS -->
                         </div>
                     </div>
 
-                    <!-- CHI TIẾT ĐIỂM (2 CỘT) -->
-                    <div class="bg-white/80 dark:bg-[#1e293b]/80 backdrop-blur-md border border-slate-200 dark:border-slate-700/60 shadow-xl rounded-3xl p-6">
-                        <h3 class="font-bold text-sm mb-5 text-slate-800 dark:text-slate-200 flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-blue-500"></span> Chi tiết điểm</h3>
-                        <div id="criteriaList" class="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5"></div>
-                    </div>
-
-                    <!-- BẢN SỬA HOÀN CHỈNH (DẠNG CARD) -->
+                    <!-- BẢN SỬA HOÀN CHỈNH -->
                     <div class="bg-white/80 dark:bg-[#1e293b]/80 backdrop-blur-md border border-slate-200 dark:border-slate-700/60 shadow-xl rounded-3xl overflow-hidden">
                         <div class="flex justify-between items-center px-5 py-4 border-b border-slate-200 dark:border-slate-700/50 bg-slate-50 dark:bg-slate-800/40">
                             <h3 class="font-bold text-sm text-slate-800 dark:text-slate-200 flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-indigo-500"></span> Bản sửa hoàn chỉnh</h3>
@@ -183,21 +226,90 @@
         </div>
     </main>
 
+    <!-- POPUP ĐĂNG NHẬP -->
+    <div id="loginModal" class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm hidden opacity-0 transition-opacity duration-300">
+        <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-sm p-6 relative border border-slate-200 dark:border-slate-700">
+            <button type="button" id="btnCloseLoginModal" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 bg-transparent hover:bg-slate-100 dark:hover:bg-slate-700 w-8 h-8 rounded-full flex items-center justify-center transition-colors text-lg">✕</button>
+            <h2 class="text-xl font-bold text-center mb-2 text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-blue-500">Đăng nhập / Đăng ký</h2>
+            <p class="text-xs text-center text-slate-500 mb-6">Nhập email để nhận link đăng nhập tự động</p>
+            <input type="email" id="loginEmail" class="w-full p-4 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 mb-4 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500" placeholder="Email của bạn...">
+            <p id="loginError" class="text-red-500 text-xs font-bold mb-4 hidden bg-red-50 p-2 rounded-lg"></p>
+            <button id="btnSendMagicLink" class="w-full py-3.5 rounded-xl font-bold text-white bg-gradient-to-r from-pink-500 to-blue-500 shadow-md hover:scale-[1.02] transition-transform text-sm">Gửi link đăng nhập</button>
+        </div>
+    </div>
+
+    <!-- MODAL HƯỚNG DẪN SỬ DỤNG -->
+    <div id="guideModal" style="display: flex !important;" class="fixed inset-0 z-[99999] items-center justify-center p-4 bg-black/70 backdrop-blur-md opacity-100 transition-opacity duration-300">
+        <div class="bg-white dark:bg-[#1e293b] border border-slate-200 dark:border-slate-700/50 rounded-3xl shadow-2xl w-full max-w-[400px] p-6 sm:p-7 relative">
+            <button type="button" onclick="document.getElementById('guideModal').style.display='none';" class="absolute top-5 right-5 text-slate-500 hover:text-slate-800 bg-slate-100 hover:bg-slate-200 dark:text-slate-300 dark:hover:text-white dark:bg-slate-700/50 dark:hover:bg-slate-600 w-8 h-8 rounded-full flex items-center justify-center transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+            
+            <h2 class="text-[26px] font-extrabold text-center mb-8 text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 tracking-tight">Hướng dẫn sử dụng</h2>
+            
+            <div class="space-y-6 mb-8">
+                <div class="flex gap-4 items-start">
+                    <div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-sm shrink-0 shadow-sm">1</div>
+                    <div class="pt-0.5">
+                        <h4 class="font-bold text-slate-800 dark:text-white text-[15px] mb-1">Nhập ý tưởng của bạn</h4>
+                        <p class="text-[13px] text-slate-500 dark:text-slate-400">VD: "viết bài văn tả mẹ", "code web"</p>
+                    </div>
+                </div>
+                <div class="flex gap-4 items-start">
+                    <div class="w-8 h-8 rounded-full bg-pink-600 flex items-center justify-center text-white font-bold text-sm shrink-0 shadow-sm">2</div>
+                    <div class="pt-0.5">
+                        <h4 class="font-bold text-slate-800 dark:text-white text-[15px] mb-1">AI chấm điểm</h4>
+                        <p class="text-[13px] text-slate-500 dark:text-slate-400">Chỉ ra điểm yếu và gợi ý tư duy</p>
+                    </div>
+                </div>
+                <div class="flex gap-4 items-start">
+                    <div class="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center text-white font-bold text-sm shrink-0 shadow-sm">3</div>
+                    <div class="pt-0.5">
+                        <h4 class="font-bold text-slate-800 dark:text-white text-[15px] mb-1">Copy & Sử dụng</h4>
+                        <p class="text-[13px] text-slate-500 dark:text-slate-400">Dán Prompt vào ChatGPT/Claude</p>
+                    </div>
+                </div>
+            </div>
+            
+            <button type="button" onclick="document.getElementById('guideModal').style.display='none';" class="w-full py-3.5 rounded-xl font-bold text-white bg-gradient-to-r from-pink-500 to-blue-500 shadow-md transition-all text-[15px]">
+                Đã hiểu, Bắt đầu
+            </button>
+        </div>
+    </div>
+
+    <div id="toastContainer" class="fixed bottom-5 left-1/2 transform -translate-x-1/2 z-[99999] flex flex-col gap-2 pointer-events-none"></div>
+
     <!-- JAVASCRIPT -->
     <script>
+        const SUPABASE_URL = "https://egncrbearrwfoslryuga.supabase.co";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVnbmNyYmVhcnJ3Zm9zbHJ5dWdhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI1MDk2MzgsImV4cCI6MjEwODA4NTYzOH0.jX8rz7Fk5wIqdbDqb6ZwKUiMs-wggVRj-dLk2dqlYFM"; 
+        const supabase = window.supabase?.createClient ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+        const API_URL = "https://prompt-tx2e.onrender.com";
+        const $ = id => document.getElementById(id);
+
+        // Các mục 11 mục chuẩn
+        const SECTION_NAMES = ["1. VAI TRÒ", "2. BỐI CẢNH", "3. INPUT", "4. MỤC TIÊU", "5. YÊU CẦU", "6. RÀNG BUỘC", "7. TASK", "8. ĐỊNH DẠNG ĐẦU RA", "9. NEVER DO", "10. THỨ TỰ ƯU TIÊN", "11. XỬ LÝ NỘI BỘ"];
+
         document.addEventListener('DOMContentLoaded', function() {
             var savedTheme = null;
-            try { savedTheme = localStorage.getItem("theme"); } catch (error) { console.warn(error); }
+            try { savedTheme = getSavedTheme(); } catch (error) { console.warn(error); }
             var useDarkTheme = savedTheme ? savedTheme === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
             
             const moonSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-5 h-5"><path fill="#1e3a8a" d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`;
             const sunSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-5 h-5"><defs><linearGradient id="sunGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#fef08a"/><stop offset="100%" stop-color="#f59e0b"/></linearGradient></defs><circle cx="12" cy="12" r="5" fill="url(#sunGrad)"></circle><path stroke="url(#sunGrad)" stroke-width="2" stroke-linecap="round" d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>`;
 
+            function getSavedTheme() {
+                try { return localStorage.getItem('theme'); } catch (error) { return null; }
+            }
+            function saveTheme(theme) {
+                try { localStorage.setItem('theme', theme); } catch (error) { }
+            }
+
             function applyTheme(dark) {
                 document.documentElement.classList.toggle('dark', dark);
                 if(document.getElementById('themeIconMenu')) document.getElementById('themeIconMenu').innerHTML = dark ? sunSVG : moonSVG;
-                if(document.getElementById('themeTextMenu')) document.getElementById('themeTextMenu').textContent = dark ? 'Chế độ Tối' : 'Chế độ Sáng';
-                try { localStorage.setItem("theme", dark ? "dark" : "light"); } catch (error) { console.warn(error); }
+                if(document.getElementById('themeTextMenu')) document.getElementById('themeTextMenu').textContent = dark ? 'Chế độ Sáng' : 'Chế độ Tối';
+                saveTheme(dark ? "dark" : "light");
             }
             applyTheme(useDarkTheme);
             
@@ -227,11 +339,44 @@
                 });
             }
 
-            var btnEvaluate = document.getElementById('btnEvaluate');
-            var promptInput = document.getElementById('promptInput');
-            var charCount = document.getElementById('charCount');
-            var errorBox = document.getElementById('errorBox');
-            var API_URL = "https://prompt-tx2e.onrender.com";
+            // Logic Auth
+            async function checkAuthState() {
+                if (!supabase) return;
+                const { data: { session } } = await supabase.auth.getSession();
+                if (session) {
+                    $('btnShowLogin').classList.add('hidden'); $('userAvatarMenu').classList.remove('hidden');
+                    const displayName = session.user.email.split('@')[0];
+                    $('btnAvatar').textContent = displayName.charAt(0).toUpperCase();
+                } else {
+                    $('btnShowLogin').classList.remove('hidden'); $('userAvatarMenu').classList.add('hidden');
+                }
+            }
+            checkAuthState();
+
+            $('btnShowLogin').addEventListener('click', () => { $('loginModal').classList.remove('hidden'); setTimeout(() => $('loginModal').classList.remove('opacity-0'), 10); });
+            $('btnCloseLoginModal').addEventListener('click', () => { $('loginModal').classList.add('opacity-0'); setTimeout(() => $('loginModal').classList.add('hidden'), 300); });
+            $('loginModal').addEventListener('click', (e) => { if (e.target === $('loginModal')) $('btnCloseLoginModal').click(); });
+            
+            $('btnSendMagicLink').addEventListener('click', async () => {
+                const email = $('loginEmail').value.trim(); const errorMsg = $('loginError'); const btn = $('btnSendMagicLink');
+                if (!supabase) { errorMsg.textContent = 'Lỗi tải thư viện đăng nhập.'; errorMsg.classList.remove('hidden'); return; }
+                if (!email) { errorMsg.textContent = "Vui lòng nhập email!"; errorMsg.classList.remove('hidden'); return; }
+                btn.textContent = "Đang gửi..."; btn.disabled = true; errorMsg.classList.add('hidden');
+                const { error } = await supabase.auth.signInWithOtp({ email: email, options: { emailRedirectTo: window.location.href } });
+                if (error) { errorMsg.textContent = error.message; errorMsg.classList.remove('hidden'); btn.textContent = "Gửi link đăng nhập"; btn.disabled = false; } 
+                else { alert("Đã gửi link! Vui lòng kiểm tra hộp thư (hoặc mục Spam)."); $('btnCloseLoginModal').click(); btn.textContent = "Gửi link đăng nhập"; btn.disabled = false; }
+            });
+
+            $('btnAvatar').addEventListener('click', (e) => { e.stopPropagation(); $('avatarDropdown').classList.remove('hidden'); setTimeout(() => $('avatarDropdown').classList.remove('opacity-0', 'scale-95'), 10); });
+            document.addEventListener('click', () => { if (!$('avatarDropdown').classList.contains('hidden')) { $('avatarDropdown').classList.add('opacity-0', 'scale-95'); setTimeout(() => $('avatarDropdown').classList.add('hidden'), 200); } });
+            $('btnLogoutHeader').addEventListener('click', async () => { if(supabase) await supabase.auth.signOut(); window.location.reload(); });
+
+
+            // Logic Đánh Giá
+            var btnEvaluate = $('btnEvaluate');
+            var promptInput = $('promptInput');
+            var charCount = $('charCount');
+            var errorBox = $('errorBox');
 
             if (promptInput && charCount) {
                 promptInput.addEventListener('input', function() {
@@ -249,11 +394,11 @@
                     }
                     
                     if(errorBox) errorBox.classList.add('hidden');
-                    if(document.getElementById('emptyState')) document.getElementById('emptyState').style.display = 'none';
-                    document.getElementById('resultArea').style.display = 'none';
+                    if($('emptyState')) $('emptyState').style.display = 'none';
+                    $('resultArea').style.display = 'none';
 
-                    var btnText = document.getElementById('btnText');
-                    var spinner = document.getElementById('loadingSpinner');
+                    var btnText = $('btnText');
+                    var spinner = $('loadingSpinner');
                     
                     btnEvaluate.disabled = true; 
                     if(spinner) spinner.classList.remove('hidden');
@@ -296,12 +441,12 @@
                             throw new Error("Dữ liệu kết quả không hợp lệ. Vui lòng thử lại.");
                         }
 
-                        // RENDER ĐIỂM TỔNG & PHÂN LOẠI
-                        document.getElementById('totalScore').textContent = data.total || '0';
-                        document.getElementById('scoreBar').style.width = (data.total * 10) + '%';
-                        document.getElementById('promptType').textContent = data.type || 'PROMPT';
+                        // RENDER ĐIỂM TỔNG
+                        $('totalScore').textContent = data.total || '0';
+                        $('scoreBar').style.width = (data.total * 10) + '%';
+                        $('promptType').textContent = data.type || 'PROMPT';
 
-                        const badgesDiv = document.getElementById('techniqueBadges');
+                        const badgesDiv = $('techniqueBadges');
                         badgesDiv.replaceChildren();
                         if (data.techniques && data.techniques.length > 0) {
                             const techNames = { "ROLE_PLAY": "Đóng vai", "FEW_SHOT": "Ví dụ mẫu", "CHAIN_OF_THOUGHT": "Suy luận từng bước", "FORMATTED_OUTPUT": "Định dạng đầu ra", "CREATIVE_GEN": "Sáng tạo" };
@@ -314,7 +459,7 @@
                         }
 
                         // RENDER ĐIỂM SÁNG
-                        var highlightList = document.getElementById('highlightList');
+                        var highlightList = $('highlightList');
                         highlightList.innerHTML = '';
                         var hasHighlight = false;
                         Object.keys(data.details).forEach(key => {
@@ -330,52 +475,8 @@
                             highlightList.innerHTML = '<li class="italic text-slate-500">Chưa có điểm sáng nổi bật nào.</li>';
                         }
 
-                        // RENDER ĐIỂM NÊN LUYỆN THÊM (CÓ GỢI Ý TƯ DUY)
-                        var errorListArea = document.getElementById('errorListArea');
-                        errorListArea.innerHTML = '';
-                        if (data.errors && data.errors.length > 0) {
-                            const errorDescriptions = {
-                                "A01": "Lỗi chính tả", "A02": "Thiếu dấu câu", "A03": "Lặp lại",
-                                "B01": "Thiếu thành phần cấu trúc", "B02": "Mục không logic", "B03": "Sai phân cấp", "B04": "Chưa quy định định dạng đầu ra",
-                                "C01": "Đối tượng chưa rõ", "C02": "Thiếu bối cảnh", "C03": "Yêu cầu chung chung", "C04": "Thiếu ví dụ",
-                                "D01": "Mâu thuẫn nội bộ", "D02": "Yêu cầu bất khả thi", "D03": "Vai trò không phù hợp",
-                                "E01": "Trộn lĩnh vực", "E02": "Thuật ngữ không nhất quán", "E03": "Thiếu tính đặc thù lĩnh vực"
-                            };
-                            data.errors.forEach(err => {
-                                var code = err.code || "Lỗi";
-                                var desc = errorDescriptions[code] || "Lỗi cần khắc phục";
-                                var hint = err.hint || "Hãy bổ sung thêm thông tin chi tiết.";
-                                
-                                var severity = "Trung bình";
-                                var badgeClass = "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400";
-                                if (code.startsWith("D") || code.startsWith("E")) {
-                                    severity = "Nghiêm trọng";
-                                    badgeClass = "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400";
-                                }
-
-                                var card = document.createElement('div');
-                                card.className = "p-4 bg-slate-50 dark:bg-[#0f172a] border border-slate-200 dark:border-slate-700/50 rounded-2xl flex flex-col gap-2";
-                                card.innerHTML = `
-                                    <div class="flex justify-between items-start">
-                                        <span class="font-bold text-slate-800 dark:text-slate-200 text-sm">${desc}</span>
-                                        <span class="px-2.5 py-1 rounded-md text-[11px] font-bold ${badgeClass}">${severity}</span>
-                                    </div>
-                                    <div class="text-xs text-blue-600 dark:text-blue-400 flex items-start gap-1.5 mt-1">
-                                        <span class="text-sm">💡</span>
-                                        <span class="leading-relaxed"><strong>Gợi ý tư duy:</strong> ${hint}</span>
-                                    </div>
-                                `;
-                                errorListArea.appendChild(card);
-                            });
-                        } else {
-                            var successDiv = document.createElement('div');
-                            successDiv.className = "p-4 bg-green-50/50 dark:bg-green-900/10 border border-green-200 dark:border-green-800/50 rounded-2xl text-sm text-green-600 dark:text-green-400 font-semibold text-center";
-                            successDiv.textContent = "Tuyệt vời! Không phát hiện lỗi nào.";
-                            errorListArea.appendChild(successDiv);
-                        }
-
-                        // RENDER CHI TIẾT ĐIỂM (2 CỘT)
-                        var criteriaList = document.getElementById('criteriaList');
+                        // RENDER CHI TIẾT ĐIỂM
+                        var criteriaList = $('criteriaList');
                         criteriaList.innerHTML = '';
                         Object.keys(data.details).forEach(key => {
                             var score = data.details[key];
@@ -392,30 +493,108 @@
                             criteriaList.appendChild(row);
                         });
 
-                        // RENDER BẢN SỬA (DẠNG CARD NỀN TỐI, CHỮ HỒNG)
-                        var rewriteList = document.getElementById('rewriteList');
+                        // RENDER THẦY HƯỚNG DẪN (TỪ weak_criteria)
+                        const teacherContainer = $("teacherFeedback");
+                        teacherContainer.replaceChildren();
+                        const weakCriteria = Array.isArray(data.weak_criteria) ? data.weak_criteria : [];
+                        if (weakCriteria.length === 0) {
+                            const message = document.createElement("p");
+                            message.className = "p-4 bg-green-50/50 dark:bg-green-900/10 border border-green-200 dark:border-green-800/50 rounded-2xl text-sm text-green-600 dark:text-green-400 font-semibold";
+                            message.textContent = "Tuyệt vời! Tất cả các tiêu chí đều đạt yêu cầu. Không có điểm yếu nào cần khắc phục.";
+                            teacherContainer.appendChild(message);
+                        } else {
+                            weakCriteria.forEach(item => {
+                                const card = document.createElement("article");
+                                card.className = "rounded-2xl border border-slate-200 dark:border-slate-700 p-4 space-y-3 bg-slate-50 dark:bg-[#0f172a]";
+                                
+                                const heading = document.createElement("h4");
+                                heading.className = "font-bold text-pink-500 text-sm";
+                                heading.textContent = `${item.criterion || item.criterion_id} — ${item.score}/10`;
+                                
+                                const reason = document.createElement("p");
+                                reason.className = "text-sm leading-relaxed text-slate-700 dark:text-slate-300";
+                                reason.textContent = item.reason || "Chưa có giải thích.";
+                                
+                                const missing = document.createElement("p");
+                                missing.className = "text-sm text-blue-600 dark:text-blue-400 flex items-start gap-1.5";
+                                missing.innerHTML = `<span>💡</span> <span><strong>Cần bổ sung:</strong> ${Array.isArray(item.missing_information) ? item.missing_information.join("; ") : "Chưa xác định"}</span>`;
+                                
+                                const suggestion = document.createElement("p");
+                                suggestion.className = "text-sm leading-relaxed whitespace-pre-wrap pt-2 border-t border-slate-200 dark:border-slate-700/50 text-slate-800 dark:text-slate-200";
+                                suggestion.innerHTML = `<strong>Gợi ý sửa:</strong> ${item.suggested_revision || "Chưa có gợi ý sửa."}`;
+                                
+                                card.append(heading, reason, missing, suggestion);
+                                teacherContainer.appendChild(card);
+                            });
+                        }
+
+                        // RENDER LỖI PHÁT HIỆN & GỢI Ý
+                        var errorListArea = $('errorListArea');
+                        errorListArea.innerHTML = '';
+                        if (data.errors && data.errors.length > 0) {
+                            const errorDescriptions = {
+                                "A01": "Lỗi chính tả", "A02": "Thiếu dấu câu", "A03": "Lặp lại",
+                                "B01": "Thiếu thành phần cấu trúc", "B02": "Mục không logic", "B03": "Sai phân cấp", "B04": "Chưa quy định định dạng đầu ra",
+                                "C01": "Đối tượng chưa rõ", "C02": "Thiếu bối cảnh", "C03": "Yêu cầu chung chung", "C04": "Thiếu ví dụ",
+                                "D01": "Mâu thuẫn nội bộ", "D02": "Yêu cầu bất khả thi", "D03": "Vai trò không phù hợp",
+                                "E01": "Trộn lĩnh vực", "E02": "Thuật ngữ không nhất quán", "E03": "Thiếu tính đặc thù lĩnh vực"
+                            };
+                            data.errors.forEach(err => {
+                                var code = err.code || "Lỗi";
+                                var desc = errorDescriptions[code] || "Lỗi cần khắc phục";
+                                var hint = err.hint || "Hãy bổ sung thêm thông tin chi tiết.";
+                                var evidence = err.evidence ? `(Trích dẫn: "${err.evidence}")` : "";
+                                
+                                var severity = "Trung bình";
+                                var badgeClass = "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400";
+                                if (code.startsWith("D") || code.startsWith("E")) {
+                                    severity = "Nghiêm trọng";
+                                    badgeClass = "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400";
+                                }
+
+                                var card = document.createElement('div');
+                                card.className = "p-4 bg-slate-50 dark:bg-[#0f172a] border border-slate-200 dark:border-slate-700/50 rounded-2xl flex flex-col gap-2";
+                                card.innerHTML = `
+                                    <div class="flex justify-between items-start">
+                                        <span class="font-bold text-slate-800 dark:text-slate-200 text-sm">${desc} ${evidence}</span>
+                                        <span class="px-2.5 py-1 rounded-md text-[11px] font-bold ${badgeClass}">${severity}</span>
+                                    </div>
+                                    <div class="text-xs text-blue-600 dark:text-blue-400 flex items-start gap-1.5 mt-1">
+                                        <span class="text-sm">💡</span>
+                                        <span class="leading-relaxed"><strong>Gợi ý:</strong> ${hint}</span>
+                                    </div>
+                                `;
+                                errorListArea.appendChild(card);
+                            });
+                        } else {
+                            var successDiv = document.createElement('div');
+                            successDiv.className = "p-4 bg-green-50/50 dark:bg-green-900/10 border border-green-200 dark:border-green-800/50 rounded-2xl text-sm text-green-600 dark:text-green-400 font-semibold text-center";
+                            successDiv.textContent = "Tuyệt vời! Không phát hiện lỗi nào.";
+                            errorListArea.appendChild(successDiv);
+                        }
+
+                        // RENDER BẢN SỬA HOÀN CHỈNH (AN TOÀN + XUỐNG DÒNG)
+                        var rewriteList = $('rewriteList');
                         rewriteList.innerHTML = '';
-                        var SECTION_NAMES = ["1. VAI TRÒ", "2. BỐI CẢNH", "3. INPUT", "4. MỤC TIÊU", "5. YÊU CẦU", "6. RÀNG BUỘC", "7. TASK", "8. ĐỊNH DẠNG ĐẦU RA", "9. NEVER DO", "10. THỨ TỰ ƯU TIÊN", "11. XỬ LÝ NỘI BỘ"];
                         
                         SECTION_NAMES.forEach(function(sec) {
-                            const content = data.rewrite[sec] || "Chưa cung cấp thông tin.";
+                            const contentText = data.rewrite?.[sec] ?? 'AI chưa trả về nội dung cho mục này.';
                             const item = document.createElement("div");
-                            // Nền tối cho thẻ bản sửa
                             item.className = "bg-white dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/50 p-5 rounded-2xl";
+
+                            const title = document.createElement('p');
+                            title.className = 'font-bold text-pink-500 mb-2 text-xs uppercase';
+                            title.textContent = sec;
                             
-                            const heading = document.createElement("p");
-                            heading.className = "font-bold text-pink-500 mb-2 text-xs uppercase";
-                            heading.textContent = sec;
-                            
-                            const body = document.createElement("p");
-                            body.className = "text-slate-700 dark:text-slate-300 whitespace-pre-wrap text-sm leading-relaxed";
-                            body.textContent = content;
-                            
-                            item.append(heading, body);
+                            const content = document.createElement('p');
+                            content.className = 'text-slate-700 dark:text-slate-300 whitespace-pre-wrap break-words text-sm leading-relaxed';
+                            content.textContent = contentText;
+
+                            item.append(title, content);
                             rewriteList.appendChild(item);
                         });
 
-                        document.getElementById('resultArea').style.display = 'block';
+                        $('resultArea').style.display = 'block';
 
                     } catch (error) {
                         if (error.name === 'AbortError') {
@@ -423,7 +602,7 @@
                         } else {
                             if(errorBox) { errorBox.textContent = error.message; errorBox.classList.remove('hidden'); }
                         }
-                        if(document.getElementById('emptyState') && window.innerWidth >= 1024) document.getElementById('emptyState').style.display = 'flex';
+                        if($('emptyState') && window.innerWidth >= 1024) $('emptyState').style.display = 'flex';
                     } finally {
                         clearInterval(timer);
                         btnEvaluate.disabled = false;
@@ -433,13 +612,13 @@
                 });
             }
 
-            if(document.getElementById('btnCopyAll')) {
-                document.getElementById('btnCopyAll').addEventListener('click', async () => {
-                    var rewriteList = document.getElementById('rewriteList');
+            if($('btnCopyAll')) {
+                $('btnCopyAll').addEventListener('click', async () => {
+                    var rewriteList = $('rewriteList');
                     var textToCopy = rewriteList.innerText;
                     try {
                         await navigator.clipboard.writeText(textToCopy);
-                        const btnText = document.getElementById('copyBtnText'); 
+                        const btnText = $('copyBtnText'); 
                         btnText.textContent = 'Đã chép!'; 
                         btnText.classList.add('text-green-500');
                         setTimeout(() => { btnText.textContent = 'Sao chép'; btnText.classList.remove('text-green-500'); }, 2000);
