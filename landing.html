@@ -42,9 +42,15 @@
         .btn-glow { box-shadow: 0 4px 20px rgba(236,72,153,.3); transition: all .2s ease; }
         .btn-glow:hover { box-shadow: 0 6px 25px rgba(59,130,246,.5); transform: translateY(-2px); }
         
-        /* MENU NỀN ĐẶC (Không bị lộ chữ bên dưới) */
-        .menu-dropdown { transition: all .2s ease-in-out; transform-origin: top left; width: min(280px, calc(100vw - 32px)); max-height: calc(100dvh - 100px); overflow-y: auto; box-sizing: border-box; background-color: #ffffff; }
-        .dark .menu-dropdown { background-color: #1e293b; }
+        /* CSS MENU CHUẨN TỪ INDEX.HTML (CÓ KÍNH MỜ) */
+        .menu-dropdown { 
+            transition: all .2s ease-in-out; 
+            transform-origin: top left; 
+            width: min(280px, calc(100vw - 32px)); 
+            max-height: calc(100dvh - 100px); 
+            overflow-y: auto; 
+            box-sizing: border-box; 
+        }
         
         #promptInput { white-space: pre-wrap; overflow-wrap: anywhere; }
         .toast-msg { background-color: #1e293b; color: white; padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 500; box-shadow: 0 4px 6px rgba(0,0,0,.1); opacity: 0; transform: translateY(20px); transition: all .3s ease; pointer-events: auto; display: flex; align-items: center; gap: 8px; white-space: nowrap; z-index: 99999; }
@@ -84,8 +90,8 @@
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
                 </button>
                 
-                <!-- MENU DROPDOWN -->
-                <div id="dropdownMenu" class="menu-dropdown absolute top-12 md:top-14 left-0 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl hidden opacity-0 scale-95 z-50 p-2">
+                <!-- MENU DROPDOWN (Đã đồng bộ y hệt index.html) -->
+                <div id="dropdownMenu" class="menu-dropdown absolute top-12 md:top-14 left-0 bg-white/95 dark:bg-[#1e293b]/95 backdrop-blur-xl border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl hidden opacity-0 scale-95 z-50 p-2">
                     <div class="flex flex-col gap-1">
                         <a href="./index.html" class="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors">
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-pink-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
@@ -104,9 +110,7 @@
                             Trang cá nhân
                         </a>
                         
-                        <div class="h-px bg-slate-100 dark:bg-slate-700/50 my-1 mx-2"></div>
-                        
-                        <!-- PHẦN ADMIN ĐÃ ĐƯỢC ĐEM TRỞ LẠI -->
+                        <!-- MỤC ADMIN ĐƯỢC GIỮ LẠI -->
                         <div id="adminMenuDivider" class="h-px bg-slate-100 dark:bg-slate-700/50 my-1 mx-2" style="display:none;"></div>
                         <a id="menuBtnAdmin" href="./admin.html" class="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-green-50 dark:hover:bg-green-900/20 text-sm font-semibold text-green-600 dark:text-green-400 transition-colors" style="display:none;">
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-green-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
@@ -115,8 +119,12 @@
                         
                         <div class="h-px bg-slate-100 dark:bg-slate-700/50 my-1 mx-2"></div>
                         
+                        <!-- NÚT CHẾ ĐỘ SÁNG/TỐI -->
                         <button id="themeToggleMenu" class="w-full flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors text-left">
-                            <span id="themeIconMenu" class="w-5 h-5 flex items-center justify-center shrink-0"></span>
+                            <span id="themeIconMenu" class="w-5 h-5 flex items-center justify-center shrink-0">
+                                <!-- Icon mặc định -->
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-5 h-5 text-blue-400"><path fill="currentColor" d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                            </span>
                             <span id="themeTextMenu">Chế độ Tối</span>
                         </button>
                     </div>
@@ -271,6 +279,38 @@
 
     <div id="toastContainer" class="fixed bottom-5 left-1/2 transform -translate-x-1/2 z-[99999] flex flex-col gap-2 pointer-events-none"></div>
 
+    <!-- SCRIPT XỬ LÝ THEME VÀ MENU -->
+    <script>
+        const moonSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-5 h-5 text-blue-400"><defs><linearGradient id="moonGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#60a5fa" /><stop offset="100%" stop-color="#3b82f6" /></linearGradient></defs><path fill="url(#moonGrad)" d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`;
+        const sunSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-5 h-5 text-yellow-500"><defs><linearGradient id="sunGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#fef08a" /><stop offset="100%" stop-color="#f59e0b" /></linearGradient></defs><circle cx="12" cy="12" r="5" fill="url(#sunGrad)"></circle><path stroke="url(#sunGrad)" stroke-width="2" stroke-linecap="round" d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>`;
+
+        function applyTheme(dark) {
+            document.documentElement.classList.toggle('dark', dark); 
+            document.documentElement.classList.toggle('light', !dark);
+            if(document.getElementById('themeIconMenu')) document.getElementById('themeIconMenu').innerHTML = dark ? sunSVG : moonSVG; 
+            if(document.getElementById('themeTextMenu')) document.getElementById('themeTextMenu').textContent = dark ? 'Chế độ Sáng' : 'Chế độ Tối';
+            try { window.localStorage.setItem('theme', dark ? 'dark' : 'light'); } catch (error) { }
+            const themeColor = document.querySelector('meta[name="theme-color"]'); 
+            if (themeColor) themeColor.setAttribute('content', dark ? '#0b1120' : '#f8f7fc');
+        }
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            applyTheme(document.documentElement.classList.contains('dark'));
+            const themeBtn = document.getElementById('themeToggleMenu');
+            if (themeBtn) {
+                themeBtn.addEventListener('click', (e) => { 
+                    e.preventDefault(); e.stopPropagation(); 
+                    applyTheme(!document.documentElement.classList.contains('dark')); 
+                });
+            }
+        });
+
+        setTimeout(function() {
+            var modal = document.getElementById('guideModal');
+            if (modal) { modal.style.display = 'flex'; modal.style.opacity = '1'; }
+        }, 0);
+    </script>
+
     <!-- SCRIPT LOGIC CHÍNH -->
     <script>
         const API_URL = "https://prompt-tx2e.onrender.com"; 
@@ -282,54 +322,17 @@
         const $ = id => document.getElementById(id);
         let lastResult = null;
 
-        const moonSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-5 h-5 text-blue-400"><defs><linearGradient id="moonGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#60a5fa" /><stop offset="100%" stop-color="#3b82f6" /></linearGradient></defs><path fill="url(#moonGrad)" d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`;
-        const sunSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-5 h-5 text-yellow-500"><defs><linearGradient id="sunGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#fef08a" /><stop offset="100%" stop-color="#f59e0b" /></linearGradient></defs><circle cx="12" cy="12" r="5" fill="url(#sunGrad)"></circle><path stroke="url(#sunGrad)" stroke-width="2" stroke-linecap="round" d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>`;
-
-        function applyTheme(dark) {
-            document.documentElement.classList.toggle('dark', dark); document.documentElement.classList.toggle('light', !dark);
-            if($('themeIconMenu')) $('themeIconMenu').innerHTML = dark ? sunSVG : moonSVG; 
-            if($('themeTextMenu')) $('themeTextMenu').textContent = dark ? 'Chế độ Sáng' : 'Chế độ Tối';
-            try { window.localStorage.setItem('theme', dark ? 'dark' : 'light'); } catch (error) { }
-            const themeColor = document.querySelector('meta[name="theme-color"]'); 
-            if (themeColor) themeColor.setAttribute('content', dark ? '#0b1120' : '#f8f7fc');
-        }
-        applyTheme(document.documentElement.classList.contains('dark'));
-        
-        $('themeToggleMenu').addEventListener('click', (e) => { 
-            e.preventDefault(); e.stopPropagation(); 
-            applyTheme(!document.documentElement.classList.contains('dark')); 
-        });
-
-        // SCRIPT "BẠO LỰC" KÍCH HOẠT MODAL HƯỚNG DẪN
-        setTimeout(function() {
-            var modal = document.getElementById('guideModal');
-            if (modal) { modal.style.display = 'flex'; modal.style.opacity = '1'; }
-        }, 0);
-
-        // Check Admin (Mới - Có thêm báo lỗi và chống treo)
         async function checkAdminAccess() {
             try {
-                console.log("Đang kiểm tra quyền Admin...");
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 10000); // Chờ tối đa 10s
-                
-                const res = await fetch(`${API_URL}/check_admin_ip`, { signal: controller.signal });
-                clearTimeout(timeoutId);
-                
+                const res = await fetch(`${API_URL}/check_admin_ip`);
                 if (res.ok) { 
-                    console.log("Xác thực Admin thành công!");
-                    if(document.getElementById('adminMenuDivider')) document.getElementById('adminMenuDivider').style.display = 'block'; 
-                    if(document.getElementById('menuBtnAdmin')) document.getElementById('menuBtnAdmin').style.display = 'flex'; 
-                } else {
-                    console.log("Bạn không phải Admin.");
-                }
-            } catch (e) { 
-                console.log("Lỗi khi kiểm tra Admin (Server có thể đang ngủ):", e); 
-            }
+                    if($('adminMenuDivider')) $('adminMenuDivider').style.display = 'block'; 
+                    if($('menuBtnAdmin')) $('menuBtnAdmin').style.display = 'flex'; 
+                } 
+            } catch (e) { console.log("Không thể xác thực IP Admin."); }
         }
         checkAdminAccess();
 
-        // AUTH SUPABASE
         async function checkAuthState() {
             if (!supabase) return;
             const { data: { session } } = await supabase.auth.getSession();
@@ -361,7 +364,6 @@
         document.addEventListener('click', () => { if (!$('avatarDropdown').classList.contains('hidden')) { $('avatarDropdown').classList.add('opacity-0', 'scale-95'); setTimeout(() => $('avatarDropdown').classList.add('hidden'), 200); } });
         $('btnLogoutHeader').addEventListener('click', async () => { if(supabase) await supabase.auth.signOut(); window.location.reload(); });
 
-        // LOGIC ĐÁNH GIÁ
         function copyTextToClipboard(text) {
             if (navigator.clipboard && window.isSecureContext) return navigator.clipboard.writeText(text);
             let textArea = document.createElement("textarea"); textArea.value = text; textArea.style.position = "absolute"; textArea.style.left = "-999999px";
