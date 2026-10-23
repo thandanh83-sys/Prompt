@@ -75,8 +75,8 @@ app.add_middleware(
 class PromptRequest(BaseModel):
     prompt: str
 
-# Chỉ sử dụng Groq
-client = Groq(api_key=GROQ_API_KEY)
+# Tắt tự động thử lại của Groq để tránh treo server khi bị rate limit
+client = Groq(api_key=GROQ_API_KEY, max_retries=0)
 
 supabase_url = os.environ.get("SUPABASE_URL", "")
 supabase_key = os.environ.get("SUPABASE_KEY", "")
@@ -113,19 +113,34 @@ def call_llm(system_prompt: str, user_prompt: str) -> str:
         {"role": "user", "content": "Dữ liệu prompt cần đánh giá:\n" + json.dumps({"prompt_can_cham": user_prompt}, ensure_ascii=False)},
     ]
     
-    try:
-        # ĐÃ CẬP NHẬT SANG MODEL MỚI NHẤT CỦA GROQ (Thay cho llama-3.3 đã bị xóa)
-        resp = client.chat.completions.create(
-            model="openai/gpt-oss-120b", 
-            messages=messages,
-            response_format={"type": "json_object"},
-            temperature=0.1, 
-            timeout=30.0
-        )
-        return resp.choices[0].message.content
-    except Exception as e:
-        logger.error(f"Groq thất bại: {e}")
-        raise HTTPException(status_code=503, detail="Hệ thống AI đang quá tải hoặc API Key bị lỗi. Vui lòng thử lại sau.")
+    # DANH SÁCH 3 MODEL CHUẨN XÁC (Đã loại bỏ hoàn toàn llama-3.3-70b)
+    models_to_try = [
+        "llama-3.1-8b-instant",                      # Ưu tiên 1 (Chính - Nhanh, nhẹ, 14.4k req/ngày)
+        "meta-llama/llama-4-scout-17b-16e-instruct", # Ưu tiên 2 (Phụ 1 - Gánh prompt dài)
+        "openai/gpt-oss-120b"                        # Ưu tiên 3 (Phụ 2 - Chất lượng chuyên gia)
+    ]
+    
+    last_error = None
+    
+    for model_id in models_to_try:
+        try:
+            logger.info(f"Đang thử gọi model: {model_id}")
+            resp = client.chat.completions.create(
+                model=model_id,
+                messages=messages,
+                response_format={"type": "json_object"},
+                temperature=0.1, 
+                timeout=30.0
+            )
+            logger.info(f"Gọi thành công model: {model_id}")
+            return resp.choices[0].message.content
+        except Exception as e:
+            logger.warning(f"Model {model_id} thất bại: {e}")
+            last_error = e
+            continue
+            
+    logger.error(f"Tất cả model đều thất bại. Lỗi cuối cùng: {last_error}")
+    raise HTTPException(status_code=503, detail="Hệ thống AI đang quá tải hoặc API Key bị lỗi. Vui lòng thử lại sau.")
 
 def bg_save_history(payload: dict):
     if not supabase: return
@@ -163,7 +178,6 @@ def evaluate(request: Request, req: PromptRequest, background_tasks: BackgroundT
         criteria_desc = "".join([f"- ID {k} ({v['name']}): {v['rubric']}\n" for k, v in all_criteria.items()])
         scores_example = ", ".join([f'"{k}": 5' for k in all_criteria.keys()])
         
-        # Lấy bộ luật lỗi chi tiết
         error_codes_desc = ""
         for code, rule in error_rules.ERROR_RULES.items():
             ex_positive = " | ".join(rule['examples']['positive'])
@@ -180,16 +194,19 @@ def evaluate(request: Request, req: PromptRequest, background_tasks: BackgroundT
   + Ví dụ KHÔNG LỖI: {ex_negative}
 """
         
-        # ĐÃ CẬP NHẬT SYSTEM PROMPT ĐỂ VIẾT CHI TIẾT VÀ XUỐNG DÒNG
         system_prompt = f"""
 # PROMPT LINTER — SYSTEM PROMPT
 
 ## I. VAI TRÒ
 Bạn là chuyên gia Prompt Engineering. Bạn chấm điểm khắt khe và viết lại prompt một cách xuất sắc.
 
-## II. QUY TẮC BẰNG CHỨNG
+## II. QUY TẮC BẰNG CHỨNG (CỰC KỲ QUAN TRỌNG)
 - Với lỗi thiếu thông tin (B01, C02, C04): Được phép mô tả sự vắng mặt (VD: `Không tìm thấy bối cảnh`).
-- Với TẤT CẢ CÁC LỖI CÒN LẠI: Bắt buộc phải trích dẫn NGUYÊN VĂN một đoạn text có thật trong prompt gốc (VD: `"tả"`).
+- Với TẤT CẢ CÁC LỖI CÒN LẠI: 
+  + Bắt buộc phải trích dẫn NGUYÊN VĂN (copy 100%) một đoạn text có thật trong prompt gốc. 
+  + KHÔNG được viết thêm bất kỳ lời giải thích, bình luận hay câu cảm thán nào vào phần trích dẫn này.
+  + Ví dụ: Nếu prompt gốc là "tả mẹ", evidence cho lỗi C03 chỉ được là `"tả mẹ"` (hoặc `"tả"`), TUYỆT ĐỐI KHÔNG viết `"Yêu cầu tả mẹ quá chung chung"`.
+  + Nếu không tìm thấy từ ngữ nào để trích dẫn, hãy bỏ qua lỗi đó. KHÔNG BỊA RA BẰNG CHỨNG.
 
 ## III. CHẤM ĐIỂM
 Hãy chấm đầy đủ các ID sau:
