@@ -13,39 +13,41 @@ def normalize_text(text: str) -> str:
 
 def validate_scores_only(ai_scores: dict, criteria: dict) -> bool:
     if not isinstance(ai_scores, dict): 
-        ai_scores = {}
+        raise ReportValidationError("Trường 'scores' phải là dict.") # Bắt buộc phải là dict
         
     expected_ids = set(criteria.keys())
     received_ids = set(ai_scores.keys())
     
-    # Tự động bù điểm nếu thiếu
-    for k in expected_ids:
-        if k not in received_ids:
-            ai_scores[k] = 1
-            
-    # Xóa điểm thừa
-    for k in list(ai_scores.keys()):
-        if k not in expected_ids:
-            del ai_scores[k]
+    missing = expected_ids - received_ids
+    if len(missing) > 3: # Nếu thiếu quá 3 tiêu chí thì báo lỗi
+        raise ReportValidationError(f"AI thiếu quá nhiều điểm: {missing}")
         
     for crit_id, score in ai_scores.items():
         try:
             val = float(score) if not isinstance(score, bool) else 0
         except (ValueError, TypeError):
-            val = 1.0
-            
+            raise ReportValidationError(f"Điểm của '{crit_id}' không hợp lệ.")
+        
         val = max(0.0, min(10.0, val))
         ai_scores[crit_id] = val
         
+    # Tự động bù điểm nếu AI thiếu 1-2 cái
+    for k in expected_ids:
+        if k not in ai_scores:
+            ai_scores[k] = 1.0
+            
     return True
 
 def validate_full_report(ai_json: dict, main_criteria: dict, tech_criteria: dict, original_prompt: str) -> bool:
     if not isinstance(ai_json, dict): 
-        ai_json = {}
+        raise ReportValidationError("Dữ liệu AI không phải JSON.")
         
-    if "scores" not in ai_json or not isinstance(ai_json["scores"], dict): ai_json["scores"] = {}
-    if "errors" not in ai_json or not isinstance(ai_json["errors"], list): ai_json["errors"] = []
-    if "rewrite" not in ai_json or not isinstance(ai_json["rewrite"], dict): ai_json["rewrite"] = {}
+    if "scores" not in ai_json or not isinstance(ai_json["scores"], dict):
+        raise ReportValidationError("AI thiếu trường 'scores' hoặc sai định dạng.")
+    if "rewrite" not in ai_json or not isinstance(ai_json["rewrite"], dict):
+        raise ReportValidationError("AI thiếu trường 'rewrite'.")
+    if "errors" not in ai_json or not isinstance(ai_json["errors"], list): 
+        ai_json["errors"] = []
 
     all_criteria = {**main_criteria, **tech_criteria}
     validate_scores_only(ai_json["scores"], all_criteria)
@@ -58,16 +60,8 @@ def validate_full_report(ai_json: dict, main_criteria: dict, tech_criteria: dict
         evidence = err.get("evidence", "")
         
         if code in rules_v38.VALID_ERROR_CODES and isinstance(evidence, str):
-            ev_norm = normalize_text(evidence)
-            if not ev_norm or ev_norm not in prompt_norm:
-                if len(prompt_norm) < 20: evidence = original_prompt
             valid_errors.append({"code": code, "evidence": evidence})
-        else:
-            valid_errors.append({"code": "A01", "evidence": "Lỗi phân tích từ AI."})
     
-    if not valid_errors:
-         valid_errors.append({"code": "A01", "evidence": "Không có lỗi cụ thể được chỉ ra."})
-         
     ai_json["errors"] = valid_errors
 
     expected_sections = rules_v38.REQUIRED_REWRITE_SECTIONS
