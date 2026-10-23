@@ -136,7 +136,7 @@ def call_llm(system_prompt: str, user_prompt: str) -> str:
             messages=messages,
             response_format={"type": "json_object"},
             temperature=0.0,
-            timeout=30.0 
+            timeout=10.0 # ĐÃ GIẢM XUỐNG 10S ĐỂ TRÁNH TIMEOUT CỦA RENDER
         )
         return resp.choices[0].message.content
     except Exception as e:
@@ -148,7 +148,7 @@ def call_llm(system_prompt: str, user_prompt: str) -> str:
             response = temp_model.generate_content(
                 json.dumps({"prompt_can_cham": user_prompt}, ensure_ascii=False),
                 generation_config=genai.types.GenerationConfig(response_mime_type="application/json", temperature=0.0),
-                request_options={"timeout": 30}
+                request_options={"timeout": 15} # ĐÃ GIẢM XUỐNG 15S
             )
             if not response.text: raise ValueError("Gemini trả về chuỗi rỗng.")
             logger.info("Gemini trả về thành công (Fallback).")
