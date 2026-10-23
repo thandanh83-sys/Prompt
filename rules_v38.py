@@ -1,6 +1,4 @@
 import math
-import hashlib
-import json
 
 TYPE_PROMPT = "PROMPT"
 TYPE_TEMPLATE = "TEMPLATE"
@@ -17,7 +15,6 @@ TECH_FORMAT = "FORMATTED_OUTPUT"
 TECH_CREATIVE = "CREATIVE_GEN"
 
 class ConfigurationError(Exception):
-    """Ngoại lệ cho lỗi cấu hình tiêu chí."""
     pass
 
 VALID_ERROR_CODES = {
@@ -131,12 +128,9 @@ REQUIRED_REWRITE_SECTIONS = [
 def validate_config(main_criteria: dict, tech_criteria: dict):
     if not main_criteria:
         raise ConfigurationError("Nhóm tiêu chí chính bị rỗng.")
-        
     all_criteria = {**main_criteria, **tech_criteria}
-    
     if len(all_criteria) != len(main_criteria) + len(tech_criteria):
         raise ConfigurationError("Phát hiện ID tiêu chí bị trùng giữa Main và Tech.")
-
     for k, v in all_criteria.items():
         w = v.get("weight", 0)
         is_valid_type = type(w) in (int, float) and not isinstance(w, bool)
@@ -149,11 +143,10 @@ def get_criteria_by_type(classification: dict) -> dict:
     
     mapping = {
         TYPE_PROMPT: CRITERIA_PROMPT, TYPE_TEMPLATE: CRITERIA_TEMPLATE,
-        TYPE_PROMPT_META: CRITERIA_PROMPT_META,  # TABLE dùng bộ PROMPT chung; giữ CRITERIA_TABLE để không xóa cấu hình cũ.
-        TYPE_STEM: CRITERIA_STEM, TYPE_IMAGE: CRITERIA_PROMPT, TYPE_EMPTY: {}
+        TYPE_PROMPT_META: CRITERIA_PROMPT_META, TYPE_STEM: CRITERIA_STEM, 
+        TYPE_IMAGE: CRITERIA_PROMPT, TYPE_EMPTY: {}
     }
     main_criteria = mapping.get(main_task, CRITERIA_PROMPT).copy()
-
     tech_criteria = {}
     if TECH_ROLE_PLAY in techniques: tech_criteria.update(CRITERIA_ROLE_PLAY)
     if TECH_FEW_SHOT in techniques: tech_criteria.update(CRITERIA_FEW_SHOT)
@@ -196,7 +189,6 @@ def classify_prompt(prompt_text: str) -> dict:
         return {"main_task": TYPE_IMAGE, "techniques": techniques}
     
     if any(kw in lower_text for kw in ["tạo bảng", "lập bảng", "dạng bảng", "cột", "hàng"]):
-        # Không dùng bộ TABLE độc lập; vẫn giữ TYPE_TABLE/CRITERIA_TABLE để tương thích mã cũ.
         return {"main_task": TYPE_PROMPT, "techniques": techniques}
     
     if any(kw in lower_text for kw in ["đánh giá prompt", "viết prompt", "sửa prompt", "chấm điểm prompt", "tạo prompt"]): 
