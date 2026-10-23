@@ -56,7 +56,9 @@ def verify_admin_ip(request: Request):
             raise HTTPException(status_code=403, detail="Truy cập bị từ chối.")
     return client_ip
 
-# Khởi tạo FastAPI và Limiter
+# ==========================================
+# KHỞI TẠO FASTAPI (ĐÂY LÀ PHẦN BẠN BỊ THIẾU)
+# ==========================================
 limiter = Limiter(key_func=get_client_ip)
 app = FastAPI()
 app.state.limiter = limiter
