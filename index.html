@@ -66,38 +66,52 @@
         
         .menu-dropdown { transition: all .2s ease-in-out; transform-origin: top left; width: min(280px, calc(100vw - 32px)); max-height: calc(100dvh - 100px); overflow-y: auto; box-sizing: border-box; }
 
-        /* CSS CHO ACCORDION (MỞ RỘNG/THU GỌN) */
-        .feature-card { 
+        /* CSS CHO THẺ CHA - THẺ CON */
+        .parent-card { 
             transition: all 0.3s ease; 
             cursor: pointer; 
         }
-        .feature-card:hover { 
+        .parent-card:hover { 
             transform: translateY(-2px); 
             border-color: rgba(236,72,153,0.3); 
             box-shadow: 0 10px 30px -10px rgba(0,0,0,0.1); 
         }
-        .dark .feature-card:hover { 
+        .dark .parent-card:hover { 
             border-color: rgba(59,130,246,0.3); 
             box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5); 
         }
         
-        /* Hiệu ứng mở rộng mượt mà bằng CSS Grid */
         .accordion-content {
             display: grid;
             grid-template-rows: 0fr;
             transition: grid-template-rows 0.3s ease;
         }
-        .feature-card.active .accordion-content {
+        .parent-card.active .accordion-content {
             grid-template-rows: 1fr;
         }
         .accordion-inner {
             overflow: hidden;
         }
         
-        /* Xoay mũi tên khi mở */
-        .feature-card.active .expand-icon {
+        .parent-card.active .expand-icon {
             transform: rotate(180deg);
             color: #ec4899;
+        }
+
+        .child-card {
+            transition: all 0.2s ease;
+            background-color: rgba(248, 250, 252, 0.8); /* slate-50 */
+        }
+        .dark .child-card {
+            background-color: rgba(15, 23, 42, 0.5); /* slate-900 */
+        }
+        .child-card:hover {
+            background-color: white;
+            border-color: rgba(236,72,153,0.4);
+        }
+        .dark .child-card:hover {
+            background-color: #1e293b;
+            border-color: rgba(59,130,246,0.4);
         }
     </style>
 
@@ -277,11 +291,11 @@
             </div>
         </section>
 
-        <!-- FEATURES SECTION (ACCORDION) -->
+        <!-- FEATURES SECTION (PARENT-CHILD CARDS) -->
         <section id="features" class="w-full max-w-2xl mx-auto px-4 md:px-6 mb-24 flex flex-col gap-5 scroll-mt-28">
             
-            <!-- Thẻ 1 -->
-            <div class="feature-card bg-white/80 dark:bg-[#1e293b]/80 backdrop-blur-md border border-slate-200 dark:border-slate-700/60 rounded-3xl p-6 md:p-8 flex flex-col" onclick="toggleFeature(this)">
+            <!-- Thẻ Mẹ 1 -->
+            <div class="parent-card bg-white/80 dark:bg-[#1e293b]/80 backdrop-blur-md border border-slate-200 dark:border-slate-700/60 rounded-3xl p-6 md:p-8 flex flex-col" onclick="toggleFeature(this)">
                 <div class="flex justify-between items-start">
                     <div class="w-14 h-14 rounded-2xl bg-pink-100 dark:bg-pink-900/30 flex items-center justify-center shrink-0">
                         <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7 text-pink-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -292,18 +306,49 @@
                     <h3 class="text-2xl font-bold text-slate-900 dark:text-white mb-2">Chấm điểm Đa chiều</h3>
                     <p class="text-slate-600 dark:text-slate-400 text-base leading-relaxed">Phân tích khắt khe dựa trên 14+ tiêu chí.</p>
                 </div>
-                <!-- Nội dung mở rộng -->
+                
+                <!-- Nội dung mở rộng: Các thẻ con -->
                 <div class="accordion-content">
                     <div class="accordion-inner">
-                        <div class="mt-5 pt-5 border-t border-slate-100 dark:border-slate-700/50 text-slate-600 dark:text-slate-300 text-[15px] leading-relaxed">
-                            Hệ thống sẽ tự động phân tích Prompt của bạn dựa trên 14+ tiêu chí cốt lõi bao gồm: Độ rõ nhiệm vụ, Đối tượng tác động, Bối cảnh, Định dạng đầu ra, Độ chi tiết, Tính khả thi, Vai trò phù hợp... giúp bạn có cái nhìn đa chiều và khách quan nhất về chất lượng câu lệnh của mình.
+                        <div class="mt-6 pt-6 border-t border-slate-100 dark:border-slate-700/50 flex flex-col gap-3">
+                            
+                            <div class="child-card border border-slate-200 dark:border-slate-700 rounded-2xl p-4 flex gap-3 items-start">
+                                <div class="w-8 h-8 rounded-full bg-pink-100 dark:bg-pink-900/50 flex items-center justify-center shrink-0 mt-0.5">
+                                    <span class="text-pink-500 font-bold text-sm">1</span>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-slate-800 dark:text-slate-200 text-sm mb-1">Cấu trúc & Định hướng</h4>
+                                    <p class="text-slate-600 dark:text-slate-400 text-sm">Đánh giá Vai trò, Bối cảnh, Đối tượng và Định dạng đầu ra.</p>
+                                </div>
+                            </div>
+
+                            <div class="child-card border border-slate-200 dark:border-slate-700 rounded-2xl p-4 flex gap-3 items-start">
+                                <div class="w-8 h-8 rounded-full bg-pink-100 dark:bg-pink-900/50 flex items-center justify-center shrink-0 mt-0.5">
+                                    <span class="text-pink-500 font-bold text-sm">2</span>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-slate-800 dark:text-slate-200 text-sm mb-1">Nội dung & Độ chi tiết</h4>
+                                    <p class="text-slate-600 dark:text-slate-400 text-sm">Kiểm tra mức độ đầy đủ của thông tin, ví dụ mẫu và tính khả thi.</p>
+                                </div>
+                            </div>
+
+                            <div class="child-card border border-slate-200 dark:border-slate-700 rounded-2xl p-4 flex gap-3 items-start">
+                                <div class="w-8 h-8 rounded-full bg-pink-100 dark:bg-pink-900/50 flex items-center justify-center shrink-0 mt-0.5">
+                                    <span class="text-pink-500 font-bold text-sm">3</span>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-slate-800 dark:text-slate-200 text-sm mb-1">Kỹ thuật nâng cao</h4>
+                                    <p class="text-slate-600 dark:text-slate-400 text-sm">Phân tích các kỹ thuật như Suy luận từng bước, Ràng buộc, Đóng vai.</p>
+                                </div>
+                            </div>
+
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Thẻ 2 -->
-            <div class="feature-card bg-white/80 dark:bg-[#1e293b]/80 backdrop-blur-md border border-slate-200 dark:border-slate-700/60 rounded-3xl p-6 md:p-8 flex flex-col" onclick="toggleFeature(this)">
+            <!-- Thẻ Mẹ 2 -->
+            <div class="parent-card bg-white/80 dark:bg-[#1e293b]/80 backdrop-blur-md border border-slate-200 dark:border-slate-700/60 rounded-3xl p-6 md:p-8 flex flex-col" onclick="toggleFeature(this)">
                 <div class="flex justify-between items-start">
                     <div class="w-14 h-14 rounded-2xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center shrink-0">
                         <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
@@ -314,18 +359,49 @@
                     <h3 class="text-2xl font-bold text-slate-900 dark:text-white mb-2">Gợi ý tư duy</h3>
                     <p class="text-slate-600 dark:text-slate-400 text-base leading-relaxed">Đưa ra câu hỏi gợi mở để bạn tự hoàn thiện.</p>
                 </div>
-                <!-- Nội dung mở rộng -->
+                
+                <!-- Nội dung mở rộng: Các thẻ con -->
                 <div class="accordion-content">
                     <div class="accordion-inner">
-                        <div class="mt-5 pt-5 border-t border-slate-100 dark:border-slate-700/50 text-slate-600 dark:text-slate-300 text-[15px] leading-relaxed">
-                            Không chỉ chấm điểm, AI còn đóng vai trò như một người thầy tận tâm. Thay vì chỉ đưa ra đáp án, hệ thống sẽ đặt các câu hỏi gợi mở, giúp bạn nhận ra lỗ hổng trong tư duy viết Prompt và tự mình bổ sung những thông tin còn thiếu.
+                        <div class="mt-6 pt-6 border-t border-slate-100 dark:border-slate-700/50 flex flex-col gap-3">
+                            
+                            <div class="child-card border border-slate-200 dark:border-slate-700 rounded-2xl p-4 flex gap-3 items-start">
+                                <div class="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center shrink-0 mt-0.5">
+                                    <span class="text-blue-500 font-bold text-sm">1</div>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-slate-800 dark:text-slate-200 text-sm mb-1">Chỉ ra lỗ hổng</h4>
+                                    <p class="text-slate-600 dark:text-slate-400 text-sm">Nhận diện chính xác phần thông tin bạn đang bị thiếu.</p>
+                                </div>
+                            </div>
+
+                            <div class="child-card border border-slate-200 dark:border-slate-700 rounded-2xl p-4 flex gap-3 items-start">
+                                <div class="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center shrink-0 mt-0.5">
+                                    <span class="text-blue-500 font-bold text-sm">2</span>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-slate-800 dark:text-slate-200 text-sm mb-1">Đặt câu hỏi gợi mở</h4>
+                                    <p class="text-slate-600 dark:text-slate-400 text-sm">Đưa ra các câu hỏi giúp bạn đào sâu và mở rộng vấn đề.</p>
+                                </div>
+                            </div>
+
+                            <div class="child-card border border-slate-200 dark:border-slate-700 rounded-2xl p-4 flex gap-3 items-start">
+                                <div class="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center shrink-0 mt-0.5">
+                                    <span class="text-blue-500 font-bold text-sm">3</span>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-slate-800 dark:text-slate-200 text-sm mb-1">Hướng dẫn cách khai thác</h4>
+                                    <p class="text-slate-600 dark:text-slate-400 text-sm">Gợi ý bạn nên thêm thông tin gì để Prompt đạt điểm tối đa.</p>
+                                </div>
+                            </div>
+
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Thẻ 3 -->
-            <div class="feature-card bg-white/80 dark:bg-[#1e293b]/80 backdrop-blur-md border border-slate-200 dark:border-slate-700/60 rounded-3xl p-6 md:p-8 flex flex-col" onclick="toggleFeature(this)">
+            <!-- Thẻ Mẹ 3 -->
+            <div class="parent-card bg-white/80 dark:bg-[#1e293b]/80 backdrop-blur-md border border-slate-200 dark:border-slate-700/60 rounded-3xl p-6 md:p-8 flex flex-col" onclick="toggleFeature(this)">
                 <div class="flex justify-between items-start">
                     <div class="w-14 h-14 rounded-2xl bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center shrink-0">
                         <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>
@@ -336,11 +412,42 @@
                     <h3 class="text-2xl font-bold text-slate-900 dark:text-white mb-2">Viết lại chuẩn 11 mục</h3>
                     <p class="text-slate-600 dark:text-slate-400 text-base leading-relaxed">Tự động cấu trúc lại format chuyên nghiệp.</p>
                 </div>
-                <!-- Nội dung mở rộng -->
+                
+                <!-- Nội dung mở rộng: Các thẻ con -->
                 <div class="accordion-content">
                     <div class="accordion-inner">
-                        <div class="mt-5 pt-5 border-t border-slate-100 dark:border-slate-700/50 text-slate-600 dark:text-slate-300 text-[15px] leading-relaxed">
-                            Dù câu lệnh ban đầu của bạn rất sơ sài, hệ thống sẽ tự động "hô biến" nó thành một Prompt hoàn chỉnh với cấu trúc 11 mục chuẩn quốc tế (Vai trò, Bối cảnh, Input, Mục tiêu, Yêu cầu, Ràng buộc, Task...). Giúp AI hiểu đúng và trả lời chính xác 100% ý bạn muốn.
+                        <div class="mt-6 pt-6 border-t border-slate-100 dark:border-slate-700/50 flex flex-col gap-3">
+                            
+                            <div class="child-card border border-slate-200 dark:border-slate-700 rounded-2xl p-4 flex gap-3 items-start">
+                                <div class="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900/50 flex items-center justify-center shrink-0 mt-0.5">
+                                    <span class="text-purple-500 font-bold text-sm">1</span>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-slate-800 dark:text-slate-200 text-sm mb-1">Nhóm Định hướng (Mục 1-4)</h4>
+                                    <p class="text-slate-600 dark:text-slate-400 text-sm">Vai trò, Bối cảnh, Input, Mục tiêu.</p>
+                                </div>
+                            </div>
+
+                            <div class="child-card border border-slate-200 dark:border-slate-700 rounded-2xl p-4 flex gap-3 items-start">
+                                <div class="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900/50 flex items-center justify-center shrink-0 mt-0.5">
+                                    <span class="text-purple-500 font-bold text-sm">2</span>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-slate-800 dark:text-slate-200 text-sm mb-1">Nhóm Thực thi (Mục 5-8)</h4>
+                                    <p class="text-slate-600 dark:text-slate-400 text-sm">Yêu cầu, Ràng buộc, Task, Định dạng đầu ra.</p>
+                                </div>
+                            </div>
+
+                            <div class="child-card border border-slate-200 dark:border-slate-700 rounded-2xl p-4 flex gap-3 items-start">
+                                <div class="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900/50 flex items-center justify-center shrink-0 mt-0.5">
+                                    <span class="text-purple-500 font-bold text-sm">3</span>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-slate-800 dark:text-slate-200 text-sm mb-1">Nhóm Kiểm soát (Mục 9-11)</h4>
+                                    <p class="text-slate-600 dark:text-slate-400 text-sm">Never do, Thứ tự ưu tiên, Xử lý nội bộ.</p>
+                                </div>
+                            </div>
+
                         </div>
                     </div>
                 </div>
@@ -387,18 +494,17 @@
             applyTheme(!document.documentElement.classList.contains('dark')); 
         });
 
-        // LOGIC XỬ LÝ MỞ RỘNG/THU GỌN (ACCORDION)
+        // LOGIC XỬ LÝ MỞ RỘNG/THU GỌN (PARENT-CHILD)
         function toggleFeature(element) {
-            // Tìm tất cả các feature-card hiện có
-            const allCards = document.querySelectorAll('.feature-card');
+            const allCards = document.querySelectorAll('.parent-card');
             
             // Nếu thẻ hiện tại đang mở -> đóng nó lại
             if (element.classList.contains('active')) {
                 element.classList.remove('active');
             } else {
-                // Nếu thẻ hiện tại đang đóng -> đóng tất cả các thẻ khác trước (tuỳ chọn)
+                // Đóng tất cả các thẻ khác trước
                 allCards.forEach(card => card.classList.remove('active'));
-                // Sau đó mở thẻ hiện tại
+                // Mở thẻ hiện tại
                 element.classList.add('active');
             }
         }
