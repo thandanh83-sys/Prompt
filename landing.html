@@ -306,15 +306,26 @@
             if (modal) { modal.style.display = 'flex'; modal.style.opacity = '1'; }
         }, 0);
 
-        // ĐÃ ĐEM HÀM CHECK ADMIN QUAY LẠI
+        // Check Admin (Mới - Có thêm báo lỗi và chống treo)
         async function checkAdminAccess() {
             try {
-                const res = await fetch(`${API_URL}/check_admin_ip`);
+                console.log("Đang kiểm tra quyền Admin...");
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 10000); // Chờ tối đa 10s
+                
+                const res = await fetch(`${API_URL}/check_admin_ip`, { signal: controller.signal });
+                clearTimeout(timeoutId);
+                
                 if (res.ok) { 
-                    if($('adminMenuDivider')) $('adminMenuDivider').style.display = 'block'; 
-                    if($('menuBtnAdmin')) $('menuBtnAdmin').style.display = 'flex'; 
-                } 
-            } catch (e) { console.log("Không thể xác thực IP Admin."); }
+                    console.log("Xác thực Admin thành công!");
+                    if(document.getElementById('adminMenuDivider')) document.getElementById('adminMenuDivider').style.display = 'block'; 
+                    if(document.getElementById('menuBtnAdmin')) document.getElementById('menuBtnAdmin').style.display = 'flex'; 
+                } else {
+                    console.log("Bạn không phải Admin.");
+                }
+            } catch (e) { 
+                console.log("Lỗi khi kiểm tra Admin (Server có thể đang ngủ):", e); 
+            }
         }
         checkAdminAccess();
 
