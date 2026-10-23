@@ -57,7 +57,7 @@ def verify_admin_ip(request: Request):
     return client_ip
 
 # ==========================================
-# KHỞI TẠO FASTAPI (ĐÂY LÀ PHẦN BẠN BỊ THIẾU)
+# KHỞI TẠO FASTAPI VÀ CẤU HÌNH MIDDLEWARE
 # ==========================================
 limiter = Limiter(key_func=get_client_ip)
 app = FastAPI()
@@ -134,7 +134,7 @@ def bg_save_history(payload: dict):
     try:
         supabase.table("history").insert(payload).execute()
     except Exception as e:
-        # Lờ đi lỗi trùng lặp prompt
+        # Lờ đi lỗi trùng lặp prompt (mã 23505)
         if '23505' in str(e) or 'duplicate key' in str(e):
             pass
         else:
@@ -166,16 +166,15 @@ def evaluate(request: Request, req: PromptRequest, background_tasks: BackgroundT
         tech_criteria = criteria_pack["tech"]
         
         all_criteria = {**main_criteria, **tech_criteria}
-        # CHỈ GỬI ID VÀ TÊN, KHÔNG GỬI RUBRIC ĐỂ TIẾT KIỆM TOKEN
+        # Chỉ gửi ID và Tên để tiết kiệm token, tránh lỗi 413
         criteria_desc = "".join([f"- {k}: {v['name']}\n" for k, v in all_criteria.items()])
         scores_example = ", ".join([f'"{k}": 5' for k in all_criteria.keys()])
         
-        # CHỈ GỬI MÃ VÀ TÊN LỖI (BỎ HẾT MÔ TẢ DÀI DÒNG)
+        # Chỉ gửi Mã và Tên lỗi
         error_codes_desc = ""
         for code, rule in error_rules.ERROR_RULES.items():
             error_codes_desc += f"- {code}: {rule['name']}\n"
         
-        # RÚT GỌN TỐI ĐA SYSTEM PROMPT ĐỂ TRÁNH LỖI 413
         system_prompt = f"""
 Bạn là chuyên gia chấm điểm Prompt. Hãy chấm điểm các tiêu chí sau (0-10):
 {criteria_desc}
@@ -185,6 +184,9 @@ Phát hiện lỗi trong các mã sau:
 
 Viết lại prompt thành 11 mục. Mỗi mục nếu có nhiều ý phải dùng \\n để xuống dòng.
 11 mục: "1. VAI TRÒ", "2. BỐI CẢNH", "3. INPUT", "4. MỤC TIÊU", "5. YÊU CẦU", "6. RÀNG BUỘC", "7. TASK", "8. ĐỊNH DẠNG ĐẦU RA", "9. NEVER DO", "10. THỨ TỰ ƯU TIÊN", "11. XỬ LÝ NỘI BỘ".
+
+QUY TẮC BẰNG CHỨNG: Khi trích dẫn lỗi, TUYỆT ĐỐI KHÔNG dùng dấu ngoặc kép (") bao quanh, không thêm lời giải thích. Chỉ copy nguyên văn một đoạn ngắn có trong prompt gốc.
+Ví dụ: Nếu prompt là "tả mẹ", evidence chỉ được là "tả mẹ".
 
 Trả về JSON chính xác cấu trúc sau (KHÔNG THÊM KEY NÀO KHÁC):
 {{
