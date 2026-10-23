@@ -19,16 +19,14 @@
     <script>tailwind.config = { darkMode: 'class' }</script>
 
     <style>
-        html { background-color: #f8f7fc; transition: background-color .15s ease; min-height: 100vh; scroll-behavior: smooth; }
+        html { background-color: #f8f7fc; transition: background-color .15s ease; min-height: 100vh; min-height: 100dvh; scroll-behavior: smooth; }
         html.dark { background-color: #0b1120 !important; }
-        body { -webkit-tap-highlight-color: transparent; overflow-x: hidden; background-color: transparent !important; overscroll-behavior-y: none; min-height: 100vh; padding-top: env(safe-area-inset-top, 0px); }
+        body { -webkit-tap-highlight-color: transparent; overflow-x: hidden; background-color: transparent !important; overscroll-behavior-y: none; min-height: 100vh; min-height: 100dvh; padding-top: env(safe-area-inset-top, 0px); }
         .page-bg { position: fixed; inset: 0; z-index: -1; pointer-events: none; background-color: #f8f7fc; background-image: radial-gradient(circle at 50% -20%, rgba(236,72,153,0.15) 0%, transparent 70%), radial-gradient(circle at 50% 120%, rgba(59,130,246,0.15) 0%, transparent 70%); }
         html.dark .page-bg { background-color: #0b1120; background-image: radial-gradient(ellipse at 50% -10%, rgba(236, 72, 153, 0.5) 0%, rgba(168, 85, 247, 0.3) 50%, transparent 80%), radial-gradient(ellipse at 50% 110%, rgba(59, 130, 246, 0.4) 0%, transparent 80%); }
         
-        /* SỬA LỖI NỀN TRẮNG VÀ MENU ĐỤC */
         .app-header { background: rgba(255, 255, 255, 0.98); border-color: rgba(0,0,0,.06); transition: all .2s; box-shadow: 0 1px 5px rgba(0,0,0,0.05); }
         .dark .app-header { background: rgba(15, 23, 42, 0.98); border-color: rgba(255,255,255,.1); }
-        
         .brand-text { background: linear-gradient(100deg, #ec4899, #a052c8 52%, #3979f5); -webkit-background-clip: text; background-clip: text; color: transparent; }
         .btn-glow { box-shadow: 0 4px 20px rgba(236,72,153,.3); transition: all .2s ease; }
         .btn-glow:hover { box-shadow: 0 6px 25px rgba(59,130,246,.5); transform: translateY(-2px); }
@@ -56,10 +54,14 @@
                         <a href="./library.html" class="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200">Thư viện</a>
                         <a href="./profile.html" class="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200">Trang cá nhân</a>
                         <div class="h-px bg-slate-100 dark:bg-slate-700/50 my-1 mx-2"></div>
+                        
                         <button id="themeToggleMenu" class="w-full flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 text-left">
-                            <span id="themeIconMenu" class="w-5 h-5 flex items-center justify-center shrink-0"></span>
-                            <span id="themeTextMenu">Chế độ Tối</span>
+                            <span id="themeIconMenu" class="w-5 h-5 flex items-center justify-center shrink-0">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-5 h-5"><path fill="#1e3a8a" d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                            </span>
+                            <span id="themeTextMenu">Chế độ Sáng</span>
                         </button>
+                        
                         <div id="adminMenuDivider" class="h-px bg-slate-100 dark:bg-slate-700/50 my-1 mx-2" style="display:none;"></div>
                         <a id="menuBtnAdmin" href="./admin.html" class="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-green-50 dark:hover:bg-green-900/20 text-sm font-semibold text-green-600 dark:text-green-400" style="display:none;">Quản trị viên</a>
                     </div>
@@ -118,11 +120,11 @@
 
                 <div id="resultArea" class="space-y-6 w-full" style="display: none;">
                     
-                    <!-- Điểm & Phân loại -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div class="bg-white/80 dark:bg-[#1e293b]/80 backdrop-blur-md border border-slate-200 dark:border-slate-700/60 shadow-xl rounded-3xl p-6 flex flex-col justify-center">
+                    <!-- ĐIỂM TỔNG VÀ PHÂN LOẠI -->
+                    <div class="bg-white/80 dark:bg-[#1e293b]/80 backdrop-blur-md border border-slate-200 dark:border-slate-700/60 shadow-xl rounded-3xl p-6 flex flex-col md:flex-row justify-between items-center gap-4">
+                        <div class="flex flex-col w-full md:w-1/2">
                             <p class="text-[11px] text-slate-500 font-bold mb-1 tracking-widest uppercase">ĐIỂM TỔNG</p>
-                            <div class="flex items-baseline gap-2 mb-4">
+                            <div class="flex items-baseline gap-2 mb-2">
                                 <span id="totalScore" class="text-[4rem] leading-none font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-blue-500">0.0</span>
                                 <span class="text-slate-500 text-lg font-medium">/ 10</span>
                             </div>
@@ -130,40 +132,51 @@
                                 <div id="scoreBar" class="bg-gradient-to-r from-pink-500 to-blue-500 h-2 rounded-full w-0 transition-all duration-1000"></div>
                             </div>
                         </div>
-                        <div class="bg-white/80 dark:bg-[#1e293b]/80 backdrop-blur-md border border-slate-200 dark:border-slate-700/60 shadow-xl rounded-3xl p-6 flex flex-col justify-center">
-                            <p class="text-[11px] text-slate-500 font-bold mb-3 tracking-widest uppercase">PHÂN LOẠI</p>
-                            <div class="flex flex-col items-start gap-2">
-                                <span id="promptType" class="px-4 py-1.5 bg-blue-500 text-white text-[13px] font-bold rounded-full">TEMPLATE</span>
-                                <div id="techniqueBadges" class="flex flex-wrap gap-2"></div>
+                        <div class="flex flex-col w-full md:w-1/2 md:items-end">
+                            <p class="text-[11px] text-slate-500 font-bold mb-2 tracking-widest uppercase">PHÂN LOẠI</p>
+                            <div class="flex flex-col items-start md:items-end gap-2">
+                                <span id="promptType" class="px-4 py-1.5 bg-blue-500 text-white text-[13px] font-bold rounded-full">PROMPT</span>
+                                <div id="techniqueBadges" class="flex flex-wrap gap-2 md:justify-end"></div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Chi tiết điểm -->
-                    <div class="bg-white/80 dark:bg-[#1e293b]/80 backdrop-blur-md border border-slate-200 dark:border-slate-700/60 shadow-xl rounded-3xl p-6">
-                        <h3 class="font-bold text-sm mb-5 text-slate-800 dark:text-slate-200 flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-blue-500"></span> Chi tiết điểm</h3>
-                        <div id="criteriaList" class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4"></div>
+                    <!-- ĐIỂM SÁNG CỦA BẠN -->
+                    <div id="highlightArea" class="bg-green-50/50 dark:bg-green-900/10 border border-green-200 dark:border-green-800/50 shadow-sm rounded-3xl p-6">
+                        <h3 class="font-bold text-sm mb-3 text-green-700 dark:text-green-400 flex items-center gap-2">
+                            <span class="text-lg">🌟</span> Điểm sáng của bạn
+                        </h3>
+                        <ul id="highlightList" class="space-y-2 text-sm text-slate-700 dark:text-slate-300 list-disc pl-5">
+                            <!-- Render bằng JS -->
+                        </ul>
                     </div>
 
-                    <!-- Lỗi phát hiện (MỚI) -->
-                    <div class="bg-white/80 dark:bg-[#1e293b]/80 backdrop-blur-md border border-slate-200 dark:border-slate-700/60 shadow-xl rounded-3xl p-6">
+                    <!-- ĐIỂM NÊN LUYỆN THÊM -->
+                    <div id="improvementArea" class="bg-white/80 dark:bg-[#1e293b]/80 backdrop-blur-md border border-slate-200 dark:border-slate-700/60 shadow-xl rounded-3xl p-6">
                         <h3 class="font-bold text-sm mb-4 text-slate-800 dark:text-slate-200 flex items-center gap-2">
-                            <span class="w-2 h-2 rounded-full bg-red-500"></span> Lỗi phát hiện
+                            <span class="w-2.5 h-2.5 rounded-full bg-red-500"></span> Điểm nên luyện thêm
                         </h3>
-                        <div id="errorListArea" class="space-y-3">
-                            <p class="text-xs text-slate-500 italic">Đang cập nhật...</p>
+                        <div id="errorListArea" class="space-y-4">
+                            <!-- Render bằng JS -->
                         </div>
                     </div>
 
-                    <!-- Bản sửa hoàn chỉnh -->
+                    <!-- CHI TIẾT ĐIỂM (2 CỘT) -->
+                    <div class="bg-white/80 dark:bg-[#1e293b]/80 backdrop-blur-md border border-slate-200 dark:border-slate-700/60 shadow-xl rounded-3xl p-6">
+                        <h3 class="font-bold text-sm mb-5 text-slate-800 dark:text-slate-200 flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-blue-500"></span> Chi tiết điểm</h3>
+                        <div id="criteriaList" class="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5"></div>
+                    </div>
+
+                    <!-- BẢN SỬA HOÀN CHỈNH (DẠNG CARD) -->
                     <div class="bg-white/80 dark:bg-[#1e293b]/80 backdrop-blur-md border border-slate-200 dark:border-slate-700/60 shadow-xl rounded-3xl overflow-hidden">
                         <div class="flex justify-between items-center px-5 py-4 border-b border-slate-200 dark:border-slate-700/50 bg-slate-50 dark:bg-slate-800/40">
                             <h3 class="font-bold text-sm text-slate-800 dark:text-slate-200 flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-indigo-500"></span> Bản sửa hoàn chỉnh</h3>
                             <button id="btnCopyAll" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 rounded-md border border-slate-200 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 transition">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
                                 <span id="copyBtnText">Sao chép</span>
                             </button>
                         </div>
-                        <div id="rewriteList" class="p-5 space-y-5 text-sm"></div>
+                        <div id="rewriteList" class="p-5 space-y-4 text-sm bg-slate-50 dark:bg-transparent"></div>
                     </div>
                 </div>
             </div>
@@ -177,13 +190,13 @@
             try { savedTheme = localStorage.getItem("theme"); } catch (error) { console.warn(error); }
             var useDarkTheme = savedTheme ? savedTheme === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
             
-            const moonSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-5 h-5 text-blue-400"><path fill="currentColor" d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`;
-            const sunSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-5 h-5 text-yellow-500"><circle cx="12" cy="12" r="5" fill="currentColor"></circle><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>`;
+            const moonSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-5 h-5"><path fill="#1e3a8a" d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`;
+            const sunSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-5 h-5"><defs><linearGradient id="sunGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#fef08a"/><stop offset="100%" stop-color="#f59e0b"/></linearGradient></defs><circle cx="12" cy="12" r="5" fill="url(#sunGrad)"></circle><path stroke="url(#sunGrad)" stroke-width="2" stroke-linecap="round" d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>`;
 
             function applyTheme(dark) {
                 document.documentElement.classList.toggle('dark', dark);
                 if(document.getElementById('themeIconMenu')) document.getElementById('themeIconMenu').innerHTML = dark ? sunSVG : moonSVG;
-                if(document.getElementById('themeTextMenu')) document.getElementById('themeTextMenu').textContent = dark ? 'Chế độ Sáng' : 'Chế độ Tối';
+                if(document.getElementById('themeTextMenu')) document.getElementById('themeTextMenu').textContent = dark ? 'Chế độ Tối' : 'Chế độ Sáng';
                 try { localStorage.setItem("theme", dark ? "dark" : "light"); } catch (error) { console.warn(error); }
             }
             applyTheme(useDarkTheme);
@@ -279,25 +292,14 @@
                             throw new Error(data.error || data.detail || 'Lỗi từ Server');
                         }
 
-                        if (
-                            !data || typeof data.total !== "number" || !Number.isFinite(data.total) ||
-                            data.total < 0 || data.total > 10 || !data.details || typeof data.details !== "object" ||
-                            !data.rewrite || typeof data.rewrite !== "object"
-                        ) {
+                        if (!data || typeof data.total !== "number" || !data.details || !data.rewrite) {
                             throw new Error("Dữ liệu kết quả không hợp lệ. Vui lòng thử lại.");
                         }
 
-                        var SECTION_NAMES = ["1. VAI TRÒ", "2. BỐI CẢNH", "3. INPUT", "4. MỤC TIÊU", "5. YÊU CẦU", "6. RÀNG BUỘC", "7. TASK", "8. ĐỊNH DẠNG ĐẦU RA", "9. NEVER DO", "10. THỨ TỰ ƯU TIÊN", "11. XỬ LÝ NỘI BỘ"];
-                        
-                        for (const section of SECTION_NAMES) {
-                            if (typeof data.rewrite[section] !== "string" || !data.rewrite[section].trim()) {
-                                throw new Error("Kết quả thiếu mục: " + section);
-                            }
-                        }
-
-                        if(document.getElementById('totalScore')) document.getElementById('totalScore').textContent = data.total || '0';
-                        if(document.getElementById('scoreBar')) document.getElementById('scoreBar').style.width = (data.total * 10) + '%';
-                        if(document.getElementById('promptType')) document.getElementById('promptType').textContent = data.type || 'N/A';
+                        // RENDER ĐIỂM TỔNG & PHÂN LOẠI
+                        document.getElementById('totalScore').textContent = data.total || '0';
+                        document.getElementById('scoreBar').style.width = (data.total * 10) + '%';
+                        document.getElementById('promptType').textContent = data.type || 'PROMPT';
 
                         const badgesDiv = document.getElementById('techniqueBadges');
                         badgesDiv.replaceChildren();
@@ -311,64 +313,107 @@
                             });
                         }
 
-                        var criteriaList = document.getElementById('criteriaList');
-                        if(criteriaList && data.details) {
-                            criteriaList.innerHTML = '';
-                            Object.keys(data.details).forEach(function(key) {
-                                var score = data.details[key];
-                                var row = document.createElement('div'); 
-                                row.innerHTML = `<div class="flex justify-between items-start mb-1.5"><span class="text-[10px] font-semibold text-slate-600 dark:text-slate-400 leading-tight pr-1 line-clamp-2">${key}</span><span class="text-xs font-bold text-slate-800 dark:text-slate-200">${score}</span></div><div class="w-full bg-slate-100 dark:bg-[#0f172a] rounded-full h-1.5"><div class="h-1.5 rounded-full bg-gradient-to-r from-pink-500 to-blue-500" style="width: ${score * 10}%"></div></div>`;
-                                criteriaList.appendChild(row);
-                            });
-                        }
-
-                        // HIỂN THỊ LỖI
-                        var errorListArea = document.getElementById('errorListArea');
-                        if (errorListArea) {
-                            errorListArea.innerHTML = '';
-                            if (data.errors && data.errors.length > 0) {
-                                const errorDescriptions = {
-                                    "A01": "Lỗi chính tả", "A02": "Thiếu dấu câu", "A03": "Lặp lại",
-                                    "B01": "Thiếu thành phần cấu trúc", "B02": "Mục không logic", "B03": "Sai phân cấp", "B04": "Chưa quy định định dạng đầu ra",
-                                    "C01": "Đối tượng chưa rõ", "C02": "Thiếu bối cảnh", "C03": "Yêu cầu chung chung", "C04": "Thiếu ví dụ",
-                                    "D01": "Mâu thuẫn nội bộ", "D02": "Yêu cầu bất khả thi", "D03": "Vai trò không phù hợp",
-                                    "E01": "Trộn lĩnh vực", "E02": "Thuật ngữ không nhất quán", "E03": "Thiếu tính đặc thù lĩnh vực"
-                                };
-                                data.errors.forEach(err => {
-                                    var code = err.code || "Lỗi";
-                                    var desc = errorDescriptions[code] || "";
-                                    var evidence = err.evidence ? `(Trích dẫn: "${err.evidence}")` : "";
-                                    var div = document.createElement('div');
-                                    div.className = "p-3 bg-red-50/50 dark:bg-red-900/10 border border-red-200 dark:border-red-800/50 rounded-xl text-xs sm:text-sm";
-                                    div.innerHTML = `<span class="font-bold text-red-600 dark:text-red-400">${code}${desc ? ' - ' + desc : ''}</span> <span class="text-slate-600 dark:text-slate-300 ml-1">${evidence}</span>`;
-                                    errorListArea.appendChild(div);
-                                });
-                            } else {
-                                var successDiv = document.createElement('div');
-                                successDiv.className = "p-3 bg-green-50/50 dark:bg-green-900/10 border border-green-200 dark:border-green-800/50 rounded-xl text-xs sm:text-sm text-green-600 dark:text-green-400 font-semibold";
-                                successDiv.textContent = "Không có lỗi đáng kể. Prompt được thiết kế tốt!";
-                                errorListArea.appendChild(successDiv);
+                        // RENDER ĐIỂM SÁNG
+                        var highlightList = document.getElementById('highlightList');
+                        highlightList.innerHTML = '';
+                        var hasHighlight = false;
+                        Object.keys(data.details).forEach(key => {
+                            var score = data.details[key];
+                            if (score >= 7) {
+                                hasHighlight = true;
+                                var li = document.createElement('li');
+                                li.innerHTML = `Rất tốt ở tiêu chí <strong>${key}</strong> (đạt ${score}/10).`;
+                                highlightList.appendChild(li);
                             }
+                        });
+                        if (!hasHighlight) {
+                            highlightList.innerHTML = '<li class="italic text-slate-500">Chưa có điểm sáng nổi bật nào.</li>';
                         }
 
-                        var rewriteList = document.getElementById('rewriteList');
-                        if(rewriteList) {
-                            rewriteList.innerHTML = '';
-                            
-                            SECTION_NAMES.forEach(function(sec) {
-                                const content = data.rewrite[sec] || "";
-                                const item = document.createElement("div");
-                                item.className = "mb-4 last:mb-0";
-                                const heading = document.createElement("p");
-                                heading.className = "font-bold text-pink-500 mb-1 text-[11px] uppercase";
-                                heading.textContent = sec;
-                                const body = document.createElement("p");
-                                body.className = "text-slate-700 dark:text-slate-300 whitespace-pre-wrap text-sm leading-relaxed";
-                                body.textContent = content;
-                                item.append(heading, body);
-                                rewriteList.appendChild(item);
+                        // RENDER ĐIỂM NÊN LUYỆN THÊM (CÓ GỢI Ý TƯ DUY)
+                        var errorListArea = document.getElementById('errorListArea');
+                        errorListArea.innerHTML = '';
+                        if (data.errors && data.errors.length > 0) {
+                            const errorDescriptions = {
+                                "A01": "Lỗi chính tả", "A02": "Thiếu dấu câu", "A03": "Lặp lại",
+                                "B01": "Thiếu thành phần cấu trúc", "B02": "Mục không logic", "B03": "Sai phân cấp", "B04": "Chưa quy định định dạng đầu ra",
+                                "C01": "Đối tượng chưa rõ", "C02": "Thiếu bối cảnh", "C03": "Yêu cầu chung chung", "C04": "Thiếu ví dụ",
+                                "D01": "Mâu thuẫn nội bộ", "D02": "Yêu cầu bất khả thi", "D03": "Vai trò không phù hợp",
+                                "E01": "Trộn lĩnh vực", "E02": "Thuật ngữ không nhất quán", "E03": "Thiếu tính đặc thù lĩnh vực"
+                            };
+                            data.errors.forEach(err => {
+                                var code = err.code || "Lỗi";
+                                var desc = errorDescriptions[code] || "Lỗi cần khắc phục";
+                                var hint = err.hint || "Hãy bổ sung thêm thông tin chi tiết.";
+                                
+                                var severity = "Trung bình";
+                                var badgeClass = "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400";
+                                if (code.startsWith("D") || code.startsWith("E")) {
+                                    severity = "Nghiêm trọng";
+                                    badgeClass = "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400";
+                                }
+
+                                var card = document.createElement('div');
+                                card.className = "p-4 bg-slate-50 dark:bg-[#0f172a] border border-slate-200 dark:border-slate-700/50 rounded-2xl flex flex-col gap-2";
+                                card.innerHTML = `
+                                    <div class="flex justify-between items-start">
+                                        <span class="font-bold text-slate-800 dark:text-slate-200 text-sm">${desc}</span>
+                                        <span class="px-2.5 py-1 rounded-md text-[11px] font-bold ${badgeClass}">${severity}</span>
+                                    </div>
+                                    <div class="text-xs text-blue-600 dark:text-blue-400 flex items-start gap-1.5 mt-1">
+                                        <span class="text-sm">💡</span>
+                                        <span class="leading-relaxed"><strong>Gợi ý tư duy:</strong> ${hint}</span>
+                                    </div>
+                                `;
+                                errorListArea.appendChild(card);
                             });
+                        } else {
+                            var successDiv = document.createElement('div');
+                            successDiv.className = "p-4 bg-green-50/50 dark:bg-green-900/10 border border-green-200 dark:border-green-800/50 rounded-2xl text-sm text-green-600 dark:text-green-400 font-semibold text-center";
+                            successDiv.textContent = "Tuyệt vời! Không phát hiện lỗi nào.";
+                            errorListArea.appendChild(successDiv);
                         }
+
+                        // RENDER CHI TIẾT ĐIỂM (2 CỘT)
+                        var criteriaList = document.getElementById('criteriaList');
+                        criteriaList.innerHTML = '';
+                        Object.keys(data.details).forEach(key => {
+                            var score = data.details[key];
+                            var row = document.createElement('div'); 
+                            row.innerHTML = `
+                                <div class="flex justify-between items-center mb-1.5">
+                                    <span class="text-xs font-semibold text-slate-700 dark:text-slate-300">${key}</span>
+                                    <span class="text-sm font-extrabold text-slate-900 dark:text-white">${score}</span>
+                                </div>
+                                <div class="w-full bg-slate-100 dark:bg-[#0f172a] rounded-full h-2">
+                                    <div class="h-2 rounded-full ${score >= 7 ? 'bg-green-500' : score >= 4 ? 'bg-yellow-500' : 'bg-red-500'}" style="width: ${score * 10}%"></div>
+                                </div>
+                            `;
+                            criteriaList.appendChild(row);
+                        });
+
+                        // RENDER BẢN SỬA (DẠNG CARD NỀN TỐI, CHỮ HỒNG)
+                        var rewriteList = document.getElementById('rewriteList');
+                        rewriteList.innerHTML = '';
+                        var SECTION_NAMES = ["1. VAI TRÒ", "2. BỐI CẢNH", "3. INPUT", "4. MỤC TIÊU", "5. YÊU CẦU", "6. RÀNG BUỘC", "7. TASK", "8. ĐỊNH DẠNG ĐẦU RA", "9. NEVER DO", "10. THỨ TỰ ƯU TIÊN", "11. XỬ LÝ NỘI BỘ"];
+                        
+                        SECTION_NAMES.forEach(function(sec) {
+                            const content = data.rewrite[sec] || "Chưa cung cấp thông tin.";
+                            const item = document.createElement("div");
+                            // Nền tối cho thẻ bản sửa
+                            item.className = "bg-white dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/50 p-5 rounded-2xl";
+                            
+                            const heading = document.createElement("p");
+                            heading.className = "font-bold text-pink-500 mb-2 text-xs uppercase";
+                            heading.textContent = sec;
+                            
+                            const body = document.createElement("p");
+                            body.className = "text-slate-700 dark:text-slate-300 whitespace-pre-wrap text-sm leading-relaxed";
+                            body.textContent = content;
+                            
+                            item.append(heading, body);
+                            rewriteList.appendChild(item);
+                        });
 
                         document.getElementById('resultArea').style.display = 'block';
 
