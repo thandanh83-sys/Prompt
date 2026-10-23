@@ -50,8 +50,8 @@ def validate_full_report(ai_json: dict, main_criteria: dict, tech_criteria: dict
         
     prompt_norm = normalize_text(original_prompt)
     
-    # Các lỗi thiếu thông tin không thể trích dẫn nguyên văn
-    MISSING_INFO_ERRORS = {"B01", "C02", "C04"}
+    # CÁC LỖI THIẾU THÔNG TIN KHÔNG THỂ TRÍCH DẪN NGUYÊN VĂN (Đã thêm B04)
+    MISSING_INFO_ERRORS = {"B01", "B04", "C02", "C04"}
 
     for err in errors:
         if not isinstance(err, dict) or set(err.keys()) != {"code", "evidence"}:
