@@ -126,7 +126,7 @@ def call_llm(system_prompt: str, user_prompt: str) -> str:
             model="llama-3.3-70b-versatile",
             messages=messages,
             response_format={"type": "json_object"},
-            temperature=0.2, # Tăng nhẹ để AI linh hoạt sáng tạo trong phần rewrite
+            temperature=0.7, # TĂNG MẠNH ĐỘ SÁNG TẠO ĐỂ AI TỰ BỊA THÊM NGỮ CẢNH
             timeout=15.0
         )
         return resp.choices[0].message.content
@@ -138,7 +138,7 @@ def call_llm(system_prompt: str, user_prompt: str) -> str:
             temp_model = genai.GenerativeModel('gemini-1.5-flash', system_instruction=system_prompt)
             response = temp_model.generate_content(
                 json.dumps({"prompt_can_cham": user_prompt}, ensure_ascii=False),
-                generation_config=genai.types.GenerationConfig(response_mime_type="application/json", temperature=0.2),
+                generation_config=genai.types.GenerationConfig(response_mime_type="application/json", temperature=0.7),
                 request_options={"timeout": 20}
             )
             return response.text
@@ -185,20 +185,19 @@ def evaluate(request: Request, req: PromptRequest, background_tasks: BackgroundT
         error_codes_desc = "\n".join([f"- {k}: {v}" for k, v in rules_v38.VALID_ERROR_CODES.items()])
         scores_example = ", ".join([f'"{k}": 5' for k in all_criteria.keys()])
         
-        # PROMPT: GIÁM KHẢO CHUYÊN NGHIỆP & NGƯỜI BẠN ĐỒNG HÀNH
+        # ĐÂY LÀ LỜI NHẮC MẠNH NHẤT DÀNH CHO AI
         system_prompt = f"""
-Bạn là một Ban giám khảo chấm điểm Prompt chuyên nghiệp, nhưng đồng thời là một Người bạn đồng hành tận tâm.
+Bạn là một Chuyên gia Prompt Engineering. Nhiệm vụ của bạn là hỗ trợ người dùng bằng cách đánh giá và viết lại câu lệnh (prompt) của họ.
 
-QUY TẮC BẮT BUỘC:
-1. CHẤM ĐIỂM KHẮT KHE: Hãy đối chiếu câu lệnh của người dùng với THANG ĐIỂM bên dưới. Nếu họ nhập câu quá ngắn (như "tả mẹ"), bạn PHẢI chấm điểm thấp (1-3 điểm) vì thiếu Vai trò, Bối cảnh, Định dạng. Tuyệt đối không nương tay.
-2. HỖ TRỢ NHIỆT TÌNH: Ở phần "errors", hãy nhẹ nhàng giải thích lý do họ bị trừ điểm (VD: "Câu lệnh chưa xác định rõ đối tượng", "Thiếu yêu cầu về định dạng đầu ra"). 
-3. VIẾT LẠI MẪU: Dù câu lệnh của người dùng tệ đến đâu, ở phần "rewrite", bạn PHẢI đóng vai chuyên gia để viết lại thành một câu lệnh hoàn hảo 11 mục. Hãy tự động bổ sung các ngữ cảnh hợp lý nhất để người dùng học hỏi.
-4. KHÔNG BAO GIỜ TỪ CHỐI TRẢ LỜI.
+QUY TẮC TỐI THƯỢNG:
+1. NGƯỜI DÙNG CÓ THỂ NHẬP RẤT NGẮN (VD: "tả bà", "viết code"). BẠN PHẢI TỰ ĐỘNG TÌM TÒI, SÁNG TẠO VÀ ĐIỀN VÀO CÁC MỤC CÒN THIẾU. Tuyệt đối không được để trống, không được ghi "Chưa cung cấp", không được hỏi lại.
+2. CHẤM ĐIỂM: Dựa vào THANG ĐIỂM bên dưới. Câu ngắn -> Chấm điểm thấp (1-3 điểm). Giải thích rõ lý do trừ điểm ở mục "errors".
+3. VIẾT LẠI (rewrite): Viết lại thành một câu lệnh hoàn chỉnh 11 mục với ngữ cảnh tự bạn suy luận ra. Bản sửa này phải cực kỳ chi tiết và có thể dùng được ngay.
 
 CẤU TRÚC 11 MỤC YÊU CẦU (Bắt buộc sử dụng chính xác tên khóa này):
 "1. VAI TRÒ", "2. BỐI CẢNH", "3. INPUT", "4. MỤC TIÊU", "5. YÊU CẦU", "6. RÀNG BUỘC", "7. TASK", "8. ĐỊNH DẠNG ĐẦU RA", "9. NEVER DO", "10. THỨ TỰ ƯU TIÊN", "11. XỬ LÝ NỘI BỘ"
 
-BƯỚC 2: TRẢ VỀ JSON THEO CẤU TRÚC SAU:
+BƯỚC 2: TRẢ VỀ JSON THEO CẤU TRÚC SAU (Phải điền đủ 11 mục):
 {{
   "scores": {{ {scores_example} }},
   "errors": [ {{"code": "[Mã lỗi]", "evidence": "[Trích dẫn nguyên văn từ prompt gốc]"}} ],
