@@ -42,7 +42,7 @@
         .btn-glow { box-shadow: 0 4px 20px rgba(236,72,153,.3); transition: all .2s ease; }
         .btn-glow:hover { box-shadow: 0 6px 25px rgba(59,130,246,.5); transform: translateY(-2px); }
         
-        /* ĐÃ GIẢM ĐỘ ĐỤC ĐỂ HIỆU ỨNG KÍNH MỜ (GLASS) RÕ HƠN */
+        /* GIỮ NGUYÊN CSS MENU CHUẨN, KHÔNG GHI ĐÈ MÀU NỀN */
         .menu-dropdown { 
             transition: all .2s ease-in-out; 
             transform-origin: top left; 
@@ -90,8 +90,8 @@
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
                 </button>
                 
-                <!-- MENU DROPDOWN (Đã sửa lại độ mờ chuẩn Glass) -->
-                <div id="dropdownMenu" class="menu-dropdown absolute top-12 md:top-14 left-0 bg-white/70 dark:bg-[#1e293b]/70 backdrop-blur-2xl border border-slate-200/50 dark:border-slate-700/50 rounded-2xl shadow-2xl hidden opacity-0 scale-95 z-50 p-2">
+                <!-- MENU DROPDOWN (ĐÃ ĐỒNG BỘ 100% VỚI INDEX) -->
+                <div id="dropdownMenu" class="menu-dropdown absolute top-12 md:top-14 left-0 bg-white/95 dark:bg-[#1e293b]/95 backdrop-blur-xl border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl hidden opacity-0 scale-95 z-50 p-2">
                     <div class="flex flex-col gap-1">
                         <a href="./index.html" class="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors">
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-pink-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
@@ -110,9 +110,9 @@
                             Trang cá nhân
                         </a>
                         
-                        <div class="h-px bg-slate-200/50 dark:bg-slate-700/50 my-1 mx-2"></div>
+                        <div class="h-px bg-slate-100 dark:bg-slate-700/50 my-1 mx-2"></div>
                         
-                        <!-- CHẾ ĐỘ SÁNG/TỐI -->
+                        <!-- CHẾ ĐỘ SÁNG/TỐI (NẰM TRÊN) -->
                         <button id="themeToggleMenu" class="w-full flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors text-left">
                             <span id="themeIconMenu" class="w-5 h-5 flex items-center justify-center shrink-0">
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-5 h-5 text-blue-400"><path fill="currentColor" d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
@@ -120,8 +120,8 @@
                             <span id="themeTextMenu">Chế độ Tối</span>
                         </button>
 
-                        <!-- QUẢN TRỊ VIÊN (MẶC ĐỊNH ẨN, CHỜ API CHECK IP) -->
-                        <div id="adminMenuDivider" class="h-px bg-slate-200/50 dark:bg-slate-700/50 my-1 mx-2" style="display:none;"></div>
+                        <!-- QUẢN TRỊ VIÊN (NẰM DƯỚI CÙNG, MẶC ĐỊNH ẨN) -->
+                        <div id="adminMenuDivider" class="h-px bg-slate-100 dark:bg-slate-700/50 my-1 mx-2" style="display:none;"></div>
                         <a id="menuBtnAdmin" href="./admin.html" class="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-green-50 dark:hover:bg-green-900/20 text-sm font-semibold text-green-600 dark:text-green-400 transition-colors" style="display:none;">
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-green-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                             Quản trị viên
@@ -154,7 +154,7 @@
         </div>
     </header>
 
-    <!-- ĐOẠN SCRIPT KIỂM TRA ADMIN -->
+    <!-- SCRIPT KIỂM TRA ADMIN -->
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
             try {
@@ -252,7 +252,7 @@
         </div>
     </div>
 
-    <!-- MODAL HƯỚNG DẪN SỬ DỤNG -->
+    <!-- MODAL HƯỚNG DẪN SỬ DỤNG (TỰ ĐỘNG HIỆN) -->
     <div id="guideModal" style="display: flex !important;" class="fixed inset-0 z-[99999] items-center justify-center p-4 bg-black/70 backdrop-blur-md opacity-100 transition-opacity duration-300">
         <div class="bg-[#1e293b] border border-slate-700/50 rounded-3xl shadow-2xl w-full max-w-[400px] p-6 sm:p-7 relative">
             <button type="button" onclick="document.getElementById('guideModal').style.display='none';" class="absolute top-5 right-5 text-slate-300 hover:text-white bg-slate-700/50 hover:bg-slate-600 w-8 h-8 rounded-full flex items-center justify-center transition-colors">
