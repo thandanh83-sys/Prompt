@@ -84,16 +84,16 @@ def call_llm(system_prompt: str, user_prompt: str) -> str:
         return resp.choices[0].message.content
     except Exception as e:
         logger.error(f"Groq thất bại: {e}")
-        raise HTTPException(status_code=503, detail="Hệ thống AI đang quá tải hoặc Prompt quá dài. Vui lòng thử lại sau.")
+        raise HTTPException(status_code=503, detail="Hệ thống AI đang quá tải. Vui lòng thử lại sau 1 phút.")
 
 def bg_save_history(payload: dict):
     if not supabase: return
     try:
         supabase.table("history").insert(payload).execute()
     except Exception as e:
-        # Bắt lỗi trùng lặp prompt trong Supabase (mã 23505)
+        # Lờ đi lỗi trùng lặp prompt
         if '23505' in str(e) or 'duplicate key' in str(e):
-            logger.info("Lịch sử đã tồn tại, bỏ qua việc lưu.")
+            pass
         else:
             logger.error(f"LỖI BACKGROUND: Không thể lưu lịch sử: {e}")
 
@@ -118,70 +118,34 @@ def evaluate(request: Request, req: PromptRequest, background_tasks: BackgroundT
         tech_criteria = criteria_pack["tech"]
         
         all_criteria = {**main_criteria, **tech_criteria}
-        criteria_desc = "".join([f"- ID {k} ({v['name']}): {v['rubric']}\n" for k, v in all_criteria.items()])
+        # CHỈ GỬI ID VÀ TÊN, KHÔNG GỬI RUBRIC ĐỂ TIẾT KIỆM TOKEN
+        criteria_desc = "".join([f"- {k}: {v['name']}\n" for k, v in all_criteria.items()])
         scores_example = ", ".join([f'"{k}": 5' for k in all_criteria.keys()])
         
-        # RÚT GỌN BỘ LUẬT LỖI ĐỂ GIẢM TOKENS (Bỏ phần ví dụ)
+        # CHỈ GỬI MÃ VÀ TÊN LỖI (BỎ HẾT MÔ TẢ DÀI DÒNG)
         error_codes_desc = ""
         for code, rule in error_rules.ERROR_RULES.items():
-            error_codes_desc += f"""
-- Mã {code} ({rule['name']}): {rule['description']}
-  + Điều kiện ghi nhận: {', '.join(rule['conditions'])}
-  + Cách sửa: {rule['fix']}
-"""
+            error_codes_desc += f"- {code}: {rule['name']}\n"
         
+        # RÚT GỌN TỐI ĐA SYSTEM PROMPT
         system_prompt = f"""
-# PROMPT LINTER — SYSTEM PROMPT
-
-## I. VAI TRÒ
-Bạn là chuyên gia Prompt Engineering. Bạn chấm điểm khắt khe và viết lại prompt một cách xuất sắc.
-
-## II. QUY TẮC BẰNG CHỨNG
-- Với lỗi thiếu thông tin (B01, C02, C04): Được phép mô tả sự vắng mặt (VD: `Không tìm thấy bối cảnh`).
-- Với TẤT CẢ CÁC LỖI CÒN LẠI: Bắt buộc phải trích dẫn NGUYÊN VĂN một đoạn text có thật trong prompt gốc (VD: `"tả"`).
-
-## III. CHẤM ĐIỂM
-Hãy chấm đầy đủ các ID sau (điểm từ 0-10):
+Bạn là chuyên gia chấm điểm Prompt. Hãy chấm điểm các tiêu chí sau (0-10):
 {criteria_desc}
 
-## IV. PHÁT HIỆN LỖI
+Phát hiện lỗi trong các mã sau:
 {error_codes_desc}
 
-## V. VIẾT LẠI PROMPT (CỰC KỲ QUAN TRỌNG)
-Vì người dùng không có "người thầy" hướng dẫn, nên bản viết lại của bạn phải CỰC KỲ CHI TIẾT, DÀI VÀ SÂU SẮC. Tuyệt đối không viết chung chung hay sơ sài. Phải bổ sung các placeholder nếu thiếu dữ kiện.
-Phải tuân thủ chính xác 11 mục sau (đúng tên khóa, đúng thứ tự):
-1. VAI TRÒ
-2. BỐI CẢNH
-3. INPUT
-4. MỤC TIÊU
-5. YÊU CẦU
-6. RÀNG BUỘC
-7. TASK
-8. ĐỊNH DẠNG ĐẦU RA
-9. NEVER DO
-10. THỨ TỰ ƯU TIÊN
-11. XỬ LÝ NỘI BỘ
+Viết lại prompt thành 11 mục. Mỗi mục nếu có nhiều ý phải dùng \\n để xuống dòng.
+11 mục: "1. VAI TRÒ", "2. BỐI CẢNH", "3. INPUT", "4. MỤC TIÊU", "5. YÊU CẦU", "6. RÀNG BUỘC", "7. TASK", "8. ĐỊNH DẠNG ĐẦU RA", "9. NEVER DO", "10. THỨ TỰ ƯU TIÊN", "11. XỬ LÝ NỘI BỘ".
 
-**Lưu ý định dạng:** Nếu một mục có nhiều ý (gạch đầu dòng hoặc đánh số 1,2,3), bạn BẮT BUỘC phải sử dụng ký tự xuống dòng `\\n` trong JSON để khi hiển thị ra, mỗi ý nằm trên một dòng riêng biệt, không được viết dính chùm.
-
-## VI. QUY TẮC JSON ĐẦU RA
-Chỉ trả về một JSON object hợp lệ. Không thêm lời mở đầu hay markdown.
-Schema bắt buộc:
+Trả về JSON chính xác cấu trúc sau (KHÔNG THÊM KEY NÀO KHÁC):
 {{
   "scores": {{ {scores_example} }},
-  "errors": [ {{"code": "MÃ_LỖI", "evidence": "Đoạn trích hoặc mô tả sự thiếu hụt."}} ],
+  "errors": [ {{"code": "MÃ_LỖI", "evidence": "Trích dẫn"}} ],
   "rewrite": {{ 
-    "1. VAI TRÒ": "Nội dung...", 
-    "2. BỐI CẢNH": "Nội dung...", 
-    "3. INPUT": "Nội dung...", 
-    "4. MỤC TIÊU": "Nội dung...", 
-    "5. YÊU CẦU": "Nội dung...", 
-    "6. RÀNG BUỘC": "Nội dung...", 
-    "7. TASK": "Nội dung...", 
-    "8. ĐỊNH DẠNG ĐẦU RA": "Nội dung...", 
-    "9. NEVER DO": "Nội dung...", 
-    "10. THỨ TỰ ƯU TIÊN": "Nội dung...", 
-    "11. XỬ LÝ NỘI BỘ": "Nội dung..." 
+    "1. VAI TRÒ": "...", "2. BỐI CẢNH": "...", "3. INPUT": "...", "4. MỤC TIÊU": "...", "5. YÊU CẦU": "...",
+    "6. RÀNG BUỘC": "...", "7. TASK": "...", "8. ĐỊNH DẠNG ĐẦU RA": "...", "9. NEVER DO": "...", 
+    "10. THỨ TỰ ƯU TIÊN": "...", "11. XỬ LÝ NỘI BỘ": "..."
   }}
 }}
 """
