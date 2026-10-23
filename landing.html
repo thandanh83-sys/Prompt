@@ -212,7 +212,6 @@
 
         <div id="resultArea" class="w-full mx-auto mt-8 space-y-6" style="display: none;">
             
-            <!-- Khối Điểm tổng và Phân loại -->
             <div class="bg-white/80 dark:bg-[#1e293b]/80 backdrop-blur-md border border-slate-200 dark:border-slate-700/60 shadow-xl rounded-3xl p-6">
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                     <div class="flex flex-col w-full md:w-1/2">
@@ -236,7 +235,6 @@
                 </div>
             </div>
 
-            <!-- ĐIỂM SÁNG (Đã thêm khung giống các thẻ khác) -->
             <div id="highlightArea" class="bg-white/80 dark:bg-[#1e293b]/80 backdrop-blur-md border border-slate-200 dark:border-slate-700/60 shadow-xl rounded-3xl p-6">
                 <h3 class="font-bold text-sm mb-3 text-green-700 dark:text-green-400 flex items-center gap-2">
                     <span class="text-lg">🌟</span> Điểm sáng của bạn
@@ -245,7 +243,6 @@
                 </ul>
             </div>
 
-            <!-- ĐIỂM NÊN LUYỆN THÊM -->
             <div class="bg-white/80 dark:bg-[#1e293b]/80 backdrop-blur-md border border-slate-200 dark:border-slate-700/60 shadow-xl rounded-3xl p-6">
                 <h3 class="font-bold text-sm mb-4 text-slate-800 dark:text-slate-200 flex items-center gap-2">
                     <span class="w-2.5 h-2.5 rounded-full bg-red-500"></span> Điểm nên luyện thêm
@@ -253,13 +250,11 @@
                 <div id="errorListArea" class="space-y-4"></div>
             </div>
 
-            <!-- CHI TIẾT ĐIỂM (2 Cột) -->
             <div class="bg-white/80 dark:bg-[#1e293b]/80 backdrop-blur-md border border-slate-200 dark:border-slate-700/60 shadow-xl rounded-3xl p-6">
                 <h3 class="font-bold text-sm mb-5 text-slate-800 dark:text-slate-200 flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-blue-500"></span> Chi tiết điểm</h3>
                 <div id="criteriaList" class="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5"></div>
             </div>
 
-            <!-- BẢN SỬA HOÀN CHỈNH (1 Khung lớn) -->
             <div class="bg-white/80 dark:bg-[#1e293b]/80 backdrop-blur-md border border-slate-200 dark:border-slate-700/60 shadow-xl rounded-3xl overflow-hidden">
                 <div class="flex justify-between items-center px-5 py-4 border-b border-slate-200 dark:border-slate-700/50 bg-slate-50 dark:bg-slate-800/40">
                     <h3 class="font-bold text-sm text-slate-800 dark:text-slate-200 flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-indigo-500"></span> Bản sửa hoàn chỉnh</h3>
@@ -268,7 +263,6 @@
                         <span id="copyBtnText">Sao chép</span>
                     </button>
                 </div>
-                <!-- Nơi chứa 11 mục, phân cách bằng line -->
                 <div id="rewriteList" class="p-6 space-y-0 text-sm"></div>
             </div>
             
@@ -595,15 +589,14 @@
             SECTION_NAMES.forEach(sec => {
                 let contentText = r.rewrite?.[sec] ?? 'AI chưa trả về nội dung cho mục này.';
                 
-                // Sửa lỗi AI trả về chuỗi \n thành xuống dòng thật
-                contentText = contentText.replace(/\\n/g, '\n');
+                // Sửa lỗi AI trả về chuỗi \n (hoặc \\n) thành xuống dòng thật
+                contentText = contentText.replace(/\\n/g, '\n').replace(/\\n/g, '\n');
                 
                 // Tự động thêm xuống dòng trước các số 1. 2. 3. hoặc dấu - nếu dính chùm
                 contentText = contentText.replace(/(\d+\.\s)/g, '\n$1').replace(/(\-\s)/g, '\n$1');
                 contentText = contentText.replace(/\n\s*\n/g, '\n'); // Xóa dòng trống thừa
 
                 const item = document.createElement('div'); 
-                // Bỏ border/box riêng, dùng border-b để phân cách các mục trong cùng 1 khung
                 item.className = 'py-5 border-b border-slate-200 dark:border-slate-700 last:border-0 last:pb-0 first:pt-0'; 
                 item.innerHTML = `<p class="font-bold text-pink-500 mb-2 text-[13px] uppercase">${sec}</p><p class="text-slate-700 dark:text-slate-300 whitespace-pre-wrap break-words text-sm leading-relaxed">${contentText}</p>`;
                 $('rewriteList').appendChild(item);
@@ -615,7 +608,12 @@
 
         $('btnCopyAll').addEventListener('click', async () => {
             if (!lastResult) return; let text = ""; 
-            SECTION_NAMES.forEach(sec => { text += `${sec}:\n${lastResult.rewrite[sec] || ''}\n\n`; });
+            SECTION_NAMES.forEach(sec => { 
+                let contentText = lastResult.rewrite[sec] || ''; 
+                // Đảm bảo copy ra cũng có xuống dòng chuẩn
+                contentText = contentText.replace(/\\n/g, '\n').replace(/\\n/g, '\n').replace(/(\d+\.\s)/g, '\n$1').replace(/(\-\s)/g, '\n$1');
+                text += `${sec}:\n${contentText}\n\n`; 
+            });
             try {
                 await copyTextToClipboard(text); showToast("Đã sao chép!", "success");
                 const btnText = $('copyBtnText'); btnText.textContent = 'Đã chép!'; btnText.classList.add('text-green-500');
