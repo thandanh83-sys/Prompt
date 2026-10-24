@@ -8,12 +8,8 @@
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23ec4899'/%3E%3Cstop offset='100%25' stop-color='%233b82f6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' rx='20' fill='url(%23g)'/%3E%3Ctext x='50' y='72' font-size='60' font-family='Arial,sans-serif' font-weight='bold' fill='white' text-anchor='middle'%3EP%3C/text%3E%3C/svg%3E">
 
     <script>
-        if (window.location.hash === '#features') {
-            history.replaceState(null, null, window.location.pathname);
-        }
-        if ('scrollRestoration' in history) {
-            history.scrollRestoration = 'manual';
-        }
+        if (window.location.hash === '#features') { history.replaceState(null, null, window.location.pathname); }
+        if ('scrollRestoration' in history) { history.scrollRestoration = 'manual'; }
         window.scrollTo(0, 0);
 
         let savedTheme = null;
@@ -29,33 +25,10 @@
         /* XỬ LÝ NỀN VÀ HÀO QUANG */
         html { background-color: #f8f7fc; transition: background-color .15s ease; min-height: 100vh; scroll-behavior: smooth; }
         html.dark { background-color: #0f172a; }
+        body { -webkit-tap-highlight-color: transparent; overflow-x: hidden; background-color: transparent !important; overscroll-behavior-y: none; }
         
-        body { 
-            -webkit-tap-highlight-color: transparent; 
-            overflow-x: hidden; 
-            background-color: transparent !important; 
-            overscroll-behavior-y: none; 
-        }
-        
-        /* Lớp nền hào quang */
-        .page-bg { 
-            position: fixed; 
-            inset: 0; 
-            z-index: -1; 
-            pointer-events: none; 
-            background-color: #f8f7fc;
-            background-image: 
-                radial-gradient(circle at 50% -10%, rgba(236,72,153,0.15) 0%, transparent 60%), 
-                radial-gradient(circle at 50% 110%, rgba(59,130,246,0.15) 0%, transparent 60%); 
-        }
-        
-        /* Hào quang chế độ Tối */
-        html.dark .page-bg { 
-            background-color: #0b1120;
-            background-image: 
-                radial-gradient(ellipse at 50% 0%, rgba(236, 72, 153, 0.5) 0%, rgba(168, 85, 247, 0.3) 40%, transparent 70%),
-                radial-gradient(ellipse at 50% 100%, rgba(59, 130, 246, 0.5) 0%, transparent 70%);
-        }
+        .page-bg { position: fixed; inset: 0; z-index: -1; pointer-events: none; background-color: #f8f7fc; background-image: radial-gradient(circle at 50% -10%, rgba(236,72,153,0.15) 0%, transparent 60%), radial-gradient(circle at 50% 110%, rgba(59,130,246,0.15) 0%, transparent 60%); }
+        html.dark .page-bg { background-color: #0b1120; background-image: radial-gradient(ellipse at 50% 0%, rgba(236, 72, 153, 0.5) 0%, rgba(168, 85, 247, 0.3) 40%, transparent 70%), radial-gradient(ellipse at 50% 100%, rgba(59, 130, 246, 0.5) 0%, transparent 70%); }
 
         .app-header { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); border-color: rgba(0,0,0,.06); transition: all .2s; }
         .dark .app-header { background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(12px); border-color: rgba(255,255,255,.1); }
@@ -66,95 +39,33 @@
         
         .menu-dropdown { transition: all .2s ease-in-out; transform-origin: top left; width: min(280px, calc(100vw - 32px)); max-height: calc(100dvh - 100px); overflow-y: auto; box-sizing: border-box; }
 
-        /* CSS GỐC CHO KHỐI TÍNH NĂNG */
-        .feature-wrapper { 
-            cursor: pointer; 
-        }
-        
-        .feature-header {
-            transition: all 0.3s ease;
-            background-color: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(12px);
-            border: 1px solid #e2e8f0;
-            border-radius: 1.5rem;
-        }
-        .dark .feature-header {
-            background-color: rgba(30, 41, 59, 0.8);
-            border-color: rgba(51, 65, 85, 0.6);
-        }
-        .feature-wrapper:hover .feature-header { 
-            transform: translateY(-2px); 
-            border-color: rgba(236,72,153,0.3); 
-            box-shadow: 0 10px 30px -10px rgba(0,0,0,0.1); 
-        }
-        .dark .feature-wrapper:hover .feature-header { 
-            border-color: rgba(59,130,246,0.3); 
-            box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5); 
-        }
-        
-        .feature-wrapper.active .expand-icon {
-            transform: rotate(180deg);
-            color: #ec4899;
-        }
-
-        .accordion-content {
-            display: grid;
-            grid-template-rows: 0fr;
-            transition: grid-template-rows 0.3s ease;
-        }
-        .feature-wrapper.active .accordion-content {
-            grid-template-rows: 1fr;
-        }
-        .accordion-inner {
-            overflow: hidden;
-        }
-
-        .child-card {
-            transition: all 0.2s ease;
-            background-color: #ffffff;
-            border: 1px solid #e2e8f0;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03);
-        }
-        .dark .child-card {
-            background-color: #1e293b;
-            border: 1px solid #334155;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.2), 0 2px 4px -1px rgba(0,0,0,0.1);
-        }
-        .child-card:hover {
-            transform: scale(1.01);
-            border-color: rgba(236,72,153,0.5);
-            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
-        }
-        .dark .child-card:hover {
-            border-color: rgba(59,130,246,0.5);
-            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3);
-        }
-
         /* ============================================================
-           FUTURISTIC UPGRADE - GHI ĐÈ BẰNG !important
+           FUTURISTIC UPGRADE (NỀN ĐẶC - SOLID)
            ============================================================ */
-        @property --angle {
-            syntax: '<angle>';
-            initial-value: 0deg;
-            inherits: false;
-        }
+        @property --angle { syntax: '<angle>'; initial-value: 0deg; inherits: false; }
 
-        /* --- THẺ MẸ: NÂNG CẤP FUTURISTIC --- */
+        .feature-wrapper { cursor: pointer; height: 100%; }
+        
         .feature-header {
             position: relative;
-            background: rgba(255, 255, 255, 0.55) !important;
-            backdrop-filter: blur(20px) saturate(180%) !important;
-            -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+            background: #ffffff !important; /* Nền trắng đặc */
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
             border: 1px solid transparent !important;
             border-radius: 1.5rem !important;
             background-clip: padding-box;
-            box-shadow:
-                0 1px 0 0 rgba(255,255,255,0.6) inset,
-                0 20px 40px -20px rgba(236, 72, 153, 0.25),
-                0 8px 16px -8px rgba(59, 130, 246, 0.15) !important;
+            box-shadow: 0 1px 0 0 rgba(255,255,255,0.6) inset, 0 20px 40px -20px rgba(236, 72, 153, 0.25), 0 8px 16px -8px rgba(59, 130, 246, 0.15) !important;
             transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
             overflow: hidden;
             z-index: 1;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .dark .feature-header {
+            background: #1e293b !important; /* Nền xám đậm đặc */
+            box-shadow: 0 1px 0 0 rgba(255,255,255,0.08) inset, 0 20px 40px -20px rgba(236, 72, 153, 0.45), 0 8px 16px -8px rgba(59, 130, 246, 0.35) !important;
         }
 
         /* Viền gradient động */
@@ -164,14 +75,7 @@
             inset: -2px;
             border-radius: calc(1.5rem + 2px);
             padding: 2px;
-            background: conic-gradient(
-                from var(--angle, 0deg),
-                #ec4899,
-                #a855f7,
-                #3b82f6,
-                #06b6d4,
-                #ec4899
-            );
+            background: conic-gradient(from var(--angle, 0deg), #ec4899, #a855f7, #3b82f6, #06b6d4, #ec4899);
             -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
             -webkit-mask-composite: xor;
                     mask-composite: exclude;
@@ -180,12 +84,11 @@
             animation: spin-border 8s linear infinite;
             z-index: -1;
         }
+        .dark .feature-header::before { opacity: 0.85; }
 
-        @keyframes spin-border {
-            to { --angle: 360deg; }
-        }
+        @keyframes spin-border { to { --angle: 360deg; } }
 
-        /* Texture noise nhẹ */
+        /* Texture noise */
         .feature-header::after {
             content: "";
             position: absolute;
@@ -197,134 +100,89 @@
             mix-blend-mode: overlay;
         }
 
-        .dark .feature-header {
-            background: rgba(15, 23, 42, 0.55) !important;
-            box-shadow:
-                0 1px 0 0 rgba(255,255,255,0.08) inset,
-                0 20px 40px -20px rgba(236, 72, 153, 0.45),
-                0 8px 16px -8px rgba(59, 130, 246, 0.35) !important;
-        }
-        .dark .feature-header::before { opacity: 0.85; }
+        /* Accordion Logic */
+        .accordion-content { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.3s ease; }
+        .feature-wrapper.active .accordion-content { grid-template-rows: 1fr; }
+        .accordion-inner { overflow: hidden; }
+        .feature-wrapper.active .expand-icon { transform: rotate(180deg); color: #ec4899; }
 
-        .feature-wrapper:hover .feature-header {
-            transform: translateY(-3px);
-            box-shadow:
-                0 1px 0 0 rgba(255,255,255,0.8) inset,
-                0 30px 60px -20px rgba(236, 72, 153, 0.4),
-                0 12px 24px -8px rgba(59, 130, 246, 0.3) !important;
-        }
-        .dark .feature-wrapper:hover .feature-header {
-            box-shadow:
-                0 1px 0 0 rgba(255,255,255,0.12) inset,
-                0 30px 60px -20px rgba(236, 72, 153, 0.6),
-                0 12px 24px -8px rgba(59, 130, 246, 0.5) !important;
-        }
-
-        /* --- THẺ CON: NHỎ HƠN, THỤT LỀ, GLASS NHẸ --- */
+        /* Thẻ con */
         .child-card {
-            margin-left: 1rem;
-            margin-right: 1rem;
+            margin-left: 1rem; margin-right: 1rem;
             padding: 0.875rem 1rem !important;
-            background: rgba(255, 255, 255, 0.75) !important;
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(236, 72, 153, 0.12) !important;
+            background: #f8fafc !important;
+            border: 1px solid #e2e8f0 !important;
             border-radius: 1rem !important;
-            box-shadow:
-                0 4px 12px -4px rgba(0, 0, 0, 0.06),
-                0 1px 0 0 rgba(255,255,255,0.6) inset !important;
+            box-shadow: 0 4px 12px -4px rgba(0, 0, 0, 0.06), 0 1px 0 0 rgba(255,255,255,0.6) inset !important;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-            position: relative;
-            overflow: hidden;
-            cursor: default;
+            position: relative; overflow: hidden; cursor: default;
         }
-
         .dark .child-card {
-            background: rgba(30, 41, 59, 0.65) !important;
-            border-color: rgba(59, 130, 246, 0.15) !important;
-            box-shadow:
-                0 4px 12px -4px rgba(0, 0, 0, 0.3),
-                0 1px 0 0 rgba(255,255,255,0.05) inset !important;
+            background: #0f172a !important; border-color: #334155 !important;
+            box-shadow: 0 4px 12px -4px rgba(0, 0, 0, 0.3), 0 1px 0 0 rgba(255,255,255,0.05) inset !important;
         }
 
         .child-card::before {
-            content: "";
-            position: absolute;
-            left: 0; top: 20%; bottom: 20%; width: 2px;
+            content: ""; position: absolute; left: 0; top: 20%; bottom: 20%; width: 2px;
             background: linear-gradient(to bottom, transparent, #ec4899, transparent);
-            opacity: 0;
-            transition: opacity 0.3s ease;
+            opacity: 0; transition: opacity 0.3s ease;
         }
-        .dark .child-card::before {
-            background: linear-gradient(to bottom, transparent, #3b82f6, transparent);
-        }
+        .dark .child-card::before { background: linear-gradient(to bottom, transparent, #3b82f6, transparent); }
         .child-card:hover::before { opacity: 1; }
 
-        .child-card:hover {
-            transform: translateX(4px) !important;
-            border-color: rgba(236, 72, 153, 0.35) !important;
-            box-shadow:
-                0 8px 24px -8px rgba(236, 72, 153, 0.2),
-                0 1px 0 0 rgba(255,255,255,0.8) inset !important;
-        }
-        .dark .child-card:hover {
-            border-color: rgba(59, 130, 246, 0.4) !important;
-            box-shadow:
-                0 8px 24px -8px rgba(59, 130, 246, 0.3),
-                0 1px 0 0 rgba(255,255,255,0.08) inset !important;
-        }
+        .child-card > div:first-child span { text-shadow: 0 0 8px currentColor, 0 0 16px currentColor; }
 
-        /* Neon glow cho số thứ tự */
-        .child-card > div:first-child span {
-            text-shadow: 0 0 8px currentColor, 0 0 16px currentColor;
+        /* ============================================================
+           TỐI ƯU CHO MÁY TÍNH (DESKTOP-ONLY HOVER)
+           Chỉ bật hiệu ứng nhấc thẻ/trượt thẻ khi có chuột
+           ============================================================ */
+        @media (min-width: 1024px) {
+            .feature-wrapper:hover .feature-header {
+                transform: translateY(-3px);
+                box-shadow: 0 1px 0 0 rgba(255,255,255,0.8) inset, 0 30px 60px -20px rgba(236, 72, 153, 0.4), 0 12px 24px -8px rgba(59, 130, 246, 0.3) !important;
+            }
+            .dark .feature-wrapper:hover .feature-header {
+                box-shadow: 0 1px 0 0 rgba(255,255,255,0.12) inset, 0 30px 60px -20px rgba(236, 72, 153, 0.6), 0 12px 24px -8px rgba(59, 130, 246, 0.5) !important;
+            }
+            .child-card:hover {
+                transform: translateX(4px) !important;
+                background: #ffffff !important;
+                border-color: rgba(236, 72, 153, 0.35) !important;
+                box-shadow: 0 8px 24px -8px rgba(236, 72, 153, 0.2), 0 1px 0 0 rgba(255,255,255,0.8) inset !important;
+            }
+            .dark .child-card:hover {
+                background: #1e293b !important;
+                border-color: rgba(59, 130, 246, 0.4) !important;
+                box-shadow: 0 8px 24px -8px rgba(59, 130, 246, 0.3), 0 1px 0 0 rgba(255,255,255,0.08) inset !important;
+            }
         }
 
         /* ============================================================
-           TỐI ƯU GIAO DIỆN MOBILE - CHỐNG "BÉO" & CÂN ĐỐI ICON
-           Dành riêng cho màn hình < 640px
+           TỐI ƯU GIAO DIỆN MOBILE
            ============================================================ */
         @media (max-width: 640px) {
-            /* 1. Thu gọn Header & Nút bấm */
             .app-header .px-3 { padding-left: 0.5rem; padding-right: 0.5rem; }
             .app-header a[href="./landing.html"] { padding: 6px 12px !important; font-size: 12px !important; }
-
-            /* 2. Thu gọn Hero Section */
             main { padding-top: 5rem !important; }
             h1 { font-size: 1.75rem !important; line-height: 1.3 !important; margin-bottom: 1rem !important; }
             p.text-lg { font-size: 0.95rem !important; margin-bottom: 1.5rem !important; }
             .mb-16 { margin-bottom: 2rem !important; }
-
-            /* 3. Sửa Khung Mockup */
             .max-w-lg { padding-left: 1rem !important; padding-right: 1rem !important; }
             .rounded-\[2rem\] { border-radius: 1.5rem !important; padding: 1rem !important; }
-            /* 3 nút giả lập Mac OS nhỏ lại */
             .bg-\[\#ff5f56\], .bg-\[\#ffbd2e\], .bg-\[\#27c93f\] { width: 10px !important; height: 10px !important; }
             .h-\[120px\] { height: 90px !important; padding: 0.75rem !important; }
             .text-\[4\.5rem\] { font-size: 3.5rem !important; }
-
-            /* 4. SỬA LỖI THẺ MẸ & THẺ CON */
-            /* Thẻ Mẹ */
             .feature-header { padding: 1rem !important; border-radius: 1.25rem !important; }
             .feature-header .w-14 { width: 2.75rem !important; height: 2.75rem !important; border-radius: 1rem !important; }
             .feature-header .w-7 { width: 1.25rem !important; height: 1.25rem !important; }
             .feature-header h3 { font-size: 1.25rem !important; margin-bottom: 0.25rem !important; }
             .feature-header p { font-size: 0.85rem !important; }
-
-            /* Thẻ Con */
-            .child-card { 
-                margin-left: 0 !important; margin-right: 0 !important; 
-                padding: 0.75rem !important; border-radius: 0.75rem !important;
-            }
-            /* Icon thẻ con nhỏ hơn hẳn thẻ mẹ */
+            .child-card { margin-left: 0 !important; margin-right: 0 !important; padding: 0.75rem !important; border-radius: 0.75rem !important; }
             .child-card > div:first-child { width: 1.75rem !important; height: 1.75rem !important; margin-top: 0 !important; }
             .child-card > div:first-child span { font-size: 0.75rem !important; }
             .child-card h4 { font-size: 0.9rem !important; margin-bottom: 0.125rem !important; }
             .child-card p { font-size: 0.8rem !important; line-height: 1.4 !important; }
-
-            /* Khoảng cách thẻ mẹ */
             #features { gap: 1rem !important; padding-left: 1rem !important; padding-right: 1rem !important; }
-
-            /* 5. Bottom CTA */
             .p-10 { padding: 1.5rem !important; }
             .text-3xl { font-size: 1.5rem !important; }
             .px-10 { padding-left: 1.5rem !important; padding-right: 1.5rem !important; font-size: 1rem !important; }
@@ -337,36 +195,14 @@
                 const button = document.getElementById('btnHamburger');
                 const menu = document.getElementById('dropdownMenu');
                 if (!button || !menu || button.dataset.navigationReady === 'true') return;
-
                 button.dataset.navigationReady = 'true';
                 let isOpen = false;
-                
-                function closeMenu() {
-                    if (!isOpen) return;
-                    isOpen = false;
-                    menu.classList.remove('opacity-100', 'scale-100');
-                    menu.classList.add('opacity-0', 'scale-95');
-                    window.setTimeout(function () { if (!isOpen) menu.classList.add('hidden'); }, 200);
-                }
-                function openMenu() {
-                    isOpen = true;
-                    menu.classList.remove('hidden');
-                    void menu.offsetWidth;
-                    menu.classList.remove('opacity-0', 'scale-95');
-                    menu.classList.add('opacity-100', 'scale-100');
-                }
-
-                button.addEventListener('click', function (event) {
-                    event.preventDefault(); event.stopPropagation();
-                    if (isOpen) closeMenu(); else openMenu();
-                });
-                
-                document.addEventListener('click', function (event) {
-                    if (isOpen && !menu.contains(event.target) && !button.contains(event.target)) closeMenu();
-                });
+                function closeMenu() { if (!isOpen) return; isOpen = false; menu.classList.remove('opacity-100', 'scale-100'); menu.classList.add('opacity-0', 'scale-95'); window.setTimeout(function () { if (!isOpen) menu.classList.add('hidden'); }, 200); }
+                function openMenu() { isOpen = true; menu.classList.remove('hidden'); void menu.offsetWidth; menu.classList.remove('opacity-0', 'scale-95'); menu.classList.add('opacity-100', 'scale-100'); }
+                button.addEventListener('click', function (event) { event.preventDefault(); event.stopPropagation(); if (isOpen) closeMenu(); else openMenu(); });
+                document.addEventListener('click', function (event) { if (isOpen && !menu.contains(event.target) && !button.contains(event.target)) closeMenu(); });
             }
-            if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', initPromptNavigation); } 
-            else { initPromptNavigation(); }
+            if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', initPromptNavigation); } else { initPromptNavigation(); }
         })();
     </script>
 </head>
@@ -378,6 +214,7 @@
     <header class="app-header fixed top-0 left-0 w-full z-50 border-b">
         <div class="w-full max-w-7xl mx-auto px-3 sm:px-6 h-16 md:h-20 grid grid-cols-3 items-center">
             
+            <!-- Nút Hamburger hiện trên mọi thiết bị -->
             <div class="flex items-center justify-start relative z-50">
                 <button id="btnHamburger" class="w-10 h-10 shrink-0 flex items-center justify-center rounded-full text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
@@ -434,81 +271,76 @@
 
     <main class="relative pt-28 pb-20 md:pt-36 md:pb-32 z-10 flex-grow flex flex-col items-center">
         
-        <!-- HERO SECTION -->
-        <section class="w-full max-w-4xl mx-auto px-4 md:px-6 text-center mb-16 md:mb-24">
+        <!-- HERO SECTION & MOCKUP (Chia 2 cột trên PC) -->
+        <section class="w-full max-w-7xl mx-auto px-4 md:px-6 grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-8 items-center mb-16 md:mb-24">
             
-            <div class="flex justify-center mb-8">
-                <div class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/60 dark:bg-slate-800/60 backdrop-blur-md border border-slate-200 dark:border-slate-700 text-sm md:text-base font-semibold text-pink-500 shadow-sm">
-                    <span class="w-2 h-2 rounded-full bg-pink-500 animate-pulse"></span> Chuẩn mực mới cho Prompt Engineering
+            <!-- Cột Trái: Text & Nút -->
+            <div class="text-center lg:text-left">
+                <div class="flex justify-center lg:justify-start mb-8">
+                    <div class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/60 dark:bg-slate-800/60 backdrop-blur-md border border-slate-200 dark:border-slate-700 text-sm md:text-base font-semibold text-pink-500 shadow-sm">
+                        <span class="w-2 h-2 rounded-full bg-pink-500 animate-pulse"></span> Chuẩn mực mới cho Prompt Engineering
+                    </div>
                 </div>
-            </div>
-            
-            <h1 class="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-slate-900 dark:text-white leading-[1.1] mb-6 tracking-tight">
-                Biến câu lệnh <br class="hidden sm:block"> thông thường thành <br>
-                <span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500">Prompt Chuyên Gia</span>
-            </h1>
-            
-            <p class="text-lg sm:text-xl lg:text-2xl text-slate-600 dark:text-slate-300 mb-10 max-w-3xl mx-auto leading-relaxed">
-                AI tự động phân tích, chấm điểm và tối ưu hóa câu lệnh của bạn theo cấu trúc <strong class="text-slate-900 dark:text-white">11 mục</strong> chuẩn quốc tế. Không còn nỗi lo AI trả lời sai ý.
-            </p>
-            
-            <div class="flex flex-col items-center justify-center gap-4 max-w-xs mx-auto">
-                <a href="./landing.html" class="btn-glow w-full py-4 rounded-full font-bold text-white bg-gradient-to-r from-pink-500 to-blue-500 transition-all flex items-center justify-center text-lg">
-                    Bắt đầu đánh giá miễn phí
-                </a>
-                <a href="#features" id="btnLearnMore" class="w-full py-4 rounded-full font-bold text-slate-700 dark:text-slate-200 bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 hover:bg-white/80 dark:hover:bg-slate-700/80 transition-all flex items-center justify-center text-lg">
-                    Tìm hiểu thêm
-                </a>
-            </div>
-        </section>
-
-        <!-- MOCKUP DEMO SECTION -->
-        <section class="w-full max-w-lg mx-auto px-4 md:px-6 mb-20">
-            <div class="bg-white dark:bg-[#0f172a] rounded-[2rem] border border-slate-200 dark:border-slate-700/60 shadow-xl dark:shadow-2xl p-5 sm:p-6 transition-colors duration-300">
                 
-                <div class="flex items-center gap-2 mb-5">
-                    <div class="w-3 h-3 rounded-full bg-[#ff5f56]"></div>
-                    <div class="w-3 h-3 rounded-full bg-[#ffbd2e]"></div>
-                    <div class="w-3 h-3 rounded-full bg-[#27c93f]"></div>
-                    <div class="h-[26px] flex-grow bg-slate-100 dark:bg-[#1e293b] rounded-md ml-2 border border-slate-200 dark:border-slate-800/50 transition-colors"></div>
+                <h1 class="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-slate-900 dark:text-white leading-[1.1] mb-6 tracking-tight">
+                    Biến câu lệnh <br class="hidden sm:block"> thông thường thành <br>
+                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500">Prompt Chuyên Gia</span>
+                </h1>
+                
+                <p class="text-lg sm:text-xl lg:text-2xl text-slate-600 dark:text-slate-300 mb-10 max-w-3xl mx-auto lg:mx-0 leading-relaxed">
+                    AI tự động phân tích, chấm điểm và tối ưu hóa câu lệnh của bạn theo cấu trúc <strong class="text-slate-900 dark:text-white">11 mục</strong> chuẩn quốc tế. Không còn nỗi lo AI trả lời sai ý.
+                </p>
+                
+                <div class="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 max-w-xs sm:max-w-md mx-auto lg:mx-0">
+                    <a href="./landing.html" class="btn-glow w-full py-4 rounded-full font-bold text-white bg-gradient-to-r from-pink-500 to-blue-500 transition-all flex items-center justify-center text-lg">
+                        Bắt đầu miễn phí
+                    </a>
+                    <a href="#features" id="btnLearnMore" class="w-full py-4 rounded-full font-bold text-slate-700 dark:text-slate-200 bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 hover:bg-white/80 dark:hover:bg-slate-700/80 transition-all flex items-center justify-center text-lg">
+                        Tìm hiểu thêm
+                    </a>
                 </div>
+            </div>
 
-                <div class="relative bg-slate-50 dark:bg-[#1e293b] rounded-2xl border border-slate-200 dark:border-slate-700/60 p-4 mb-5 h-[120px] flex flex-col justify-between transition-colors">
-                    <p class="text-slate-400 dark:text-slate-400 text-base">Mô tả điều bạn muốn AI thực hiện...</p>
-                    <div class="text-right text-sm text-slate-400 dark:text-slate-500 font-medium">0/5000</div>
-                </div>
-
-                <button class="w-full py-4 rounded-xl bg-gradient-to-r from-pink-500 to-blue-500 text-white font-bold text-base mb-5 shadow-md">
-                    Đánh giá & Viết lại
-                </button>
-
-                <div class="bg-slate-50 dark:bg-[#0f172a] border border-slate-200 dark:border-slate-700/60 rounded-2xl p-5 mb-4 transition-colors">
-                    <p class="text-[11px] text-slate-500 font-bold mb-1 tracking-widest uppercase">ĐIỂM TỔNG</p>
-                    <div class="flex items-baseline gap-2 mb-4">
-                        <span class="text-[4.5rem] leading-none font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-blue-500">8.5</span>
-                        <span class="text-slate-500 text-xl font-medium">/ 10</span>
+            <!-- Cột Phải: Mockup Demo -->
+            <div class="w-full max-w-lg mx-auto lg:mx-0 lg:ml-auto">
+                <div class="bg-white dark:bg-[#0f172a] rounded-[2rem] border border-slate-200 dark:border-slate-700/60 shadow-xl dark:shadow-2xl p-5 sm:p-6 transition-colors duration-300">
+                    <div class="flex items-center gap-2 mb-5">
+                        <div class="w-3 h-3 rounded-full bg-[#ff5f56]"></div>
+                        <div class="w-3 h-3 rounded-full bg-[#ffbd2e]"></div>
+                        <div class="w-3 h-3 rounded-full bg-[#27c93f]"></div>
+                        <div class="h-[26px] flex-grow bg-slate-100 dark:bg-[#1e293b] rounded-md ml-2 border border-slate-200 dark:border-slate-800/50 transition-colors"></div>
                     </div>
-                    <div class="w-full bg-slate-200 dark:bg-[#1e293b] h-2.5 rounded-full transition-colors">
-                        <div class="bg-gradient-to-r from-pink-500 to-blue-500 h-2.5 rounded-full w-[85%]"></div>
+                    <div class="relative bg-slate-50 dark:bg-[#1e293b] rounded-2xl border border-slate-200 dark:border-slate-700/60 p-4 mb-5 h-[120px] flex flex-col justify-between transition-colors">
+                        <p class="text-slate-400 dark:text-slate-400 text-base">Mô tả điều bạn muốn AI thực hiện...</p>
+                        <div class="text-right text-sm text-slate-400 dark:text-slate-500 font-medium">0/5000</div>
                     </div>
-                </div>
-
-                <div class="bg-slate-50 dark:bg-[#0f172a] border border-slate-200 dark:border-slate-700/60 rounded-2xl p-5 transition-colors">
-                    <p class="text-[11px] text-slate-500 font-bold mb-3 tracking-widest uppercase">PHÂN LOẠI</p>
-                    <div class="flex flex-col items-start gap-3">
-                        <span class="px-4 py-1.5 bg-blue-500 text-white text-[14px] font-bold rounded-full shadow-sm">TEMPLATE</span>
-                        <div class="flex flex-wrap gap-2">
-                            <span class="px-4 py-2 bg-slate-100 dark:bg-[#1e293b] text-slate-600 dark:text-slate-300 text-[14px] rounded-lg border border-slate-200 dark:border-slate-700 transition-colors">Đóng vai</span>
-                            <span class="px-4 py-2 bg-slate-100 dark:bg-[#1e293b] text-slate-600 dark:text-slate-300 text-[14px] rounded-lg border border-slate-200 dark:border-slate-700 transition-colors">Ví dụ mẫu</span>
+                    <button class="w-full py-4 rounded-xl bg-gradient-to-r from-pink-500 to-blue-500 text-white font-bold text-base mb-5 shadow-md">Đánh giá & Viết lại</button>
+                    <div class="bg-slate-50 dark:bg-[#0f172a] border border-slate-200 dark:border-slate-700/60 rounded-2xl p-5 mb-4 transition-colors">
+                        <p class="text-[11px] text-slate-500 font-bold mb-1 tracking-widest uppercase">ĐIỂM TỔNG</p>
+                        <div class="flex items-baseline gap-2 mb-4">
+                            <span class="text-[4.5rem] leading-none font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-blue-500">8.5</span>
+                            <span class="text-slate-500 text-xl font-medium">/ 10</span>
+                        </div>
+                        <div class="w-full bg-slate-200 dark:bg-[#1e293b] h-2.5 rounded-full transition-colors">
+                            <div class="bg-gradient-to-r from-pink-500 to-blue-500 h-2.5 rounded-full w-[85%]"></div>
+                        </div>
+                    </div>
+                    <div class="bg-slate-50 dark:bg-[#0f172a] border border-slate-200 dark:border-slate-700/60 rounded-2xl p-5 transition-colors">
+                        <p class="text-[11px] text-slate-500 font-bold mb-3 tracking-widest uppercase">PHÂN LOẠI</p>
+                        <div class="flex flex-col items-start gap-3">
+                            <span class="px-4 py-1.5 bg-blue-500 text-white text-[14px] font-bold rounded-full shadow-sm">TEMPLATE</span>
+                            <div class="flex flex-wrap gap-2">
+                                <span class="px-4 py-2 bg-slate-100 dark:bg-[#1e293b] text-slate-600 dark:text-slate-300 text-[14px] rounded-lg border border-slate-200 dark:border-slate-700 transition-colors">Đóng vai</span>
+                                <span class="px-4 py-2 bg-slate-100 dark:bg-[#1e293b] text-slate-600 dark:text-slate-300 text-[14px] rounded-lg border border-slate-200 dark:border-slate-700 transition-colors">Ví dụ mẫu</span>
+                            </div>
                         </div>
                     </div>
                 </div>
-
             </div>
         </section>
 
-        <!-- FEATURES SECTION -->
-        <section id="features" class="w-full max-w-2xl mx-auto px-4 md:px-6 mb-24 flex flex-col gap-6 scroll-mt-28">
+        <!-- FEATURES SECTION (1 cột Mobile - 3 cột PC) -->
+        <section id="features" class="w-full max-w-7xl mx-auto px-4 md:px-6 mb-24 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start scroll-mt-28">
             
             <!-- Khối 1 -->
             <div class="feature-wrapper" onclick="toggleFeature(event, this)">
@@ -528,7 +360,6 @@
                 <div class="accordion-content">
                     <div class="accordion-inner">
                         <div class="pt-4 flex flex-col gap-4">
-                            
                             <div class="child-card group rounded-2xl p-4 flex gap-3 items-center">
                                 <div class="w-10 h-10 rounded-full bg-pink-100 dark:bg-pink-900/50 flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:bg-pink-500/20 transition-transform duration-300">
                                     <span class="text-pink-500 font-bold text-base">1</span>
@@ -538,7 +369,6 @@
                                     <p class="text-slate-600 dark:text-slate-400 text-sm">Đánh giá Vai trò, Bối cảnh, Đối tượng và Định dạng đầu ra.</p>
                                 </div>
                             </div>
-
                             <div class="child-card group rounded-2xl p-4 flex gap-3 items-center">
                                 <div class="w-10 h-10 rounded-full bg-pink-100 dark:bg-pink-900/50 flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:bg-pink-500/20 transition-transform duration-300">
                                     <span class="text-pink-500 font-bold text-base">2</span>
@@ -548,7 +378,6 @@
                                     <p class="text-slate-600 dark:text-slate-400 text-sm">Kiểm tra mức độ đầy đủ của thông tin, ví dụ mẫu và tính khả thi.</p>
                                 </div>
                             </div>
-
                             <div class="child-card group rounded-2xl p-4 flex gap-3 items-center">
                                 <div class="w-10 h-10 rounded-full bg-pink-100 dark:bg-pink-900/50 flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:bg-pink-500/20 transition-transform duration-300">
                                     <span class="text-pink-500 font-bold text-base">3</span>
@@ -558,7 +387,6 @@
                                     <p class="text-slate-600 dark:text-slate-400 text-sm">Phân tích các kỹ thuật như Suy luận từng bước, Ràng buộc, Đóng vai.</p>
                                 </div>
                             </div>
-
                         </div>
                     </div>
                 </div>
@@ -582,7 +410,6 @@
                 <div class="accordion-content">
                     <div class="accordion-inner">
                         <div class="pt-4 flex flex-col gap-4">
-                            
                             <div class="child-card group rounded-2xl p-4 flex gap-3 items-center">
                                 <div class="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:bg-blue-500/20 transition-transform duration-300">
                                     <span class="text-blue-500 font-bold text-base">1</span>
@@ -592,7 +419,6 @@
                                     <p class="text-slate-600 dark:text-slate-400 text-sm">Nhận diện chính xác phần thông tin bạn đang bị thiếu.</p>
                                 </div>
                             </div>
-
                             <div class="child-card group rounded-2xl p-4 flex gap-3 items-center">
                                 <div class="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:bg-blue-500/20 transition-transform duration-300">
                                     <span class="text-blue-500 font-bold text-base">2</span>
@@ -602,7 +428,6 @@
                                     <p class="text-slate-600 dark:text-slate-400 text-sm">Đưa ra các câu hỏi giúp bạn đào sâu và mở rộng vấn đề.</p>
                                 </div>
                             </div>
-
                             <div class="child-card group rounded-2xl p-4 flex gap-3 items-center">
                                 <div class="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:bg-blue-500/20 transition-transform duration-300">
                                     <span class="text-blue-500 font-bold text-base">3</span>
@@ -612,14 +437,13 @@
                                     <p class="text-slate-600 dark:text-slate-400 text-sm">Gợi ý bạn nên thêm thông tin gì để Prompt đạt điểm tối đa.</p>
                                 </div>
                             </div>
-
                         </div>
                     </div>
                 </div>
             </div>
 
             <!-- Khối 3 -->
-            <div class="feature-wrapper" onclick="toggleFeature(event, this)">
+            <div class="feature-wrapper md:col-span-2 lg:col-span-1" onclick="toggleFeature(event, this)">
                 <div class="feature-header p-6 md:p-8 flex flex-col">
                     <div class="flex justify-between items-start">
                         <div class="w-14 h-14 rounded-2xl bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center shrink-0">
@@ -636,7 +460,6 @@
                 <div class="accordion-content">
                     <div class="accordion-inner">
                         <div class="pt-4 flex flex-col gap-4">
-                            
                             <div class="child-card group rounded-2xl p-4 flex gap-3 items-center">
                                 <div class="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-900/50 flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:bg-purple-500/20 transition-transform duration-300">
                                     <span class="text-purple-500 font-bold text-base">1</span>
@@ -646,7 +469,6 @@
                                     <p class="text-slate-600 dark:text-slate-400 text-sm">Vai trò, Bối cảnh, Input, Mục tiêu.</p>
                                 </div>
                             </div>
-
                             <div class="child-card group rounded-2xl p-4 flex gap-3 items-center">
                                 <div class="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-900/50 flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:bg-purple-500/20 transition-transform duration-300">
                                     <span class="text-purple-500 font-bold text-base">2</span>
@@ -656,7 +478,6 @@
                                     <p class="text-slate-600 dark:text-slate-400 text-sm">Yêu cầu, Ràng buộc, Task, Định dạng đầu ra.</p>
                                 </div>
                             </div>
-
                             <div class="child-card group rounded-2xl p-4 flex gap-3 items-center">
                                 <div class="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-900/50 flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:bg-purple-500/20 transition-transform duration-300">
                                     <span class="text-purple-500 font-bold text-base">3</span>
@@ -666,7 +487,6 @@
                                     <p class="text-slate-600 dark:text-slate-400 text-sm">Never do, Thứ tự ưu tiên, Xử lý nội bộ.</p>
                                 </div>
                             </div>
-
                         </div>
                     </div>
                 </div>
@@ -713,14 +533,10 @@
             applyTheme(!document.documentElement.classList.contains('dark')); 
         });
 
-        /* FIX: toggleFeature nhận EVENT, phân biệt click vùng */
         function toggleFeature(event, element) {
             if (event && event.target) {
-                if (event.target.closest('.child-card') || event.target.closest('.accordion-content')) {
-                    return;
-                }
+                if (event.target.closest('.child-card') || event.target.closest('.accordion-content')) return;
             }
-
             const allCards = document.querySelectorAll('.feature-wrapper');
             if (element.classList.contains('active')) {
                 element.classList.remove('active');
@@ -730,7 +546,6 @@
             }
         }
 
-        /* FIX: Nút "Tìm hiểu thêm" - Smooth scroll đến #features */
         document.addEventListener('DOMContentLoaded', () => {
             const btnLearnMore = document.getElementById('btnLearnMore');
             if (btnLearnMore) {
