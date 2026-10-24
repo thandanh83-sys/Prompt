@@ -80,11 +80,11 @@
             color: #ec4899;
         }
 
-        /* Hiệu ứng trượt mượt mà dài ra */
+        /* 1. THẺ MẸ BUNG CHẬM HƠN (1.5s) */
         .accordion-content {
             display: grid;
             grid-template-rows: 0fr;
-            transition: grid-template-rows 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: grid-template-rows 1.5s cubic-bezier(0.1, 0.9, 0.2, 1);
             will-change: grid-template-rows;
         }
         .feature-wrapper.active .accordion-content { 
@@ -92,13 +92,19 @@
         }
         .accordion-inner { overflow: hidden; }
 
-        /* Thẻ Con */
+        /* Thẻ Con: Ban đầu bị ẩn và đẩy xuống dưới */
         .child-card {
             background-color: #ffffff; 
             border: 1px solid #f1f5f9; 
             border-radius: 1.25rem; 
             box-shadow: 0 2px 4px -1px rgba(0,0,0,0.02);
-            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            
+            opacity: 0;
+            transform: translateY(20px);
+            /* 2. THẺ CON TRƯỢT NHANH HƠN (0.4s) */
+            transition: opacity 0.4s ease, transform 0.4s ease;
+            transition-delay: 0s; 
+            
             margin-left: 1.5rem;
             margin-right: 1.5rem;
             margin-bottom: 0.75rem;
@@ -109,11 +115,21 @@
             box-shadow: 0 2px 4px -1px rgba(0,0,0,0.2);
         }
 
+        .feature-wrapper.active .child-card {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
         @media (min-width: 1024px) {
+            /* 3. CON HIỆN RA SỚM HƠN (Delay 1.1s, 1.2s, 1.3s thay vì 1.6s) */
+            .feature-wrapper.active .accordion-inner > div > .child-card:nth-child(1) { transition-delay: 1.1s; }
+            .feature-wrapper.active .accordion-inner > div > .child-card:nth-child(2) { transition-delay: 1.2s; }
+            .feature-wrapper.active .accordion-inner > div > .child-card:nth-child(3) { transition-delay: 1.3s; }
+
             .child-card:hover {
                 background-color: #f8fafc;
                 border-color: rgba(236,72,153,0.4);
-                transform: translateX(4px);
+                transform: translateX(4px) !important;
             }
             .dark .child-card:hover {
                 background-color: #0f172a;
@@ -126,7 +142,12 @@
            ============================================================ */
         @media (min-width: 1024px) {
             #features.has-active > .feature-wrapper:not(.active) {
-                display: none !important;
+                opacity: 0;
+                transform: scale(0.95);
+                pointer-events: none;
+                position: absolute; 
+                visibility: hidden;
+                transition: opacity 0.4s ease, transform 0.4s ease;
             }
             
             #features.has-active > .feature-wrapper.active {
@@ -134,7 +155,7 @@
                 max-width: 1000px; 
                 margin: 0 auto;
                 width: 100%;
-                animation: slideIn 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+                animation: slideInSmooth 1.5s cubic-bezier(0.1, 0.9, 0.2, 1) forwards;
                 will-change: transform, opacity;
             }
 
@@ -152,8 +173,8 @@
             }
         }
 
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateY(20px) scale(0.98); }
+        @keyframes slideInSmooth {
+            from { opacity: 0; transform: translateY(10px) scale(0.98); }
             to { opacity: 1; transform: translateY(0) scale(1); }
         }
 
@@ -165,7 +186,6 @@
             .app-header a[href="./landing.html"] { padding: 6px 12px !important; font-size: 12px !important; }
             main { padding-top: 6rem !important; }
             
-            /* Giảm nhẹ font chữ một chút để chữ "Prompt Chuyên gia" nằm gọn 1 dòng */
             h1 { font-size: 2.3rem !important; line-height: 1.25 !important; margin-bottom: 1rem !important; }
             p.text-lg { font-size: 0.95rem !important; margin-bottom: 1.5rem !important; line-height: 1.5 !important; }
             
@@ -192,6 +212,11 @@
             .child-card > div:first-child span { font-size: 0.7rem !important; }
             .child-card h4 { font-size: 0.85rem !important; margin-bottom: 0.125rem !important; line-height: 1.3 !important; }
             .child-card p { font-size: 0.75rem !important; line-height: 1.4 !important; }
+
+            /* Trên mobile cũng áp dụng delay sớm hơn (1.1s, 1.2s, 1.3s) */
+            .feature-wrapper.active .child-card:nth-child(1) { transition-delay: 1.1s; }
+            .feature-wrapper.active .child-card:nth-child(2) { transition-delay: 1.2s; }
+            .feature-wrapper.active .child-card:nth-child(3) { transition-delay: 1.3s; }
 
             #features { gap: 1rem !important; padding-left: 1rem !important; padding-right: 1rem !important; }
             .p-10 { padding: 1.5rem !important; }
@@ -279,37 +304,37 @@
         </div>
     </header>
 
-    <main class="relative pt-28 pb-20 md:pt-36 md:pb-32 z-10 flex-grow flex flex-col items-center">
+    <main class="relative pt-24 pb-20 md:pt-28 md:pb-32 z-10 flex-grow flex flex-col items-center">
         
         <!-- HERO SECTION & MOCKUP -->
         <section class="w-full max-w-7xl mx-auto px-4 md:px-6 grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center mb-16 md:mb-24">
             
-            <!-- Đã chuyển toàn bộ sang căn giữa (text-center) cho mobile, PC thì căn trái -->
-            <div class="text-center lg:text-left lg:col-span-7 flex flex-col justify-center items-center lg:items-start">
+            <!-- ĐÃ CĂN GIỮA TOÀN BỘ NỘI DUNG CỘT TRÁI TRÊN PC -->
+            <div class="text-center lg:col-span-7 flex flex-col justify-center items-center lg:pr-8">
                 
-                <!-- BADGE Ở TRÊN CÙNG, CĂN GIỮA -->
-                <div class="flex justify-center mb-6">
+                <!-- THÊM W-FULL ĐỂ CĂN GIỮA BADGE -->
+                <div class="w-full flex justify-center mb-6 lg:mb-8">
                     <div class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/60 dark:bg-slate-800/60 backdrop-blur-md border border-slate-200 dark:border-slate-700 text-sm md:text-base font-semibold text-pink-500 shadow-sm">
                         <span class="w-2 h-2 rounded-full bg-pink-500 animate-pulse"></span> Chuẩn mực mới cho Prompt Engineering
                     </div>
                 </div>
 
-                <!-- TIÊU ĐỀ 3 DÒNG, ĐÃ ĐỔI THÀNH "CHUYÊN GIA" -->
-                <h1 class="text-[2.3rem] sm:text-5xl md:text-6xl lg:text-5xl xl:text-6xl font-extrabold text-slate-900 dark:text-white leading-[1.25] mb-6 tracking-tight">
+                <h1 class="text-[2.3rem] sm:text-5xl md:text-6xl lg:text-[4.5rem] xl:text-[5rem] font-extrabold text-slate-900 dark:text-white leading-[1.15] mb-6 lg:mb-8 tracking-tight">
                     Biến <span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-500">ý tưởng</span> <br>
                     của bạn thành <br>
                     <span class="text-transparent bg-clip-text bg-gradient-to-r from-purple-500 via-blue-500 to-pink-500">Prompt Chuyên gia</span>
                 </h1>
                 
-                <p class="text-lg sm:text-xl lg:text-xl text-slate-600 dark:text-slate-300 mb-10 max-w-3xl mx-auto lg:mx-0 leading-relaxed">
+                <p class="text-lg sm:text-xl lg:text-xl text-slate-600 dark:text-slate-300 mb-10 lg:mb-12 max-w-3xl mx-auto leading-relaxed">
                     AI tự động phân tích, chấm điểm và tối ưu hóa câu lệnh của bạn theo cấu trúc <strong class="text-slate-900 dark:text-white">11 mục</strong> chuẩn quốc tế. Không còn nỗi lo AI trả lời sai ý.
                 </p>
                 
-                <div class="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 max-w-xs sm:max-w-md mx-auto lg:mx-0">
-                    <a href="./landing.html" class="btn-glow w-full py-4 rounded-full font-bold text-white bg-gradient-to-r from-pink-500 to-blue-500 transition-all flex items-center justify-center text-lg">
+                <!-- ĐÃ CĂN GIỮA 2 NÚT BẤM -->
+                <div class="flex flex-col sm:flex-row items-center justify-center gap-4 w-full max-w-sm sm:max-w-xl mx-auto">
+                    <a href="./landing.html" class="btn-glow w-full sm:flex-1 px-8 py-4 rounded-full font-bold text-white bg-gradient-to-r from-pink-500 to-blue-500 transition-all flex items-center justify-center text-lg whitespace-nowrap">
                         Bắt đầu miễn phí
                     </a>
-                    <a href="#features" id="btnLearnMore" class="w-full py-4 rounded-full font-bold text-slate-700 dark:text-slate-200 bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 hover:bg-white/80 dark:hover:bg-slate-700/80 transition-all flex items-center justify-center text-lg">
+                    <a href="#features" id="btnLearnMore" class="w-full sm:flex-1 px-8 py-4 rounded-full font-bold text-slate-700 dark:text-slate-200 bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 hover:bg-white/80 dark:hover:bg-slate-700/80 transition-all flex items-center justify-center text-lg whitespace-nowrap">
                         Tìm hiểu thêm
                     </a>
                 </div>
@@ -558,11 +583,9 @@
             const allCards = document.querySelectorAll('.feature-wrapper');
             
             if (element.classList.contains('active')) {
-                // Nhấn lại lần 2 -> Thu lại, 3 thẻ hiện ra
                 element.classList.remove('active');
                 container.classList.remove('has-active');
             } else {
-                // Nhấn lần 1 -> Ẩn 2 thẻ kia, bung thẻ này ra giữa
                 allCards.forEach(card => card.classList.remove('active'));
                 element.classList.add('active');
                 container.classList.add('has-active');
