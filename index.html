@@ -179,37 +179,29 @@
         }
 
         /* ============================================================
-           VÙNG AN TOÀN CHO MOBILE VÀ TABLET (DƯỚI 1024px)
-           BẠN CÓ THỂ THAY ĐỔI THOẢI MÁI Ở ĐÂY MÀ KHÔNG ẢNH HƯỞNG ĐẾN PC
+           TỐI ƯU GIAO DIỆN MOBILE (TĂNG CHỮ TIÊU ĐỀ, GIẢM CHỮ ĐOẠN VĂN)
            ============================================================ */
-        @media (max-width: 1023px) {
+        @media (max-width: 640px) {
             .app-header .px-3 { padding-left: 0.5rem; padding-right: 0.5rem; }
             .app-header a[href="./landing.html"] { padding: 6px 12px !important; font-size: 12px !important; }
+            main { padding-top: 5rem !important; }
             
-            /* Khoảng cách từ Header xuống nội dung */
-            main { padding-top: 4.5rem !important; }
+            /* Tiêu đề to hẳn lên (2.8rem), Đoạn văn nhỏ lại (0.8rem) */
+            h1 { font-size: 2.8rem !important; line-height: 1.15 !important; margin-bottom: 1rem !important; letter-spacing: -0.02em !important; }
+            p.text-lg { font-size: 0.8rem !important; margin-bottom: 1.5rem !important; line-height: 1.5 !important; }
             
-            /* Tiêu đề Mobile */
-            h1 { font-size: 2.2rem !important; line-height: 1.3 !important; margin-bottom: 1rem !important; text-align: center !important; }
-            
-            /* Đoạn văn Mobile */
-            p.text-lg { font-size: 0.95rem !important; margin-bottom: 1.5rem !important; line-height: 1.5 !important; text-align: center !important; }
-            
-            /* Khung Mockup Mobile */
             .max-w-lg { padding-left: 1rem !important; padding-right: 1rem !important; }
             .rounded-\[2rem\] { border-radius: 1.5rem !important; padding: 1rem !important; }
             .bg-\[\#ff5f56\], .bg-\[\#ffbd2e\], .bg-\[\#27c93f\] { width: 10px !important; height: 10px !important; }
             .h-\[120px\] { height: 90px !important; padding: 0.75rem !important; }
             .text-\[4\.5rem\] { font-size: 3.5rem !important; }
             
-            /* Thẻ Mẹ Mobile */
             .feature-header { padding: 1.25rem !important; border-radius: 1.5rem !important; }
             .feature-header .w-14 { width: 3rem !important; height: 3rem !important; border-radius: 1rem !important; }
             .feature-header .w-7 { width: 1.5rem !important; height: 1.5rem !important; }
             .feature-header h3 { font-size: 1.35rem !important; margin-bottom: 0.25rem !important; }
             .feature-header p { font-size: 0.9rem !important; }
 
-            /* Thẻ Con Mobile */
             .child-card { 
                 margin-left: 1rem !important; 
                 margin-right: 1rem !important; 
@@ -222,22 +214,14 @@
             .child-card h4 { font-size: 0.85rem !important; margin-bottom: 0.125rem !important; line-height: 1.3 !important; }
             .child-card p { font-size: 0.75rem !important; line-height: 1.4 !important; }
 
-            /* Delay hiệu ứng mở thẻ con trên Mobile */
             .feature-wrapper.active .child-card:nth-child(1) { transition-delay: 1.1s; }
             .feature-wrapper.active .child-card:nth-child(2) { transition-delay: 1.2s; }
             .feature-wrapper.active .child-card:nth-child(3) { transition-delay: 1.3s; }
 
-            /* Layout Grid Mobile */
             #features { gap: 1rem !important; padding-left: 1rem !important; padding-right: 1rem !important; }
             .p-10 { padding: 1.5rem !important; }
             .text-3xl { font-size: 1.5rem !important; }
             .px-10 { padding-left: 1.5rem !important; padding-right: 1.5rem !important; font-size: 1rem !important; }
-            
-            /* Căn giữa chữ trên Mobile */
-            .text-left { text-align: center !important; }
-            .items-start { align-items: center !important; }
-            .justify-start { justify-content: center !important; }
-            .lg\:text-left { text-align: center !important; }
         }
     </style>
 
@@ -323,43 +307,40 @@
     <main class="relative pt-24 pb-20 md:pt-28 md:pb-32 z-10 flex-grow flex flex-col items-center">
         
         <!-- HERO SECTION & MOCKUP -->
-        <section class="w-full max-w-7xl mx-auto px-4 md:px-6 grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-start mb-16 md:mb-24">
+        <section class="w-full max-w-7xl mx-auto px-4 md:px-6 grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center mb-16 md:mb-24">
             
-            <!-- CỘT TRÁI: PC CĂN TRÁI, MOBILE CĂN GIỮA (ĐÃ SETUP TRONG @media) -->
-            <div class="lg:col-span-8 flex flex-col justify-start w-full lg:pt-2 items-center lg:items-start text-center lg:text-left">
+            <!-- CĂN GIỮA TOÀN BỘ NỘI DUNG TRÊN MOBILE, CĂN TRÁI TRÊN PC -->
+            <div class="text-center lg:text-left lg:col-span-8 flex flex-col justify-center items-center lg:items-start lg:pr-8 w-full">
                 
-                <!-- BADGE -->
-                <div class="flex justify-center mb-6 lg:mb-8 w-full">
-                    <div class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/60 dark:bg-slate-800/60 backdrop-blur-md border border-slate-200 dark:border-slate-700 text-sm md:text-base font-semibold text-pink-500 shadow-sm">
+                <div class="flex justify-center lg:justify-start mb-6 lg:mb-8 w-full">
+                    <div class="inline-flex items-center gap-2 px-4 py-2 md:px-5 md:py-2.5 rounded-full bg-white/60 dark:bg-slate-800/60 backdrop-blur-md border border-slate-200 dark:border-slate-700 text-xs md:text-base font-semibold text-pink-500 shadow-sm">
                         <span class="w-2 h-2 rounded-full bg-pink-500 animate-pulse"></span> Chuẩn mực mới cho Prompt Engineering
                     </div>
                 </div>
 
-                <!-- TIÊU ĐỀ -->
-                <h1 class="text-[2.2rem] sm:text-5xl md:text-6xl lg:text-[4rem] xl:text-[4.5rem] font-extrabold text-slate-900 dark:text-white leading-[1.3] lg:leading-[1.4] mb-6 lg:mb-8 tracking-tight w-full max-w-3xl mx-auto lg:mx-0">
+                <h1 class="text-[2.8rem] sm:text-5xl md:text-6xl lg:text-[4.5rem] xl:text-[5rem] font-extrabold text-slate-900 dark:text-white leading-[1.15] lg:leading-[1.15] mb-4 lg:mb-8 tracking-tight w-full">
                     Biến <span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-500">ý tưởng</span> <br>
                     của bạn thành <br>
-                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-purple-500 via-blue-500 to-pink-500">Prompt Chuyên gia</span>
+                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-purple-500 via-blue-500 to-pink-500 whitespace-nowrap">Prompt Chuyên gia</span>
                 </h1>
                 
-                <!-- ĐOẠN VĂN BẢN -->
-                <p class="text-lg sm:text-xl lg:text-xl text-slate-600 dark:text-slate-300 mb-8 lg:mb-10 w-full leading-relaxed max-w-3xl mx-auto lg:mx-0">
-                    AI tự động phân tích, chấm điểm và tối ưu câu lệnh của bạn theo cấu trúc <strong class="text-slate-900 dark:text-white">chuẩn quốc tế</strong>. Không còn nỗi lo AI trả lời sai ý.
+                <p class="text-[0.8rem] sm:text-xl lg:text-2xl text-slate-600 dark:text-slate-300 mb-8 lg:mb-12 w-full leading-relaxed text-center lg:text-left">
+                    AI tự động phân tích, chấm điểm và tối ưu hóa câu lệnh của bạn theo cấu trúc chuẩn quốc tế. Không còn nỗi lo AI trả lời sai ý.
                 </p>
                 
-                <!-- NÚT BẤM -->
-                <div class="flex flex-col sm:flex-row items-center justify-center gap-4 w-full">
-                    <a href="./landing.html" class="btn-glow w-full sm:w-auto px-8 py-4 rounded-full font-bold text-white bg-gradient-to-r from-pink-500 to-blue-500 transition-all flex items-center justify-center text-base whitespace-nowrap">
+                <!-- NÚT BẤM THU NHỎ TRÊN MOBILE, KHÔNG FULL CHIỀU NGANG -->
+                <div class="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3 sm:gap-4 w-full mx-auto lg:mx-0">
+                    <a href="./landing.html" class="btn-glow px-8 py-3.5 sm:px-10 sm:py-4 rounded-full font-bold text-white bg-gradient-to-r from-pink-500 to-blue-500 transition-all flex items-center justify-center text-base sm:text-lg whitespace-nowrap shadow-lg w-auto min-w-[200px]">
                         Bắt đầu miễn phí
                     </a>
-                    <a href="#features" id="btnLearnMore" class="w-full sm:w-auto px-8 py-4 rounded-full font-bold text-slate-700 dark:text-slate-200 bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 hover:bg-white/80 dark:hover:bg-slate-700/80 transition-all flex items-center justify-center text-base whitespace-nowrap">
+                    <a href="#features" id="btnLearnMore" class="px-8 py-3.5 sm:px-10 sm:py-4 rounded-full font-bold text-slate-700 dark:text-slate-200 bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 hover:bg-white/80 dark:hover:bg-slate-700/80 transition-all flex items-center justify-center text-base sm:text-lg whitespace-nowrap w-auto min-w-[200px]">
                         Tìm hiểu thêm
                     </a>
                 </div>
             </div>
 
             <!-- CỘT PHẢI: MOCKUP -->
-            <div class="w-full max-w-lg mx-auto lg:mx-0 lg:ml-auto lg:col-span-4">
+            <div class="w-full max-w-lg mx-auto lg:mx-0 lg:ml-auto lg:col-span-4 mt-8 lg:mt-0">
                 <div class="bg-white dark:bg-[#0f172a] rounded-[2rem] border border-slate-200 dark:border-slate-700/60 shadow-xl dark:shadow-2xl p-5 sm:p-6 transition-colors duration-300">
                     <div class="flex items-center gap-2 mb-5">
                         <div class="w-3 h-3 rounded-full bg-[#ff5f56]"></div>
