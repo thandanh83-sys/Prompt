@@ -96,12 +96,11 @@
         .child-card {
             background-color: #ffffff; 
             border: 1px solid #f1f5f9; 
-            border-radius: 1.25rem; 
+            border-radius: 1rem; 
             box-shadow: 0 2px 4px -1px rgba(0,0,0,0.02);
             
             opacity: 0;
             transform: translateY(20px);
-            /* 2. THẺ CON TRƯỢT NHANH HƠN (0.4s) */
             transition: opacity 0.4s ease, transform 0.4s ease;
             transition-delay: 0s; 
             
@@ -121,7 +120,6 @@
         }
         
         @media (min-width: 1024px) {
-            /* 3. CON HIỆN RA SỚM HƠN (Delay 1.1s, 1.2s, 1.3s thay vì 1.6s) */
             .feature-wrapper.active .accordion-inner > div > .child-card:nth-child(1) { transition-delay: 1.1s; }
             .feature-wrapper.active .accordion-inner > div > .child-card:nth-child(2) { transition-delay: 1.2s; }
             .feature-wrapper.active .accordion-inner > div > .child-card:nth-child(3) { transition-delay: 1.3s; }
@@ -179,16 +177,15 @@
         }
 
         /* ============================================================
-           TỐI ƯU GIAO DIỆN MOBILE (TĂNG CHỮ TIÊU ĐỀ, GIẢM CHỮ ĐOẠN VĂN)
+           TỐI ƯU GIAO DIỆN MOBILE
            ============================================================ */
         @media (max-width: 640px) {
             .app-header .px-3 { padding-left: 0.5rem; padding-right: 0.5rem; }
             .app-header a[href="./landing.html"] { padding: 6px 12px !important; font-size: 12px !important; }
             main { padding-top: 5rem !important; }
             
-            /* Tiêu đề to hẳn lên (2.8rem), Đoạn văn nhỏ lại (0.8rem) */
-            h1 { font-size: 2.8rem !important; line-height: 1.15 !important; margin-bottom: 1rem !important; letter-spacing: -0.02em !important; }
-            p.text-lg { font-size: 0.8rem !important; margin-bottom: 1.5rem !important; line-height: 1.5 !important; }
+            h1 { font-size: 2.4rem !important; line-height: 1.25 !important; margin-bottom: 1rem !important; }
+            p.text-lg { font-size: 0.875rem !important; margin-bottom: 1.5rem !important; line-height: 1.5 !important; }
             
             .max-w-lg { padding-left: 1rem !important; padding-right: 1rem !important; }
             .rounded-\[2rem\] { border-radius: 1.5rem !important; padding: 1rem !important; }
@@ -222,6 +219,14 @@
             .p-10 { padding: 1.5rem !important; }
             .text-3xl { font-size: 1.5rem !important; }
             .px-10 { padding-left: 1.5rem !important; padding-right: 1.5rem !important; font-size: 1rem !important; }
+            
+            /* Nút bấm mobile - Thu nhỏ chiều rộng */
+            .btn-hero { 
+                padding: 0.75rem 1.5rem !important; 
+                font-size: 1rem !important; 
+                width: 85% !important; 
+                max-width: 300px !important;
+            }
         }
     </style>
 
@@ -309,31 +314,35 @@
         <!-- HERO SECTION & MOCKUP -->
         <section class="w-full max-w-7xl mx-auto px-4 md:px-6 grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center mb-16 md:mb-24">
             
-            <!-- CĂN GIỮA TOÀN BỘ NỘI DUNG TRÊN MOBILE, CĂN TRÁI TRÊN PC -->
+            <!-- CỘT TRÁI: MOBILE CĂN GIỮA, PC CĂN TRÁI -->
             <div class="text-center lg:text-left lg:col-span-8 flex flex-col justify-center items-center lg:items-start lg:pr-8 w-full">
                 
+                <!-- BADGE: Mobile căn giữa, PC căn trái -->
                 <div class="flex justify-center lg:justify-start mb-6 lg:mb-8 w-full">
                     <div class="inline-flex items-center gap-2 px-4 py-2 md:px-5 md:py-2.5 rounded-full bg-white/60 dark:bg-slate-800/60 backdrop-blur-md border border-slate-200 dark:border-slate-700 text-xs md:text-base font-semibold text-pink-500 shadow-sm">
                         <span class="w-2 h-2 rounded-full bg-pink-500 animate-pulse"></span> Chuẩn mực mới cho Prompt Engineering
                     </div>
                 </div>
 
-                <h1 class="text-[2.8rem] sm:text-5xl md:text-6xl lg:text-[4.5rem] xl:text-[5rem] font-extrabold text-slate-900 dark:text-white leading-[1.15] lg:leading-[1.15] mb-4 lg:mb-8 tracking-tight w-full">
+                <!-- TIÊU ĐỀ: Mobile căn giữa, PC căn trái. Fix lỗi tràn chữ -->
+                <h1 class="text-[2.4rem] sm:text-5xl md:text-6xl lg:text-[4.5rem] xl:text-[5rem] font-extrabold text-slate-900 dark:text-white leading-[1.25] lg:leading-[1.15] mb-4 lg:mb-8 tracking-tight w-full">
                     Biến <span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-500">ý tưởng</span> <br>
                     của bạn thành <br>
-                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-purple-500 via-blue-500 to-pink-500 whitespace-nowrap">Prompt Chuyên gia</span>
+                    <!-- Bỏ whitespace-nowrap trên mobile, thêm break-words để không tràn -->
+                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-purple-500 via-blue-500 to-pink-500 lg:whitespace-nowrap break-words">Prompt Chuyên gia</span>
                 </h1>
                 
-                <p class="text-[0.8rem] sm:text-xl lg:text-2xl text-slate-600 dark:text-slate-300 mb-8 lg:mb-12 w-full leading-relaxed text-center lg:text-left">
+                <!-- ĐOẠN VĂN: Mobile căn giữa, PC căn trái -->
+                <p class="text-[0.875rem] sm:text-xl lg:text-2xl text-slate-600 dark:text-slate-300 mb-8 lg:mb-12 w-full leading-relaxed text-center lg:text-left">
                     AI tự động phân tích, chấm điểm và tối ưu hóa câu lệnh của bạn theo cấu trúc chuẩn quốc tế. Không còn nỗi lo AI trả lời sai ý.
                 </p>
                 
-                <!-- NÚT BẤM THU NHỎ TRÊN MOBILE, KHÔNG FULL CHIỀU NGANG -->
-                <div class="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3 sm:gap-4 w-full mx-auto lg:mx-0">
-                    <a href="./landing.html" class="btn-glow px-8 py-3.5 sm:px-10 sm:py-4 rounded-full font-bold text-white bg-gradient-to-r from-pink-500 to-blue-500 transition-all flex items-center justify-center text-base sm:text-lg whitespace-nowrap shadow-lg w-auto min-w-[200px]">
+                <!-- NÚT BẤM: Mobile căn giữa (cột dọc, w-85%), PC căn trái (hàng ngang, w-auto) -->
+                <div class="flex flex-col sm:flex-row items-center lg:items-center justify-center lg:justify-start gap-3 sm:gap-4 w-full mx-0">
+                    <a href="./landing.html" class="btn-glow btn-hero w-[85%] sm:w-auto whitespace-nowrap px-8 py-3.5 sm:px-10 sm:py-4 rounded-full font-bold text-white bg-gradient-to-r from-pink-500 to-blue-500 transition-all flex items-center justify-center text-base sm:text-lg">
                         Bắt đầu miễn phí
                     </a>
-                    <a href="#features" id="btnLearnMore" class="px-8 py-3.5 sm:px-10 sm:py-4 rounded-full font-bold text-slate-700 dark:text-slate-200 bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm border border-slate-200 dark:border-slate-700 hover:bg-white/80 dark:hover:bg-slate-700/80 transition-all flex items-center justify-center text-base sm:text-lg whitespace-nowrap w-auto min-w-[200px]">
+                    <a href="#features" id="btnLearnMore" class="btn-hero w-[85%] sm:w-auto whitespace-nowrap px-8 py-3.5 sm:px-10 sm:py-4 rounded-full font-bold text-slate-700 dark:text-slate-200 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 hover:bg-white/80 dark:hover:bg-slate-700/80 transition-all flex items-center justify-center text-base sm:text-lg">
                         Tìm hiểu thêm
                     </a>
                 </div>
@@ -571,9 +580,6 @@
             applyTheme(!document.documentElement.classList.contains('dark')); 
         });
 
-        /* ============================================================
-           JS XỬ LÝ CHÍNH: POWERPOINT MODE
-           ============================================================ */
         function toggleFeature(event, element) {
             if (event && event.target) {
                 if (event.target.closest('.child-card') || event.target.closest('.accordion-content')) return;
@@ -606,7 +612,7 @@
             }
         });
 
-        async function checkAdminAccess() {
+        async function syncAdminMenuVisibility() {
             try {
                 const res = await fetch(`${API_URL}/check_admin_ip`);
                 if (res.ok) { 
@@ -615,7 +621,7 @@
                 } 
             } catch (e) { console.log("Không thể xác thực IP Admin."); }
         }
-        checkAdminAccess();
+        syncAdminMenuVisibility();
     </script>
 </body>
 </html>
