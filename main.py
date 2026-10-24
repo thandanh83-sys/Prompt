@@ -2,6 +2,7 @@ import os
 import json
 import re
 import logging
+import random  
 import uvicorn
 from fastapi import FastAPI, Request, HTTPException, Depends, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
@@ -148,7 +149,7 @@ def check_admin_ip(client_ip: str = Depends(verify_admin_ip)):
     return {"is_admin": True}
 
 # ==========================================
-# API MỚI: LẤY DANH SÁCH PROMPT CHO THƯ VIỆN
+# API LẤY DANH SÁCH PROMPT CHO THƯ VIỆN
 # ==========================================
 @app.get("/top_prompts")
 def get_top_prompts():
@@ -156,15 +157,20 @@ def get_top_prompts():
         return JSONResponse(status_code=500, content={"error": "Supabase chưa được cấu hình."})
     
     try:
-        # Lấy 20 prompt có điểm >= 8.0, sắp xếp mới nhất
+        # 1. Lấy ra 50 cái để có dữ liệu mà trộn
         response = supabase.table("history") \
             .select("prompt", "type", "total_score", "created_at") \
-            .gte("total_score", 8.0) \
-            .order("created_at", desc=True) \
-            .limit(20) \
+            .gte("total_score", 7.0) \
+            .limit(50) \
             .execute()
         
-        return {"prompts": response.data}
+        prompts = response.data
+        
+        # 2. Trộn ngẫu nhiên và chỉ lấy ra tối đa 5 cái để hiển thị
+        if len(prompts) > 5:
+            prompts = random.sample(prompts, 5)
+            
+        return {"prompts": prompts}
     except Exception as e:
         logger.error(f"Lỗi khi lấy top prompts: {e}")
         return JSONResponse(status_code=500, content={"error": "Không thể lấy dữ liệu thư viện."})
