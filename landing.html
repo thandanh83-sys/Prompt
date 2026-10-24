@@ -85,7 +85,6 @@
         .dark input[type="checkbox"] { border-color: #475569; }
         .dark input[type="checkbox"]:checked { border-color: #ec4899; }
 
-        /* TỐI ƯU GIAO DIỆN MOBILE CHO KẾT QUẢ ĐÁNH GIÁ */
         @media (max-width: 640px) {
             .result-card { padding: 1rem !important; border-radius: 1.25rem !important; }
             .score-box .text-6xl { font-size: 3.5rem !important; }
@@ -578,8 +577,9 @@
 
         $('btnEvaluate').addEventListener('click', async () => {
             const prompt = promptInput.value.trim(); $('resultArea').style.display = 'none'; 
-            if (!prompt) { $('errorMsg').style.display = 'block'; promptInput.focus(); return; }
-            $('errorMsg').style.display = 'none';
+            $('errorMsg').style.display = 'none'; // Ẩn lỗi cũ
+
+            if (!prompt) { $('errorMsg').textContent = "Vui lòng nhập prompt!"; $('errorMsg').style.display = 'block'; promptInput.focus(); return; }
 
             try {
                 let history = JSON.parse(localStorage.getItem('myPromptHistory') || '[]');
@@ -611,7 +611,15 @@
                 const response = await fetch(`${API_URL}/evaluate`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt }), signal: controller.signal });
                 clearTimeout(timeoutId);
                 
-                if (!response.ok) { const d = await response.json(); throw new Error(d.error || d.detail || 'Lỗi từ Server'); }
+                if (!response.ok) { 
+                    const d = await response.json(); 
+                    // Bắt lỗi 429 (Rate Limit) từ Backend
+                    if (response.status === 429 || (d.detail && d.detail.includes("giới hạn"))) {
+                        showToast("⏳ Đã chạm giới hạn Token/phút. Vui lòng đợi 1 phút!", "error");
+                        throw new Error("⏳ Đã chạm giới hạn Token/phút. Vui lòng đợi 1 phút!");
+                    }
+                    throw new Error(d.error || d.detail || 'Lỗi từ Server'); 
+                }
                 
                 lastResult = await response.json();
                 render(lastResult);
