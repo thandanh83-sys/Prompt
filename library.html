@@ -155,10 +155,20 @@
 
     <main class="w-full max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 md:pt-28 pb-32 flex-grow flex flex-col mt-4">
         <div class="bg-white/80 dark:bg-[#1e293b]/80 backdrop-blur-md border border-slate-200 dark:border-slate-700/60 shadow-xl rounded-3xl p-6">
-            <h2 class="text-lg font-bold text-slate-800 dark:text-slate-200 mb-2 flex items-center gap-2">
-                <span>📚</span> Thư viện Prompt Xuất sắc
-            </h2>
-            <p class="text-sm text-slate-500 dark:text-slate-400 mb-6">Những câu lệnh đạt điểm 8.0 trở lên từ cộng đồng. Bấm "Copy" để sử dụng ngay.</p>
+            
+            <div class="flex justify-between items-start mb-6">
+                <div>
+                    <h2 class="text-lg font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2">
+                        <span>📚</span> Thư viện Prompt Xuất sắc
+                    </h2>
+                    <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Những câu lệnh đạt điểm 7.0 trở lên. Bấm "Copy" để sử dụng ngay.</p>
+                </div>
+                <!-- NÚT LÀM MỚI (ĐỔI BỘ PROMPT) -->
+                <button id="btnRefresh" class="shrink-0 flex items-center gap-1.5 px-3 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl text-xs font-bold transition-all" title="Đổi bộ Prompt khác">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                    Làm mới
+                </button>
+            </div>
             
             <div id="libraryLoading" class="text-center py-10 text-slate-500 text-sm animate-pulse">
                 Đang kết nối tới Server...<br><span class="text-xs text-slate-400 mt-2 block">(Lần đầu tải có thể mất 30s để đánh thức Server)</span>
@@ -286,14 +296,17 @@
 
         const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
 
+        // HÀM LẤY VÀ HIỂN THỊ DỮ LIỆU
         async function fetchLibrary() {
             const list = $('libraryList'); const loading = $('libraryLoading');
+            const btnRefresh = $('btnRefresh');
+            
             list.innerHTML = ''; loading.style.display = 'block';
+            btnRefresh.classList.add('opacity-50', 'pointer-events-none');
             
             try {
                 const res = await fetch(`${API_URL}/top_prompts`);
                 
-                // NẾU LỖI 404 (Backend chưa có API) -> Hiển thị giao diện "Đang cập nhật"
                 if (res.status === 404) {
                     loading.style.display = 'none';
                     list.innerHTML = `
@@ -324,7 +337,7 @@
                         const safePrompt = encodeURIComponent(item.prompt); 
                         const type = item.type || 'PROMPT';
                         const dateStr = item.created_at ? new Date(item.created_at).toLocaleDateString('vi-VN') : 'Gần đây';
-                        const score = item.total_score || item.score || '8.0+';
+                        const score = item.total_score || item.score || '7.0+';
 
                         card.innerHTML = `
                             <div class="flex justify-between items-start">
@@ -360,14 +373,13 @@
                     list.innerHTML = `
                         <div class="text-center py-10">
                             <p class="text-slate-500 text-sm mb-2">Thư viện hiện đang trống.</p>
-                            <p class="text-slate-400 text-xs mb-4">Hãy là người đầu tiên đánh giá Prompt đạt 8+ điểm để xuất hiện tại đây!</p>
+                            <p class="text-slate-400 text-xs mb-4">Hãy là người đầu tiên đánh giá Prompt đạt 7+ điểm để xuất hiện tại đây!</p>
                             <a href="./landing.html" class="inline-block px-5 py-2.5 bg-gradient-to-r from-pink-500 to-blue-500 text-white rounded-xl text-sm font-bold shadow-md hover:scale-105 transition-transform">Đánh giá ngay</a>
                         </div>
                     `; 
                 }
             } catch (e) { 
                 console.error("Fetch Error:", e);
-                // Nếu lỗi mạng hoặc lỗi khác
                 list.innerHTML = `
                     <div class="text-center py-10">
                         <p class="text-red-500 text-sm font-bold mb-1">Không thể kết nối tới Server.</p>
@@ -377,9 +389,14 @@
                 `; 
             } finally { 
                 loading.style.display = 'none'; 
+                btnRefresh.classList.remove('opacity-50', 'pointer-events-none');
             }
         }
         
+        // Gắn sự kiện cho nút Làm mới
+        $('btnRefresh').addEventListener('click', fetchLibrary);
+
+        // Khởi chạy lần đầu
         fetchLibrary();
     </script>
 </body>
