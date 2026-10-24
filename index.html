@@ -47,8 +47,21 @@
         .btn-glow { box-shadow: 0 4px 20px rgba(236,72,153,.3); transition: all .2s ease; }
         .btn-glow:hover { box-shadow: 0 6px 25px rgba(59,130,246,.5); transform: translateY(-2px); }
         
-        /* CSS MENU CHUẨN (Từ code của bạn) */
-        .menu-dropdown { transition: all .2s ease-in-out; transform-origin: top left; width: min(280px, calc(100vw - 32px)); max-height: calc(100dvh - 100px); overflow-y: auto; box-sizing: border-box; z-index: 9999 !important; }
+        /* ==========================================
+           TỐI ƯU HÓA CSS MENU CHỐNG LAG (QUAN TRỌNG)
+           ========================================== */
+        .menu-dropdown { 
+            /* Đổi transition:all thành opacity và transform để giảm tải cho GPU */
+            transition: opacity 0.2s ease-out, transform 0.2s ease-out; 
+            transform-origin: top left; 
+            /* Bật will-change để trình duyệt tối ưu hóa render trước */
+            will-change: opacity, transform; 
+            width: min(280px, calc(100vw - 32px)); 
+            max-height: calc(100dvh - 100px); 
+            overflow-y: auto; 
+            box-sizing: border-box; 
+            z-index: 9999 !important; 
+        }
 
         /* ============================================================
            CSS CHÍNH (PC VÀ MOBILE)
@@ -143,7 +156,7 @@
         }
 
         /* ============================================================
-           TỐI ƯU GIAO DIỆN MOBILE (BÁM SÁT ẢNH 1)
+           TỐI ƯU GIAO DIỆN MOBILE
            ============================================================ */
         @media (max-width: 640px) {
             .app-header .px-3 { padding-left: 0.5rem; padding-right: 0.5rem; }
@@ -270,7 +283,7 @@
             <!-- CỘT TRÁI -->
             <div class="flex flex-col items-center lg:items-start text-center lg:text-left lg:col-span-8 lg:pr-8 w-full">
                 
-                <!-- BADGE: Căn giữa trên cả Mobile và PC -->
+                <!-- BADGE -->
                 <div class="flex justify-center mb-6 lg:mb-8 w-full">
                     <div class="inline-flex items-center gap-2 px-4 py-2 md:px-5 md:py-2.5 rounded-full bg-white/60 dark:bg-slate-800/60 backdrop-blur-md border border-slate-200 dark:border-slate-700 text-xs md:text-base font-semibold text-pink-500 shadow-sm">
                         <span class="w-2 h-2 rounded-full bg-pink-500 animate-pulse"></span> Chuẩn mực mới cho Prompt Engineering
@@ -515,7 +528,7 @@
         const $ = id => document.getElementById(id);
 
         // ==========================================
-        // 1. ĐOẠN JS XỬ LÝ MENU (Y HỆT BẠN CUNG CẤP)
+        // 1. ĐOẠN JS XỬ LÝ MENU (ĐÃ TỐI ƯU CHỐNG LAG)
         // ==========================================
         const hamburger = $('btnHamburger');
         const dropdown = $('dropdownMenu');
@@ -524,20 +537,49 @@
             hamburger.addEventListener('click', (e) => {
                 e.stopPropagation();
                 const isHidden = dropdown.classList.contains('hidden');
-                dropdown.classList.toggle('hidden', !isHidden);
-                dropdown.classList.toggle('opacity-0', !isHidden);
-                dropdown.classList.toggle('scale-95', !isHidden);
+                
+                if (isHidden) {
+                    // MỞ MENU
+                    dropdown.classList.remove('hidden');
+                    // Dùng requestAnimationFrame để trình duyệt render mượt mà, không bị ép reflow
+                    requestAnimationFrame(() => {
+                        dropdown.classList.remove('opacity-0', 'scale-95');
+                        dropdown.classList.add('opacity-100', 'scale-100');
+                    });
+                } else {
+                    // ĐÓNG MENU
+                    dropdown.classList.remove('opacity-100', 'scale-100');
+                    dropdown.classList.add('opacity-0', 'scale-95');
+                    // Đợi animation 0.2s chạy xong mới ẩn hoàn toàn
+                    setTimeout(() => {
+                        if (dropdown.classList.contains('opacity-0')) {
+                            dropdown.classList.add('hidden');
+                        }
+                    }, 200);
+                }
             });
 
             document.addEventListener('click', (e) => {
-                if (!dropdown.contains(e.target) && !hamburger.contains(e.target)) {
-                    dropdown.classList.add('hidden', 'opacity-0', 'scale-95');
+                if (!dropdown.contains(e.target) && !hamburger.contains(e.target) && !dropdown.classList.contains('hidden')) {
+                    dropdown.classList.remove('opacity-100', 'scale-100');
+                    dropdown.classList.add('opacity-0', 'scale-95');
+                    setTimeout(() => {
+                        if (dropdown.classList.contains('opacity-0')) {
+                            dropdown.classList.add('hidden');
+                        }
+                    }, 200);
                 }
             });
 
             document.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape') {
-                    dropdown.classList.add('hidden', 'opacity-0', 'scale-95');
+                if (e.key === 'Escape' && !dropdown.classList.contains('hidden')) {
+                    dropdown.classList.remove('opacity-100', 'scale-100');
+                    dropdown.classList.add('opacity-0', 'scale-95');
+                    setTimeout(() => {
+                        if (dropdown.classList.contains('opacity-0')) {
+                            dropdown.classList.add('hidden');
+                        }
+                    }, 200);
                 }
             });
         }
