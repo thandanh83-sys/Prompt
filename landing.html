@@ -97,7 +97,7 @@
     <header class="app-header fixed top-0 left-0 w-full z-50 border-b pt-[env(safe-area-inset-top,0px)]">
         <div class="w-full max-w-7xl mx-auto px-3 sm:px-6 h-16 md:h-20 grid grid-cols-3 items-center">
             
-            <!-- CỘT TRÁI: MENU (Đã đồng bộ 100% với index.html) -->
+            <!-- CỘT TRÁI: MENU -->
             <div class="flex items-center justify-start relative z-50">
                 <button id="btnHamburger" class="w-10 h-10 shrink-0 flex items-center justify-center rounded-full text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" title="Mở menu">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
@@ -194,7 +194,8 @@
             </div>
         </div>
 
-        <div id="resultArea" class="w-full mx-auto mt-8 space-y-6" style="display: none;">
+        <!-- THÊM CLASS scroll-mt-24 md:scroll-mt-32 ĐỂ CHỐNG BỊ HEADER ĐÈ LÊN KHI CUỘN -->
+        <div id="resultArea" class="w-full mx-auto mt-8 space-y-6 scroll-mt-24 md:scroll-mt-32" style="display: none;">
             
             <div class="bg-white/80 dark:bg-[#1e293b]/80 backdrop-blur-md border border-slate-200 dark:border-slate-700/60 shadow-xl rounded-3xl p-6">
                 <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
@@ -555,15 +556,8 @@
                 const cachedResult = history.find(item => item.prompt === prompt.slice(0, 2000));
                 
                 if (cachedResult) {
-                    $('errorMsg').textContent = "⚡ Đã tải kết quả từ lịch sử (Không tốn lượt gọi AI).";
-                    $('errorMsg').className = "text-blue-500 text-xs mt-2 font-medium";
-                    $('errorMsg').style.display = 'block';
+                    // ĐÃ XÓA ĐOẠN HIỂN THỊ THÔNG BÁO CACHE Ở ĐÂY
                     
-                    setTimeout(() => { 
-                        $('errorMsg').style.display = 'none'; 
-                        $('errorMsg').className = "text-red-500 text-xs mt-2 font-medium"; 
-                    }, 5000);
-
                     const data = {
                         total: cachedResult.score,
                         type: cachedResult.type,
