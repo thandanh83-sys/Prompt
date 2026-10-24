@@ -42,7 +42,10 @@
         /* ============================================================
            CSS CHÍNH (PC VÀ MOBILE)
            ============================================================ */
-        .feature-wrapper { cursor: pointer; transition: all 0.3s ease; }
+        .feature-wrapper { 
+            cursor: pointer; 
+            transition: all 0.4s ease; 
+        }
         
         /* Thẻ Mẹ */
         .feature-header {
@@ -51,7 +54,7 @@
             border: 1px solid #e2e8f0;
             border-radius: 1.5rem;
             box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03);
-            transition: all 0.3s ease;
+            transition: all 0.4s ease;
         }
         .dark .feature-header {
             background-color: #1e293b;
@@ -71,27 +74,31 @@
             }
         }
 
-        .expand-icon { transition: transform 0.3s ease, color 0.3s ease; }
+        .expand-icon { transition: transform 0.4s ease, color 0.4s ease; }
         .feature-wrapper.active .expand-icon {
             transform: rotate(180deg);
             color: #ec4899;
         }
 
+        /* Hiệu ứng trượt mượt mà dài ra */
         .accordion-content {
             display: grid;
             grid-template-rows: 0fr;
-            transition: grid-template-rows 0.3s ease;
+            transition: grid-template-rows 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            will-change: grid-template-rows;
         }
-        .feature-wrapper.active .accordion-content { grid-template-rows: 1fr; }
+        .feature-wrapper.active .accordion-content { 
+            grid-template-rows: 1fr; 
+        }
         .accordion-inner { overflow: hidden; }
 
-        /* Thẻ Con (Nền đồng bộ, viền sáng) */
+        /* Thẻ Con */
         .child-card {
             background-color: #ffffff; 
             border: 1px solid #f1f5f9; 
             border-radius: 1.25rem; 
             box-shadow: 0 2px 4px -1px rgba(0,0,0,0.02);
-            transition: all 0.2s ease;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
             margin-left: 1.5rem;
             margin-right: 1.5rem;
             margin-bottom: 0.75rem;
@@ -124,15 +131,16 @@
             
             #features.has-active > .feature-wrapper.active {
                 grid-column: 1 / -1; 
-                max-width: 900px; 
+                max-width: 1000px; 
                 margin: 0 auto;
                 width: 100%;
-                animation: slideIn 0.3s ease-out forwards;
+                animation: slideIn 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+                will-change: transform, opacity;
             }
 
             #features.has-active > .feature-wrapper.active .accordion-inner > div {
                 display: grid;
-                grid-template-columns: repeat(2, 1fr);
+                grid-template-columns: repeat(3, 1fr);
                 gap: 1rem;
                 padding-top: 1.5rem;
             }
@@ -145,8 +153,8 @@
         }
 
         @keyframes slideIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+            from { opacity: 0; transform: translateY(20px) scale(0.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
         }
 
         /* ============================================================
@@ -155,10 +163,12 @@
         @media (max-width: 640px) {
             .app-header .px-3 { padding-left: 0.5rem; padding-right: 0.5rem; }
             .app-header a[href="./landing.html"] { padding: 6px 12px !important; font-size: 12px !important; }
-            main { padding-top: 5rem !important; }
-            h1 { font-size: 1.75rem !important; line-height: 1.3 !important; margin-bottom: 1rem !important; }
-            p.text-lg { font-size: 0.95rem !important; margin-bottom: 1.5rem !important; }
-            .mb-16 { margin-bottom: 2rem !important; }
+            main { padding-top: 6rem !important; }
+            
+            /* Giảm nhẹ font chữ một chút để chữ "Prompt Chuyên gia" nằm gọn 1 dòng */
+            h1 { font-size: 2.3rem !important; line-height: 1.25 !important; margin-bottom: 1rem !important; }
+            p.text-lg { font-size: 0.95rem !important; margin-bottom: 1.5rem !important; line-height: 1.5 !important; }
+            
             .max-w-lg { padding-left: 1rem !important; padding-right: 1rem !important; }
             .rounded-\[2rem\] { border-radius: 1.5rem !important; padding: 1rem !important; }
             .bg-\[\#ff5f56\], .bg-\[\#ffbd2e\], .bg-\[\#27c93f\] { width: 10px !important; height: 10px !important; }
@@ -274,21 +284,24 @@
         <!-- HERO SECTION & MOCKUP -->
         <section class="w-full max-w-7xl mx-auto px-4 md:px-6 grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center mb-16 md:mb-24">
             
-            <div class="text-center lg:text-left lg:col-span-7">
+            <!-- Đã chuyển toàn bộ sang căn giữa (text-center) cho mobile, PC thì căn trái -->
+            <div class="text-center lg:text-left lg:col-span-7 flex flex-col justify-center items-center lg:items-start">
                 
-                <!-- ĐÃ SỬA LỖI BỐ CỤC VÀ DI CHUYỂN BADGE XUỐNG DƯỚI -->
-                <h1 class="text-4xl sm:text-5xl md:text-6xl lg:text-5xl xl:text-6xl font-extrabold text-slate-900 dark:text-white leading-[1.2] mb-6 tracking-tight break-words">
-                    Biến <span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-500">ý tưởng</span> của bạn <br class="hidden sm:block"> thành <br class="hidden sm:block">
-                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-purple-500 via-blue-500 to-pink-500">Prompt Chuyên nghiệp</span>
-                </h1>
-
-                <div class="flex justify-center lg:justify-start mb-6">
+                <!-- BADGE Ở TRÊN CÙNG, CĂN GIỮA -->
+                <div class="flex justify-center mb-6">
                     <div class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/60 dark:bg-slate-800/60 backdrop-blur-md border border-slate-200 dark:border-slate-700 text-sm md:text-base font-semibold text-pink-500 shadow-sm">
                         <span class="w-2 h-2 rounded-full bg-pink-500 animate-pulse"></span> Chuẩn mực mới cho Prompt Engineering
                     </div>
                 </div>
+
+                <!-- TIÊU ĐỀ 3 DÒNG, ĐÃ ĐỔI THÀNH "CHUYÊN GIA" -->
+                <h1 class="text-[2.3rem] sm:text-5xl md:text-6xl lg:text-5xl xl:text-6xl font-extrabold text-slate-900 dark:text-white leading-[1.25] mb-6 tracking-tight">
+                    Biến <span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-500">ý tưởng</span> <br>
+                    của bạn thành <br>
+                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-purple-500 via-blue-500 to-pink-500">Prompt Chuyên gia</span>
+                </h1>
                 
-                <p class="text-lg sm:text-xl lg:text-2xl text-slate-600 dark:text-slate-300 mb-10 max-w-3xl mx-auto lg:mx-0 leading-relaxed">
+                <p class="text-lg sm:text-xl lg:text-xl text-slate-600 dark:text-slate-300 mb-10 max-w-3xl mx-auto lg:mx-0 leading-relaxed">
                     AI tự động phân tích, chấm điểm và tối ưu hóa câu lệnh của bạn theo cấu trúc <strong class="text-slate-900 dark:text-white">11 mục</strong> chuẩn quốc tế. Không còn nỗi lo AI trả lời sai ý.
                 </p>
                 
@@ -339,7 +352,7 @@
             </div>
         </section>
 
-        <!-- FEATURES SECTION (CÓ HIỆU ỨNG FOCUS MODE) -->
+        <!-- FEATURES SECTION (CÓ HIỆU ỨNG POWERPOINT) -->
         <section id="features" class="w-full max-w-7xl mx-auto px-4 md:px-6 mb-24 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start scroll-mt-28">
             
             <!-- Khối 1 -->
@@ -534,7 +547,7 @@
         });
 
         /* ============================================================
-           JS XỬ LÝ CHÍNH: THÊM/XÓA CLASS HAS-ACTIVE CHO FOCUS MODE
+           JS XỬ LÝ CHÍNH: POWERPOINT MODE
            ============================================================ */
         function toggleFeature(event, element) {
             if (event && event.target) {
@@ -545,11 +558,11 @@
             const allCards = document.querySelectorAll('.feature-wrapper');
             
             if (element.classList.contains('active')) {
-                // Nếu đang mở, đóng lại (trả về 3 cột)
+                // Nhấn lại lần 2 -> Thu lại, 3 thẻ hiện ra
                 element.classList.remove('active');
                 container.classList.remove('has-active');
             } else {
-                // Nếu đang đóng, mở ra (chuyển sang Focus Mode)
+                // Nhấn lần 1 -> Ẩn 2 thẻ kia, bung thẻ này ra giữa
                 allCards.forEach(card => card.classList.remove('active'));
                 element.classList.add('active');
                 container.classList.add('has-active');
