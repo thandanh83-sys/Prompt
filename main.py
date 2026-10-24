@@ -54,6 +54,11 @@ def verify_admin_ip(request: Request):
             raise HTTPException(status_code=403, detail="Truy cập bị từ chối.")
     return client_ip
 
+def verify_admin_token(token: str = Depends(api_key_header)):
+    if not token or token != ADMIN_SECRET_TOKEN:
+        raise HTTPException(status_code=401, detail="Token không hợp lệ hoặc đã hết hạn.")
+    return token
+
 # ==========================================
 # KHỞI TẠO FASTAPI VÀ CẤU HÌNH MIDDLEWARE
 # ==========================================
@@ -73,18 +78,14 @@ app.add_middleware(
     allow_headers=["Content-Type", "X-Admin-Token"],
 )
 
+# KHAI BÁO CÁC CLASS REQUEST (Bắt buộc phải có)
+class PromptRequest(BaseModel):
+    prompt: str
+
 class AdminLoginRequest(BaseModel):
     password: str
 
-# Thêm API này để admin.html có thể đăng nhập
-@app.post("/login")
-def login(req: AdminLoginRequest):
-    if req.password != ADMIN_PASSWORD:
-        raise HTTPException(status_code=401, detail="Sai mật khẩu")
-    # Trả về token để lưu vào session
-    return {"token": ADMIN_SECRET_TOKEN}
-
-# Sử dụng Groq với model mới nhất
+# Sử dụng Groq
 client = Groq(api_key=GROQ_API_KEY)
 
 supabase_url = os.environ.get("SUPABASE_URL", "")
@@ -140,7 +141,6 @@ def bg_save_history(payload: dict):
     try:
         supabase.table("history").insert(payload).execute()
     except Exception as e:
-        # Lờ đi lỗi trùng lặp prompt (mã 23505)
         if '23505' in str(e) or 'duplicate key' in str(e):
             pass
         else:
@@ -157,6 +157,70 @@ def check_admin_ip(client_ip: str = Depends(verify_admin_ip)):
     return {"is_admin": True}
 
 # ==========================================
+# API ĐĂNG NHẬP ADMIN
+# ==========================================
+@app.post("/login")
+def login(req: AdminLoginRequest, request: Request):
+    if req.password != ADMIN_PASSWORD:
+        raise HTTPException(status_code=401, detail="Sai mật khẩu")
+    
+    # Ghi log IP đăng nhập vào database
+    if supabase:
+        try:
+            client_ip = get_client_ip(request)
+            user_agent = request.headers.get("user-agent", "Unknown")
+            supabase.table("admin_login_logs").insert({
+                "ip_address": client_ip,
+                "user_agent": user_agent
+            }).execute()
+        except Exception as e:
+            logger.error(f"Lỗi lưu log admin login: {e}")
+
+    return {"token": ADMIN_SECRET_TOKEN}
+
+# ==========================================
+# API LẤY LỊCH SỬ ĐÁNH GIÁ (CHO ADMIN)
+# ==========================================
+@app.get("/history")
+def get_history(token: str = Depends(verify_admin_token)):
+    if not supabase:
+        return JSONResponse(status_code=500, content={"error": "Supabase chưa cấu hình."})
+    try:
+        response = supabase.table("history").select("*").order("created_at", desc=True).limit(100).execute()
+        return {"history": response.data}
+    except Exception as e:
+        logger.error(f"Lỗi lấy history: {e}")
+        return JSONResponse(status_code=500, content={"error": "Không thể lấy lịch sử."})
+
+# ==========================================
+# API XÓA PROMPT (CHO ADMIN)
+# ==========================================
+@app.delete("/admin/delete_prompt/{prompt_id}")
+def delete_prompt(prompt_id: str, token: str = Depends(verify_admin_token)):
+    if not supabase:
+        return JSONResponse(status_code=500, content={"error": "Supabase chưa cấu hình."})
+    try:
+        supabase.table("history").delete().eq("id", prompt_id).execute()
+        return {"status": "success"}
+    except Exception as e:
+        logger.error(f"Lỗi xóa prompt: {e}")
+        return JSONResponse(status_code=500, content={"error": "Không thể xóa prompt."})
+
+# ==========================================
+# API LẤY LỊCH SỬ IP ĐĂNG NHẬP ADMIN
+# ==========================================
+@app.get("/admin/ip_logs")
+def get_ip_logs(token: str = Depends(verify_admin_token)):
+    if not supabase:
+        return JSONResponse(status_code=500, content={"error": "Supabase chưa cấu hình."})
+    try:
+        response = supabase.table("admin_login_logs").select("*").order("login_time", desc=True).limit(50).execute()
+        return {"logs": response.data}
+    except Exception as e:
+        logger.error(f"Lỗi lấy IP logs: {e}")
+        return JSONResponse(status_code=500, content={"error": "Không thể lấy log IP."})
+
+# ==========================================
 # API LẤY DANH SÁCH PROMPT CHO THƯ VIỆN
 # ==========================================
 @app.get("/top_prompts")
@@ -165,7 +229,6 @@ def get_top_prompts():
         return JSONResponse(status_code=500, content={"error": "Supabase chưa được cấu hình."})
     
     try:
-        # 1. Lấy ra 50 cái để có dữ liệu mà trộn
         response = supabase.table("history") \
             .select("prompt", "type", "total_score", "created_at") \
             .gte("total_score", 7.0) \
@@ -174,7 +237,6 @@ def get_top_prompts():
         
         prompts = response.data
         
-        # 2. Trộn ngẫu nhiên và chỉ lấy ra tối đa 5 cái để hiển thị
         if len(prompts) > 5:
             prompts = random.sample(prompts, 5)
             
@@ -183,6 +245,9 @@ def get_top_prompts():
         logger.error(f"Lỗi khi lấy top prompts: {e}")
         return JSONResponse(status_code=500, content={"error": "Không thể lấy dữ liệu thư viện."})
 
+# ==========================================
+# API ĐÁNH GIÁ PROMPT (AI)
+# ==========================================
 @app.post("/evaluate")
 @limiter.limit(RATE_LIMIT)
 def evaluate(request: Request, req: PromptRequest, background_tasks: BackgroundTasks):
@@ -199,11 +264,9 @@ def evaluate(request: Request, req: PromptRequest, background_tasks: BackgroundT
         tech_criteria = criteria_pack["tech"]
         
         all_criteria = {**main_criteria, **tech_criteria}
-        # Chỉ gửi ID và Tên để tiết kiệm token, tránh lỗi 413
         criteria_desc = "".join([f"- {k}: {v['name']}\n" for k, v in all_criteria.items()])
         scores_example = ", ".join([f'"{k}": 5' for k in all_criteria.keys()])
         
-        # Chỉ gửi Mã và Tên lỗi
         error_codes_desc = ""
         for code, rule in error_rules.ERROR_RULES.items():
             error_codes_desc += f"- {code}: {rule['name']}\n"
