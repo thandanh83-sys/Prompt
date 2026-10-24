@@ -9,7 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.security import APIKeyHeader
 from pydantic import BaseModel
-from groq import Groq
+from groq import Groq, RateLimitError # <-- Đã thêm RateLimitError
 from supabase import create_client, Client
 from slowapi import Limiter
 from slowapi.errors import RateLimitExceeded
@@ -132,6 +132,9 @@ def call_llm(system_prompt: str, user_prompt: str) -> str:
             timeout=30.0
         )
         return resp.choices[0].message.content
+    except RateLimitError as e:
+        logger.warning(f"Groq Rate Limit Reached: {e}")
+        raise HTTPException(status_code=429, detail="Đã chạm giới hạn Token/phút của AI. Vui lòng đợi 1 phút rồi thử lại!")
     except Exception as e:
         logger.error(f"Groq thất bại: {e}")
         raise HTTPException(status_code=503, detail="Hệ thống AI đang quá tải. Vui lòng thử lại sau 1 phút.")
