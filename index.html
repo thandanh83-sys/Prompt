@@ -40,120 +40,77 @@
         .menu-dropdown { transition: all .2s ease-in-out; transform-origin: top left; width: min(280px, calc(100vw - 32px)); max-height: calc(100dvh - 100px); overflow-y: auto; box-sizing: border-box; }
 
         /* ============================================================
-           FUTURISTIC UPGRADE (NỀN ĐẶC - SOLID)
+           CSS MỚI: NHẸ - MƯỢT - RÕ RÀNG PHÂN CẤP MẸ CON
            ============================================================ */
-        @property --angle { syntax: '<angle>'; initial-value: 0deg; inherits: false; }
 
-        .feature-wrapper { cursor: pointer; height: 100%; }
+        /* Thẻ Cha (Thẻ Mẹ) */
+        .feature-wrapper { cursor: pointer; }
         
         .feature-header {
             position: relative;
-            background: #ffffff !important; /* Nền trắng đặc */
-            backdrop-filter: none !important;
-            -webkit-backdrop-filter: none !important;
-            border: 1px solid transparent !important;
-            border-radius: 1.5rem !important;
-            background-clip: padding-box;
-            box-shadow: 0 1px 0 0 rgba(255,255,255,0.6) inset, 0 20px 40px -20px rgba(236, 72, 153, 0.25), 0 8px 16px -8px rgba(59, 130, 246, 0.15) !important;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
-            overflow: hidden;
-            z-index: 1;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .dark .feature-header {
-            background: #1e293b !important; /* Nền xám đậm đặc */
-            box-shadow: 0 1px 0 0 rgba(255,255,255,0.08) inset, 0 20px 40px -20px rgba(236, 72, 153, 0.45), 0 8px 16px -8px rgba(59, 130, 246, 0.35) !important;
-        }
-
-        /* Viền gradient động */
-        .feature-header::before {
-            content: "";
-            position: absolute;
-            inset: -2px;
-            border-radius: calc(1.5rem + 2px);
-            padding: 2px;
-            background: conic-gradient(from var(--angle, 0deg), #ec4899, #a855f7, #3b82f6, #06b6d4, #ec4899);
-            -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-            -webkit-mask-composite: xor;
-                    mask-composite: exclude;
-            opacity: 0.6;
-            pointer-events: none;
-            animation: spin-border 8s linear infinite;
-            z-index: -1;
-        }
-        .dark .feature-header::before { opacity: 0.85; }
-
-        @keyframes spin-border { to { --angle: 360deg; } }
-
-        /* Texture noise */
-        .feature-header::after {
-            content: "";
-            position: absolute;
-            inset: 0;
+            background-color: #ffffff;
+            border: 1px solid #e2e8f0;
             border-radius: 1.5rem;
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.35'/%3E%3C/svg%3E");
-            opacity: 0.04;
-            pointer-events: none;
-            mix-blend-mode: overlay;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03);
+            transition: all 0.3s ease;
+        }
+        .dark .feature-header {
+            background-color: #1e293b;
+            border-color: #334155;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.3);
+        }
+        
+        /* Hiệu ứng Hover chỉ bật trên PC */
+        @media (min-width: 1024px) {
+            .feature-wrapper:hover .feature-header { 
+                transform: translateY(-2px); 
+                border-color: rgba(236,72,153,0.3); 
+                box-shadow: 0 10px 30px -10px rgba(0,0,0,0.1); 
+            }
+            .dark .feature-wrapper:hover .feature-header { 
+                border-color: rgba(59,130,246,0.3); 
+                box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5); 
+            }
         }
 
-        /* Accordion Logic */
-        .accordion-content { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.3s ease; }
+        /* Mũi tên xoay khi mở */
+        .expand-icon { transition: transform 0.3s ease, color 0.3s ease; }
+        .feature-wrapper.active .expand-icon {
+            transform: rotate(180deg);
+            color: #ec4899;
+        }
+
+        /* Logic Accordion */
+        .accordion-content {
+            display: grid;
+            grid-template-rows: 0fr;
+            transition: grid-template-rows 0.3s ease;
+        }
         .feature-wrapper.active .accordion-content { grid-template-rows: 1fr; }
         .accordion-inner { overflow: hidden; }
-        .feature-wrapper.active .expand-icon { transform: rotate(180deg); color: #ec4899; }
 
-        /* Thẻ con */
+        /* Thẻ Con (Rõ ràng, tối màu hơn thẻ mẹ) */
         .child-card {
-            margin-left: 1rem; margin-right: 1rem;
-            padding: 0.875rem 1rem !important;
-            background: #f8fafc !important;
-            border: 1px solid #e2e8f0 !important;
-            border-radius: 1rem !important;
-            box-shadow: 0 4px 12px -4px rgba(0, 0, 0, 0.06), 0 1px 0 0 rgba(255,255,255,0.6) inset !important;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-            position: relative; overflow: hidden; cursor: default;
+            background-color: #f8fafc; /* Màu slate-50 sáng hơn thẻ mẹ */
+            border: 1px solid #e2e8f0;
+            border-radius: 1rem;
+            transition: all 0.2s ease;
         }
         .dark .child-card {
-            background: #0f172a !important; border-color: #334155 !important;
-            box-shadow: 0 4px 12px -4px rgba(0, 0, 0, 0.3), 0 1px 0 0 rgba(255,255,255,0.05) inset !important;
+            background-color: #0f172a; /* Màu slate-900 tối hơn thẻ mẹ */
+            border-color: #334155;
         }
 
-        .child-card::before {
-            content: ""; position: absolute; left: 0; top: 20%; bottom: 20%; width: 2px;
-            background: linear-gradient(to bottom, transparent, #ec4899, transparent);
-            opacity: 0; transition: opacity 0.3s ease;
-        }
-        .dark .child-card::before { background: linear-gradient(to bottom, transparent, #3b82f6, transparent); }
-        .child-card:hover::before { opacity: 1; }
-
-        .child-card > div:first-child span { text-shadow: 0 0 8px currentColor, 0 0 16px currentColor; }
-
-        /* ============================================================
-           TỐI ƯU CHO MÁY TÍNH (DESKTOP-ONLY HOVER)
-           Chỉ bật hiệu ứng nhấc thẻ/trượt thẻ khi có chuột
-           ============================================================ */
+        /* Hiệu ứng hover thẻ con (chỉ trên PC) */
         @media (min-width: 1024px) {
-            .feature-wrapper:hover .feature-header {
-                transform: translateY(-3px);
-                box-shadow: 0 1px 0 0 rgba(255,255,255,0.8) inset, 0 30px 60px -20px rgba(236, 72, 153, 0.4), 0 12px 24px -8px rgba(59, 130, 246, 0.3) !important;
-            }
-            .dark .feature-wrapper:hover .feature-header {
-                box-shadow: 0 1px 0 0 rgba(255,255,255,0.12) inset, 0 30px 60px -20px rgba(236, 72, 153, 0.6), 0 12px 24px -8px rgba(59, 130, 246, 0.5) !important;
-            }
             .child-card:hover {
-                transform: translateX(4px) !important;
-                background: #ffffff !important;
-                border-color: rgba(236, 72, 153, 0.35) !important;
-                box-shadow: 0 8px 24px -8px rgba(236, 72, 153, 0.2), 0 1px 0 0 rgba(255,255,255,0.8) inset !important;
+                background-color: #ffffff;
+                border-color: rgba(236,72,153,0.4);
+                transform: translateX(4px);
             }
             .dark .child-card:hover {
-                background: #1e293b !important;
-                border-color: rgba(59, 130, 246, 0.4) !important;
-                box-shadow: 0 8px 24px -8px rgba(59, 130, 246, 0.3), 0 1px 0 0 rgba(255,255,255,0.08) inset !important;
+                background-color: #1e293b;
+                border-color: rgba(59,130,246,0.4);
             }
         }
 
@@ -172,16 +129,24 @@
             .bg-\[\#ff5f56\], .bg-\[\#ffbd2e\], .bg-\[\#27c93f\] { width: 10px !important; height: 10px !important; }
             .h-\[120px\] { height: 90px !important; padding: 0.75rem !important; }
             .text-\[4\.5rem\] { font-size: 3.5rem !important; }
+            
+            /* Thu nhỏ thẻ mẹ */
             .feature-header { padding: 1rem !important; border-radius: 1.25rem !important; }
             .feature-header .w-14 { width: 2.75rem !important; height: 2.75rem !important; border-radius: 1rem !important; }
             .feature-header .w-7 { width: 1.25rem !important; height: 1.25rem !important; }
             .feature-header h3 { font-size: 1.25rem !important; margin-bottom: 0.25rem !important; }
             .feature-header p { font-size: 0.85rem !important; }
-            .child-card { margin-left: 0 !important; margin-right: 0 !important; padding: 0.75rem !important; border-radius: 0.75rem !important; }
+
+            /* Thu nhỏ thẻ con */
+            .child-card { 
+                margin-left: 0 !important; margin-right: 0 !important; 
+                padding: 0.75rem !important; border-radius: 0.75rem !important;
+            }
             .child-card > div:first-child { width: 1.75rem !important; height: 1.75rem !important; margin-top: 0 !important; }
             .child-card > div:first-child span { font-size: 0.75rem !important; }
             .child-card h4 { font-size: 0.9rem !important; margin-bottom: 0.125rem !important; }
             .child-card p { font-size: 0.8rem !important; line-height: 1.4 !important; }
+
             #features { gap: 1rem !important; padding-left: 1rem !important; padding-right: 1rem !important; }
             .p-10 { padding: 1.5rem !important; }
             .text-3xl { font-size: 1.5rem !important; }
@@ -214,7 +179,6 @@
     <header class="app-header fixed top-0 left-0 w-full z-50 border-b">
         <div class="w-full max-w-7xl mx-auto px-3 sm:px-6 h-16 md:h-20 grid grid-cols-3 items-center">
             
-            <!-- Nút Hamburger hiện trên mọi thiết bị -->
             <div class="flex items-center justify-start relative z-50">
                 <button id="btnHamburger" class="w-10 h-10 shrink-0 flex items-center justify-center rounded-full text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
@@ -274,7 +238,6 @@
         <!-- HERO SECTION & MOCKUP (Chia 2 cột trên PC) -->
         <section class="w-full max-w-7xl mx-auto px-4 md:px-6 grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-8 items-center mb-16 md:mb-24">
             
-            <!-- Cột Trái: Text & Nút -->
             <div class="text-center lg:text-left">
                 <div class="flex justify-center lg:justify-start mb-8">
                     <div class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/60 dark:bg-slate-800/60 backdrop-blur-md border border-slate-200 dark:border-slate-700 text-sm md:text-base font-semibold text-pink-500 shadow-sm">
@@ -301,7 +264,6 @@
                 </div>
             </div>
 
-            <!-- Cột Phải: Mockup Demo -->
             <div class="w-full max-w-lg mx-auto lg:mx-0 lg:ml-auto">
                 <div class="bg-white dark:bg-[#0f172a] rounded-[2rem] border border-slate-200 dark:border-slate-700/60 shadow-xl dark:shadow-2xl p-5 sm:p-6 transition-colors duration-300">
                     <div class="flex items-center gap-2 mb-5">
@@ -349,7 +311,7 @@
                         <div class="w-14 h-14 rounded-2xl bg-pink-100 dark:bg-pink-900/30 flex items-center justify-center shrink-0">
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7 text-pink-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                         </div>
-                        <svg class="expand-icon w-6 h-6 text-slate-400 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                        <svg class="expand-icon w-6 h-6 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
                     </div>
                     <div class="mt-4">
                         <h3 class="text-2xl font-bold text-slate-900 dark:text-white mb-2">Chấm điểm Đa chiều</h3>
@@ -359,9 +321,9 @@
                 
                 <div class="accordion-content">
                     <div class="accordion-inner">
-                        <div class="pt-4 flex flex-col gap-4">
-                            <div class="child-card group rounded-2xl p-4 flex gap-3 items-center">
-                                <div class="w-10 h-10 rounded-full bg-pink-100 dark:bg-pink-900/50 flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:bg-pink-500/20 transition-transform duration-300">
+                        <div class="pt-4 flex flex-col gap-3">
+                            <div class="child-card p-4 flex gap-3 items-center">
+                                <div class="w-10 h-10 rounded-full bg-pink-100 dark:bg-pink-900/50 flex items-center justify-center shrink-0">
                                     <span class="text-pink-500 font-bold text-base">1</span>
                                 </div>
                                 <div>
@@ -369,8 +331,8 @@
                                     <p class="text-slate-600 dark:text-slate-400 text-sm">Đánh giá Vai trò, Bối cảnh, Đối tượng và Định dạng đầu ra.</p>
                                 </div>
                             </div>
-                            <div class="child-card group rounded-2xl p-4 flex gap-3 items-center">
-                                <div class="w-10 h-10 rounded-full bg-pink-100 dark:bg-pink-900/50 flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:bg-pink-500/20 transition-transform duration-300">
+                            <div class="child-card p-4 flex gap-3 items-center">
+                                <div class="w-10 h-10 rounded-full bg-pink-100 dark:bg-pink-900/50 flex items-center justify-center shrink-0">
                                     <span class="text-pink-500 font-bold text-base">2</span>
                                 </div>
                                 <div>
@@ -378,8 +340,8 @@
                                     <p class="text-slate-600 dark:text-slate-400 text-sm">Kiểm tra mức độ đầy đủ của thông tin, ví dụ mẫu và tính khả thi.</p>
                                 </div>
                             </div>
-                            <div class="child-card group rounded-2xl p-4 flex gap-3 items-center">
-                                <div class="w-10 h-10 rounded-full bg-pink-100 dark:bg-pink-900/50 flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:bg-pink-500/20 transition-transform duration-300">
+                            <div class="child-card p-4 flex gap-3 items-center">
+                                <div class="w-10 h-10 rounded-full bg-pink-100 dark:bg-pink-900/50 flex items-center justify-center shrink-0">
                                     <span class="text-pink-500 font-bold text-base">3</span>
                                 </div>
                                 <div>
@@ -399,7 +361,7 @@
                         <div class="w-14 h-14 rounded-2xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center shrink-0">
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
                         </div>
-                        <svg class="expand-icon w-6 h-6 text-slate-400 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                        <svg class="expand-icon w-6 h-6 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
                     </div>
                     <div class="mt-4">
                         <h3 class="text-2xl font-bold text-slate-900 dark:text-white mb-2">Gợi ý tư duy</h3>
@@ -409,9 +371,9 @@
                 
                 <div class="accordion-content">
                     <div class="accordion-inner">
-                        <div class="pt-4 flex flex-col gap-4">
-                            <div class="child-card group rounded-2xl p-4 flex gap-3 items-center">
-                                <div class="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:bg-blue-500/20 transition-transform duration-300">
+                        <div class="pt-4 flex flex-col gap-3">
+                            <div class="child-card p-4 flex gap-3 items-center">
+                                <div class="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center shrink-0">
                                     <span class="text-blue-500 font-bold text-base">1</span>
                                 </div>
                                 <div>
@@ -419,8 +381,8 @@
                                     <p class="text-slate-600 dark:text-slate-400 text-sm">Nhận diện chính xác phần thông tin bạn đang bị thiếu.</p>
                                 </div>
                             </div>
-                            <div class="child-card group rounded-2xl p-4 flex gap-3 items-center">
-                                <div class="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:bg-blue-500/20 transition-transform duration-300">
+                            <div class="child-card p-4 flex gap-3 items-center">
+                                <div class="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center shrink-0">
                                     <span class="text-blue-500 font-bold text-base">2</span>
                                 </div>
                                 <div>
@@ -428,8 +390,8 @@
                                     <p class="text-slate-600 dark:text-slate-400 text-sm">Đưa ra các câu hỏi giúp bạn đào sâu và mở rộng vấn đề.</p>
                                 </div>
                             </div>
-                            <div class="child-card group rounded-2xl p-4 flex gap-3 items-center">
-                                <div class="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:bg-blue-500/20 transition-transform duration-300">
+                            <div class="child-card p-4 flex gap-3 items-center">
+                                <div class="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center shrink-0">
                                     <span class="text-blue-500 font-bold text-base">3</span>
                                 </div>
                                 <div>
@@ -449,7 +411,7 @@
                         <div class="w-14 h-14 rounded-2xl bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center shrink-0">
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg>
                         </div>
-                        <svg class="expand-icon w-6 h-6 text-slate-400 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                        <svg class="expand-icon w-6 h-6 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
                     </div>
                     <div class="mt-4">
                         <h3 class="text-2xl font-bold text-slate-900 dark:text-white mb-2">Viết lại chuẩn 11 mục</h3>
@@ -459,9 +421,9 @@
                 
                 <div class="accordion-content">
                     <div class="accordion-inner">
-                        <div class="pt-4 flex flex-col gap-4">
-                            <div class="child-card group rounded-2xl p-4 flex gap-3 items-center">
-                                <div class="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-900/50 flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:bg-purple-500/20 transition-transform duration-300">
+                        <div class="pt-4 flex flex-col gap-3">
+                            <div class="child-card p-4 flex gap-3 items-center">
+                                <div class="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-900/50 flex items-center justify-center shrink-0">
                                     <span class="text-purple-500 font-bold text-base">1</span>
                                 </div>
                                 <div>
@@ -469,8 +431,8 @@
                                     <p class="text-slate-600 dark:text-slate-400 text-sm">Vai trò, Bối cảnh, Input, Mục tiêu.</p>
                                 </div>
                             </div>
-                            <div class="child-card group rounded-2xl p-4 flex gap-3 items-center">
-                                <div class="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-900/50 flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:bg-purple-500/20 transition-transform duration-300">
+                            <div class="child-card p-4 flex gap-3 items-center">
+                                <div class="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-900/50 flex items-center justify-center shrink-0">
                                     <span class="text-purple-500 font-bold text-base">2</span>
                                 </div>
                                 <div>
@@ -478,8 +440,8 @@
                                     <p class="text-slate-600 dark:text-slate-400 text-sm">Yêu cầu, Ràng buộc, Task, Định dạng đầu ra.</p>
                                 </div>
                             </div>
-                            <div class="child-card group rounded-2xl p-4 flex gap-3 items-center">
-                                <div class="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-900/50 flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:bg-purple-500/20 transition-transform duration-300">
+                            <div class="child-card p-4 flex gap-3 items-center">
+                                <div class="w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-900/50 flex items-center justify-center shrink-0">
                                     <span class="text-purple-500 font-bold text-base">3</span>
                                 </div>
                                 <div>
