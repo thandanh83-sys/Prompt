@@ -42,7 +42,7 @@
         /* ============================================================
            CSS CHÍNH (PC VÀ MOBILE)
            ============================================================ */
-        .feature-wrapper { cursor: pointer; }
+        .feature-wrapper { cursor: pointer; transition: all 0.3s ease; }
         
         /* Thẻ Mẹ */
         .feature-header {
@@ -115,6 +115,41 @@
         }
 
         /* ============================================================
+           HIỆU ỨNG POWERPOINT (FOCUS MODE)
+           ============================================================ */
+        @media (min-width: 1024px) {
+            #features.has-active > .feature-wrapper:not(.active) {
+                display: none !important;
+            }
+            
+            #features.has-active > .feature-wrapper.active {
+                grid-column: 1 / -1; 
+                max-width: 900px; 
+                margin: 0 auto;
+                width: 100%;
+                animation: slideIn 0.3s ease-out forwards;
+            }
+
+            #features.has-active > .feature-wrapper.active .accordion-inner > div {
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 1rem;
+                padding-top: 1.5rem;
+            }
+
+            #features.has-active > .feature-wrapper.active .child-card {
+                margin-left: 0 !important;
+                margin-right: 0 !important;
+                margin-bottom: 0 !important;
+            }
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ============================================================
            TỐI ƯU GIAO DIỆN MOBILE
            ============================================================ */
         @media (max-width: 640px) {
@@ -130,14 +165,12 @@
             .h-\[120px\] { height: 90px !important; padding: 0.75rem !important; }
             .text-\[4\.5rem\] { font-size: 3.5rem !important; }
             
-            /* Thẻ Mẹ */
             .feature-header { padding: 1.25rem !important; border-radius: 1.5rem !important; }
             .feature-header .w-14 { width: 3rem !important; height: 3rem !important; border-radius: 1rem !important; }
             .feature-header .w-7 { width: 1.5rem !important; height: 1.5rem !important; }
             .feature-header h3 { font-size: 1.35rem !important; margin-bottom: 0.25rem !important; }
             .feature-header p { font-size: 0.9rem !important; }
 
-            /* Thẻ Con */
             .child-card { 
                 margin-left: 1rem !important; 
                 margin-right: 1rem !important; 
@@ -242,17 +275,18 @@
         <section class="w-full max-w-7xl mx-auto px-4 md:px-6 grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center mb-16 md:mb-24">
             
             <div class="text-center lg:text-left lg:col-span-7">
-                <div class="flex justify-center lg:justify-start mb-8">
+                
+                <!-- ĐÃ SỬA LỖI BỐ CỤC VÀ DI CHUYỂN BADGE XUỐNG DƯỚI -->
+                <h1 class="text-4xl sm:text-5xl md:text-6xl lg:text-5xl xl:text-6xl font-extrabold text-slate-900 dark:text-white leading-[1.2] mb-6 tracking-tight break-words">
+                    Biến <span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-500">ý tưởng</span> của bạn <br class="hidden sm:block"> thành <br class="hidden sm:block">
+                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-purple-500 via-blue-500 to-pink-500">Prompt Chuyên nghiệp</span>
+                </h1>
+
+                <div class="flex justify-center lg:justify-start mb-6">
                     <div class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white/60 dark:bg-slate-800/60 backdrop-blur-md border border-slate-200 dark:border-slate-700 text-sm md:text-base font-semibold text-pink-500 shadow-sm">
                         <span class="w-2 h-2 rounded-full bg-pink-500 animate-pulse"></span> Chuẩn mực mới cho Prompt Engineering
                     </div>
                 </div>
-                
-                <!-- CẬP NHẬT HIGHLIGHT CHO CHỮ "Ý TƯỞNG" -->
-                <h1 class="text-4xl sm:text-5xl md:text-6xl lg:text-6xl xl:text-7xl font-extrabold text-slate-900 dark:text-white leading-[1.1] mb-6 tracking-tight">
-                    Biến <span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-500">ý tưởng</span> của bạn <br class="hidden lg:block"> thành <br class="hidden lg:block">
-                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-purple-500 via-blue-500 to-pink-500">Prompt Chuyên nghiệp</span>
-                </h1>
                 
                 <p class="text-lg sm:text-xl lg:text-2xl text-slate-600 dark:text-slate-300 mb-10 max-w-3xl mx-auto lg:mx-0 leading-relaxed">
                     AI tự động phân tích, chấm điểm và tối ưu hóa câu lệnh của bạn theo cấu trúc <strong class="text-slate-900 dark:text-white">11 mục</strong> chuẩn quốc tế. Không còn nỗi lo AI trả lời sai ý.
@@ -305,7 +339,7 @@
             </div>
         </section>
 
-        <!-- FEATURES SECTION (1 cột Mobile - 3 cột PC) -->
+        <!-- FEATURES SECTION (CÓ HIỆU ỨNG FOCUS MODE) -->
         <section id="features" class="w-full max-w-7xl mx-auto px-4 md:px-6 mb-24 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start scroll-mt-28">
             
             <!-- Khối 1 -->
@@ -499,16 +533,26 @@
             applyTheme(!document.documentElement.classList.contains('dark')); 
         });
 
+        /* ============================================================
+           JS XỬ LÝ CHÍNH: THÊM/XÓA CLASS HAS-ACTIVE CHO FOCUS MODE
+           ============================================================ */
         function toggleFeature(event, element) {
             if (event && event.target) {
                 if (event.target.closest('.child-card') || event.target.closest('.accordion-content')) return;
             }
+            
+            const container = document.getElementById('features');
             const allCards = document.querySelectorAll('.feature-wrapper');
+            
             if (element.classList.contains('active')) {
+                // Nếu đang mở, đóng lại (trả về 3 cột)
                 element.classList.remove('active');
+                container.classList.remove('has-active');
             } else {
+                // Nếu đang đóng, mở ra (chuyển sang Focus Mode)
                 allCards.forEach(card => card.classList.remove('active'));
                 element.classList.add('active');
+                container.classList.add('has-active');
             }
         }
 
