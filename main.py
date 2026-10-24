@@ -73,8 +73,16 @@ app.add_middleware(
     allow_headers=["Content-Type", "X-Admin-Token"],
 )
 
-class PromptRequest(BaseModel):
-    prompt: str
+class AdminLoginRequest(BaseModel):
+    password: str
+
+# Thêm API này để admin.html có thể đăng nhập
+@app.post("/login")
+def login(req: AdminLoginRequest):
+    if req.password != ADMIN_PASSWORD:
+        raise HTTPException(status_code=401, detail="Sai mật khẩu")
+    # Trả về token để lưu vào session
+    return {"token": ADMIN_SECRET_TOKEN}
 
 # Sử dụng Groq với model mới nhất
 client = Groq(api_key=GROQ_API_KEY)
