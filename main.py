@@ -1,10 +1,7 @@
 import os
 import json
 import re
-import time
 import logging
-import secrets
-import datetime
 import uvicorn
 from fastapi import FastAPI, Request, HTTPException, Depends, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
@@ -149,6 +146,28 @@ def health_check(): return {"status": "ok"}
 @app.get("/check_admin_ip")
 def check_admin_ip(client_ip: str = Depends(verify_admin_ip)):
     return {"is_admin": True}
+
+# ==========================================
+# API MỚI: LẤY DANH SÁCH PROMPT CHO THƯ VIỆN
+# ==========================================
+@app.get("/top_prompts")
+def get_top_prompts():
+    if not supabase:
+        return JSONResponse(status_code=500, content={"error": "Supabase chưa được cấu hình."})
+    
+    try:
+        # Lấy 20 prompt có điểm >= 8.0, sắp xếp mới nhất
+        response = supabase.table("history") \
+            .select("prompt", "type", "total_score", "created_at") \
+            .gte("total_score", 8.0) \
+            .order("created_at", desc=True) \
+            .limit(20) \
+            .execute()
+        
+        return {"prompts": response.data}
+    except Exception as e:
+        logger.error(f"Lỗi khi lấy top prompts: {e}")
+        return JSONResponse(status_code=500, content={"error": "Không thể lấy dữ liệu thư viện."})
 
 @app.post("/evaluate")
 @limiter.limit(RATE_LIMIT)
