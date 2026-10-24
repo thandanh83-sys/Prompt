@@ -131,9 +131,8 @@
         }
 
         /* ============================================================
-           FUTURISTIC UPGRADE (TỪ FILE 1) - GHI ĐÈ BẰNG !important
+           FUTURISTIC UPGRADE - GHI ĐÈ BẰNG !important
            ============================================================ */
-
         @property --angle {
             syntax: '<angle>';
             initial-value: 0deg;
@@ -158,7 +157,7 @@
             z-index: 1;
         }
 
-        /* Viền gradient động (conic xoay) */
+        /* Viền gradient động */
         .feature-header::before {
             content: "";
             position: absolute;
@@ -205,9 +204,7 @@
                 0 20px 40px -20px rgba(236, 72, 153, 0.45),
                 0 8px 16px -8px rgba(59, 130, 246, 0.35) !important;
         }
-        .dark .feature-header::before {
-            opacity: 0.85;
-        }
+        .dark .feature-header::before { opacity: 0.85; }
 
         .feature-wrapper:hover .feature-header {
             transform: translateY(-3px);
@@ -239,7 +236,7 @@
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
             position: relative;
             overflow: hidden;
-            cursor: default; /* Fix: không phải nút, không click được */
+            cursor: default;
         }
 
         .dark .child-card {
@@ -250,14 +247,10 @@
                 0 1px 0 0 rgba(255,255,255,0.05) inset !important;
         }
 
-        /* Vạch sáng neon bên trái thẻ con khi hover */
         .child-card::before {
             content: "";
             position: absolute;
-            left: 0;
-            top: 20%;
-            bottom: 20%;
-            width: 2px;
+            left: 0; top: 20%; bottom: 20%; width: 2px;
             background: linear-gradient(to bottom, transparent, #ec4899, transparent);
             opacity: 0;
             transition: opacity 0.3s ease;
@@ -265,9 +258,7 @@
         .dark .child-card::before {
             background: linear-gradient(to bottom, transparent, #3b82f6, transparent);
         }
-        .child-card:hover::before {
-            opacity: 1;
-        }
+        .child-card:hover::before { opacity: 1; }
 
         .child-card:hover {
             transform: translateX(4px) !important;
@@ -288,11 +279,55 @@
             text-shadow: 0 0 8px currentColor, 0 0 16px currentColor;
         }
 
+        /* ============================================================
+           TỐI ƯU GIAO DIỆN MOBILE - CHỐNG "BÉO" & CÂN ĐỐI ICON
+           Dành riêng cho màn hình < 640px
+           ============================================================ */
         @media (max-width: 640px) {
-            .child-card {
-                margin-left: 0.5rem;
-                margin-right: 0.5rem;
+            /* 1. Thu gọn Header & Nút bấm */
+            .app-header .px-3 { padding-left: 0.5rem; padding-right: 0.5rem; }
+            .app-header a[href="./landing.html"] { padding: 6px 12px !important; font-size: 12px !important; }
+
+            /* 2. Thu gọn Hero Section */
+            main { padding-top: 5rem !important; }
+            h1 { font-size: 1.75rem !important; line-height: 1.3 !important; margin-bottom: 1rem !important; }
+            p.text-lg { font-size: 0.95rem !important; margin-bottom: 1.5rem !important; }
+            .mb-16 { margin-bottom: 2rem !important; }
+
+            /* 3. Sửa Khung Mockup */
+            .max-w-lg { padding-left: 1rem !important; padding-right: 1rem !important; }
+            .rounded-\[2rem\] { border-radius: 1.5rem !important; padding: 1rem !important; }
+            /* 3 nút giả lập Mac OS nhỏ lại */
+            .bg-\[\#ff5f56\], .bg-\[\#ffbd2e\], .bg-\[\#27c93f\] { width: 10px !important; height: 10px !important; }
+            .h-\[120px\] { height: 90px !important; padding: 0.75rem !important; }
+            .text-\[4\.5rem\] { font-size: 3.5rem !important; }
+
+            /* 4. SỬA LỖI THẺ MẸ & THẺ CON */
+            /* Thẻ Mẹ */
+            .feature-header { padding: 1rem !important; border-radius: 1.25rem !important; }
+            .feature-header .w-14 { width: 2.75rem !important; height: 2.75rem !important; border-radius: 1rem !important; }
+            .feature-header .w-7 { width: 1.25rem !important; height: 1.25rem !important; }
+            .feature-header h3 { font-size: 1.25rem !important; margin-bottom: 0.25rem !important; }
+            .feature-header p { font-size: 0.85rem !important; }
+
+            /* Thẻ Con */
+            .child-card { 
+                margin-left: 0 !important; margin-right: 0 !important; 
+                padding: 0.75rem !important; border-radius: 0.75rem !important;
             }
+            /* Icon thẻ con nhỏ hơn hẳn thẻ mẹ */
+            .child-card > div:first-child { width: 1.75rem !important; height: 1.75rem !important; margin-top: 0 !important; }
+            .child-card > div:first-child span { font-size: 0.75rem !important; }
+            .child-card h4 { font-size: 0.9rem !important; margin-bottom: 0.125rem !important; }
+            .child-card p { font-size: 0.8rem !important; line-height: 1.4 !important; }
+
+            /* Khoảng cách thẻ mẹ */
+            #features { gap: 1rem !important; padding-left: 1rem !important; padding-right: 1rem !important; }
+
+            /* 5. Bottom CTA */
+            .p-10 { padding: 1.5rem !important; }
+            .text-3xl { font-size: 1.5rem !important; }
+            .px-10 { padding-left: 1.5rem !important; padding-right: 1.5rem !important; font-size: 1rem !important; }
         }
     </style>
 
@@ -678,12 +713,7 @@
             applyTheme(!document.documentElement.classList.contains('dark')); 
         });
 
-        /* ============================================================
-           FIX: toggleFeature nhận EVENT, phân biệt click vùng
-           - Click vào .child-card (thẻ con) → KHÔNG toggle
-           - Click vào .accordion-content (vùng mở rộng) → KHÔNG toggle
-           - Chỉ click vào header vùng trên mới toggle
-           ============================================================ */
+        /* FIX: toggleFeature nhận EVENT, phân biệt click vùng */
         function toggleFeature(event, element) {
             if (event && event.target) {
                 if (event.target.closest('.child-card') || event.target.closest('.accordion-content')) {
@@ -700,9 +730,7 @@
             }
         }
 
-        /* ============================================================
-           FIX: Nút "Tìm hiểu thêm" - Smooth scroll đến #features
-           ============================================================ */
+        /* FIX: Nút "Tìm hiểu thêm" - Smooth scroll đến #features */
         document.addEventListener('DOMContentLoaded', () => {
             const btnLearnMore = document.getElementById('btnLearnMore');
             if (btnLearnMore) {
