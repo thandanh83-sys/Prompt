@@ -34,8 +34,7 @@
     <style>
         html { background-color: #f8f7fc; transition: background-color .15s ease; min-height: 100vh; min-height: 100dvh; scroll-behavior: smooth; }
         html.dark { background-color: #0b1120 !important; }
-        body { -webkit-tap-highlight-color: transparent; overflow-x: hidden; background-color: transparent !important; overscroll-behavior-y: none; min-height: 100vh; min-height: 100dvh; padding-top: env(safe-area-inset-top, 0px); display: flex; flex-direction: column; }
-        
+        body { -webkit-tap-highlight-color: transparent; overflow-x: hidden; background-color: transparent !important; overscroll-behavior-y: none; min-height: 100vh; min-height: 100dvh; padding-top: env(safe-area-inset-top, 0px); }
         .page-bg { position: fixed; inset: 0; z-index: -1; pointer-events: none; background-color: #f8f7fc; background-image: radial-gradient(circle at 50% -20%, rgba(236,72,153,0.15) 0%, transparent 70%), radial-gradient(circle at 50% 120%, rgba(59,130,246,0.15) 0%, transparent 70%); }
         html.dark .page-bg { background-color: #0b1120; background-image: radial-gradient(ellipse at 50% -10%, rgba(236, 72, 153, 0.5) 0%, rgba(168, 85, 247, 0.3) 50%, transparent 80%), radial-gradient(ellipse at 50% 110%, rgba(59, 130, 246, 0.4) 0%, transparent 80%); }
         
@@ -52,7 +51,6 @@
         .btn-glow { box-shadow: 0 4px 20px rgba(236,72,153,.3); transition: all .2s ease; }
         .btn-glow:hover { box-shadow: 0 6px 25px rgba(59,130,246,.5); transform: translateY(-2px); }
         
-        /* CSS MENU CHUẨN + OVERLAY */
         .menu-dropdown { 
             transition: opacity 0.2s ease-out, transform 0.2s ease-out; 
             transform-origin: top left; 
@@ -63,11 +61,6 @@
             box-sizing: border-box; 
             z-index: 9999 !important; 
         }
-        .menu-overlay { 
-            position: fixed; inset: 0; background: rgba(0,0,0,.5); backdrop-filter: blur(4px); 
-            z-index: 40; opacity: 0; pointer-events: none; transition: all .2s ease; 
-        }
-        .menu-overlay.active { opacity: 1; pointer-events: auto; }
         
         #promptInput { white-space: pre-wrap; overflow-wrap: anywhere; outline: none !important; box-shadow: none; }
         #promptInput:focus { border-color: #ec4899 !important; box-shadow: 0 0 0 1px #ec4899 !important; }
@@ -91,30 +84,19 @@
         input[type="checkbox"]:checked::before { transform: scale(1); }
         .dark input[type="checkbox"] { border-color: #475569; }
         .dark input[type="checkbox"]:checked { border-color: #ec4899; }
-        
-        /* TỐI ƯU GIAO DIỆN MOBILE */
+
+        /* TỐI ƯU GIAO DIỆN MOBILE CHO KẾT QUẢ ĐÁNH GIÁ */
         @media (max-width: 640px) {
-            main { padding-top: 5rem !important; }
-            #promptInput { height: 160px !important; font-size: 14px !important; }
-            #btnEvaluate { padding-top: 1rem !important; padding-bottom: 1rem !important; }
-            
-            /* Thu gọn padding các thẻ kết quả */
-            #resultArea > div { padding: 1rem !important; border-radius: 1.5rem !important; }
-            #totalScore { font-size: 3.5rem !important; }
-            #rewriteList { padding: 1rem !important; }
-            
-            /* Căn chỉnh lại grid chi tiết điểm */
-            #criteriaList { gap-x: 1rem !important; gap-y: 0.75rem !important; }
-            #criteriaList div span:first-child { font-size: 10px !important; }
+            .result-card { padding: 1rem !important; border-radius: 1.25rem !important; }
+            .score-box .text-6xl { font-size: 3.5rem !important; }
+            .score-box .h-2\.5 { height: 6px !important; }
         }
     </style>
 </head>
 
-<body class="antialiased font-sans relative text-slate-800 dark:text-slate-200">
+<body class="antialiased font-sans min-h-screen relative text-slate-800 dark:text-slate-200 flex flex-col">
     <div class="page-bg"></div>
-    <div id="menuOverlay" class="menu-overlay"></div>
 
-    <!-- HEADER -->
     <header class="app-header fixed top-0 left-0 w-full z-50 border-b pt-[env(safe-area-inset-top,0px)]">
         <div class="w-full max-w-7xl mx-auto px-3 sm:px-6 h-16 md:h-20 grid grid-cols-3 items-center">
             
@@ -182,97 +164,102 @@
         </div>
     </header>
 
-    <main class="w-full max-w-3xl mx-auto px-3 sm:px-6 lg:px-8 pt-24 md:pt-32 pb-16 flex-grow flex flex-col z-10 min-h-screen relative">
+    <main class="w-full max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 md:pt-32 pb-16 flex-grow flex flex-col z-10 min-h-screen">
         
-        <div class="text-center mb-6 md:mb-10 mt-2 md:mt-0">
-            <h1 class="text-3xl sm:text-4xl md:text-5xl font-extrabold mb-3 md:mb-4">
+        <div class="text-center mb-8 md:mb-10">
+            <h1 class="text-3xl sm:text-4xl md:text-5xl font-extrabold mb-4">
                 <span class="brand-text">Trợ lý tối ưu hoá Prompt</span>
             </h1>
-            <p class="text-slate-500 dark:text-slate-400 text-sm md:text-base lg:text-lg font-medium px-2">
+            <p class="text-slate-500 dark:text-slate-400 text-sm md:text-base lg:text-lg font-medium">
                 AI tự động nhận diện lĩnh vực và tạo Prompt chuẩn chuyên gia.
             </p>
         </div>
 
-        <div class="w-full mx-auto bg-white/80 dark:bg-[#1e293b]/80 backdrop-blur-md border border-slate-200 dark:border-slate-700/60 shadow-xl rounded-[2rem] p-4 md:p-6 transition-all">
+        <div class="w-full mx-auto bg-white/80 dark:bg-[#1e293b]/80 backdrop-blur-md border border-slate-200 dark:border-slate-700/60 shadow-xl rounded-3xl p-5 md:p-6 transition-all">
             <div class="relative">
-                <textarea id="promptInput" maxlength="5000" class="w-full h-40 md:h-64 p-4 pb-10 rounded-2xl bg-slate-50 dark:bg-[#0f172a] border border-slate-200 dark:border-slate-700/60 resize-none text-slate-800 dark:text-slate-100 placeholder-slate-400 text-sm transition-all" placeholder="Mô tả điều bạn muốn AI thực hiện..."></textarea>
+                <textarea id="promptInput" maxlength="5000" class="w-full h-48 md:h-64 p-4 pb-10 rounded-2xl bg-slate-50 dark:bg-[#0f172a] border border-slate-200 dark:border-slate-700/60 resize-none text-slate-800 dark:text-slate-100 placeholder-slate-400 text-sm transition-all" placeholder="Mô tả điều bạn muốn AI thực hiện..."></textarea>
                 <div class="absolute bottom-3 right-4 flex items-center gap-3">
                     <span id="charCount" class="text-[11px] font-medium text-slate-500">0/5000</span>
                     <button id="btnClearInput" class="hidden text-slate-400 hover:text-red-500"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button>
                 </div>
             </div>
+            <!-- HƯỚNG DẪN PHÍM TẮT -->
+            <p class="text-[11px] text-slate-400 dark:text-slate-500 mt-2 text-right">Nhấn <kbd class="bg-slate-200 dark:bg-slate-700 px-1 rounded text-[10px] font-mono">Enter</kbd> để đánh giá, <kbd class="bg-slate-200 dark:bg-slate-700 px-1 rounded text-[10px] font-mono">Shift + Enter</kbd> để xuống dòng.</p>
+            
             <p id="longPromptWarning" class="text-yellow-500 text-xs mt-2 font-medium" style="display: none;">⚠️ Prompt khá dài, AI có thể mất 30-60 giây.</p>
             <p id="errorMsg" class="text-red-500 text-xs mt-2 font-medium" style="display: none;">Vui lòng nhập prompt!</p>
             
-            <div class="mt-4 md:mt-5">
-                <button id="btnEvaluate" class="w-full py-3.5 md:py-4 rounded-2xl font-bold bg-gradient-to-r from-pink-500 to-blue-500 text-white shadow-lg btn-glow disabled:opacity-50 transition-all text-sm md:text-base flex items-center justify-center gap-2">
+            <div class="mt-5">
+                <button id="btnEvaluate" class="w-full py-4 rounded-2xl font-bold bg-gradient-to-r from-pink-500 to-blue-500 text-white shadow-lg btn-glow disabled:opacity-50 transition-all text-base flex items-center justify-center gap-2">
                     <span id="btnText">Đánh giá & Viết lại</span>
                     <svg id="loadingSpinner" class="hidden animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                 </button>
             </div>
         </div>
 
-        <!-- KẾT QUẢ ĐÁNH GIÁ -->
-        <div id="resultArea" class="w-full mx-auto mt-6 md:mt-8 space-y-4 md:space-y-6 scroll-mt-24 md:scroll-mt-32" style="display: none;">
+        <div id="resultArea" class="w-full mx-auto mt-8 space-y-6 scroll-mt-24 md:scroll-mt-32" style="display: none;">
             
-            <div class="bg-white/80 dark:bg-[#1e293b]/80 backdrop-blur-md border border-slate-200 dark:border-slate-700/60 shadow-xl rounded-3xl p-4 md:p-6">
-                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 md:gap-6">
+            <div class="result-card score-box bg-white/80 dark:bg-[#1e293b]/80 backdrop-blur-md border border-slate-200 dark:border-slate-700/60 shadow-xl rounded-3xl p-6">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                     <div class="flex flex-col w-full md:w-1/2">
                         <p class="text-[11px] text-slate-500 font-bold mb-1 tracking-widest uppercase">ĐIỂM TỔNG</p>
-                        <div class="flex items-baseline gap-2 mb-2 md:mb-3">
-                            <span id="totalScore" class="text-5xl md:text-6xl leading-none font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-blue-500">0.0</span>
-                            <span class="text-slate-500 text-lg md:text-xl font-medium">/ 10</span>
+                        <div class="flex items-baseline gap-2 mb-3">
+                            <span id="totalScore" class="text-6xl leading-none font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-blue-500">0.0</span>
+                            <span class="text-slate-500 text-xl font-medium">/ 10</span>
                         </div>
                         <div class="w-full bg-slate-200 dark:bg-[#0f172a] h-2.5 rounded-full">
                             <div id="scoreBar" class="bg-gradient-to-r from-pink-500 to-blue-500 h-2.5 rounded-full w-0 transition-all duration-1000"></div>
                         </div>
                     </div>
 
-                    <div class="flex flex-col w-full md:w-1/2 md:items-end mt-2 md:mt-0">
-                        <p class="text-[11px] text-slate-500 font-bold mb-2 md:mb-3 tracking-widest uppercase">PHÂN LOẠI</p>
-                        <div class="flex flex-col items-start md:items-end gap-2 md:gap-3">
-                            <span id="promptType" class="px-4 py-1.5 bg-blue-500 text-white text-[12px] md:text-[14px] font-bold rounded-full shadow-sm">PROMPT</span>
+                    <div class="flex flex-col w-full md:w-1/2 md:items-end">
+                        <p class="text-[11px] text-slate-500 font-bold mb-3 tracking-widest uppercase">PHÂN LOẠI</p>
+                        <div class="flex flex-col items-start md:items-end gap-3">
+                            <span id="promptType" class="px-5 py-2 bg-blue-500 text-white text-[14px] font-bold rounded-full shadow-sm">PROMPT</span>
                             <div id="techniqueBadges" class="flex flex-wrap md:justify-end gap-2"></div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div id="highlightArea" class="bg-white/80 dark:bg-[#1e293b]/80 backdrop-blur-md border border-slate-200 dark:border-slate-700/60 shadow-xl rounded-3xl p-4 md:p-6">
+            <div id="highlightArea" class="result-card bg-white/80 dark:bg-[#1e293b]/80 backdrop-blur-md border border-slate-200 dark:border-slate-700/60 shadow-xl rounded-3xl p-6">
                 <h3 class="font-bold text-sm mb-3 text-green-700 dark:text-green-400 flex items-center gap-2">
-                    <span class="text-lg">🌟</span> Điểm sáng của bạn
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-yellow-500" viewBox="0 0 20 20" fill="currentColor"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                    Điểm sáng của bạn
                 </h3>
                 <ul id="highlightList" class="space-y-2 text-sm text-slate-700 dark:text-slate-300 list-disc pl-5">
                 </ul>
             </div>
 
-            <div class="bg-white/80 dark:bg-[#1e293b]/80 backdrop-blur-md border border-slate-200 dark:border-slate-700/60 shadow-xl rounded-3xl p-4 md:p-6">
+            <div class="result-card bg-white/80 dark:bg-[#1e293b]/80 backdrop-blur-md border border-slate-200 dark:border-slate-700/60 shadow-xl rounded-3xl p-6">
                 <h3 class="font-bold text-sm mb-4 text-slate-800 dark:text-slate-200 flex items-center gap-2">
-                    <span class="w-2.5 h-2.5 rounded-full bg-red-500"></span> Điểm nên luyện thêm
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-red-500" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd" /></svg>
+                    Điểm nên luyện thêm
                 </h3>
                 <div id="errorListArea" class="space-y-4"></div>
             </div>
 
-            <div class="bg-white/80 dark:bg-[#1e293b]/80 backdrop-blur-md border border-slate-200 dark:border-slate-700/60 shadow-xl rounded-3xl p-4 md:p-6">
-                <h3 class="font-bold text-sm mb-4 text-slate-800 dark:text-slate-200 flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-blue-500"></span> Chi tiết điểm</h3>
-                <div id="criteriaList" class="grid grid-cols-2 gap-x-4 sm:gap-x-8 gap-y-3 sm:gap-y-5"></div>
+            <div class="result-card bg-white/80 dark:bg-[#1e293b]/80 backdrop-blur-md border border-slate-200 dark:border-slate-700/60 shadow-xl rounded-3xl p-6">
+                <h3 class="font-bold text-sm mb-5 text-slate-800 dark:text-slate-200 flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span> Chi tiết điểm
+                </h3>
+                <div id="criteriaList" class="grid grid-cols-2 gap-x-4 sm:gap-x-8 gap-y-4 sm:gap-y-5"></div>
             </div>
 
-            <div class="bg-white/80 dark:bg-[#1e293b]/80 backdrop-blur-md border border-slate-200 dark:border-slate-700/60 shadow-xl rounded-3xl overflow-hidden">
-                <div class="flex justify-between items-center px-4 md:px-5 py-3 md:py-4 border-b border-slate-200 dark:border-slate-700/50 bg-slate-50 dark:bg-slate-800/40">
-                    <h3 class="font-bold text-sm text-slate-800 dark:text-slate-200 flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-indigo-500"></span> Bản sửa hoàn chỉnh</h3>
+            <div class="result-card bg-white/80 dark:bg-[#1e293b]/80 backdrop-blur-md border border-slate-200 dark:border-slate-700/60 shadow-xl rounded-3xl overflow-hidden">
+                <div class="flex justify-between items-center px-5 py-4 border-b border-slate-200 dark:border-slate-700/50 bg-slate-50 dark:bg-slate-800/40">
+                    <h3 class="font-bold text-sm text-slate-800 dark:text-slate-200 flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full bg-indigo-500"></span> Bản sửa hoàn chỉnh</h3>
                     <button id="btnCopyAll" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 rounded-md border border-slate-200 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 transition">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
                         <span id="copyBtnText">Sao chép</span>
                     </button>
                 </div>
-                <div id="rewriteList" class="p-4 md:p-6 space-y-4 md:space-y-6 text-sm"></div>
+                <div id="rewriteList" class="p-6 space-y-6 text-sm"></div>
             </div>
             
         </div>
     </main>
 
-    <!-- FOOTER ĐÃ ĐƯỢC THÊM -->
     <footer class="border-t border-slate-200 dark:border-white/10 py-8 text-center text-slate-500 text-sm relative z-10 mt-auto">
         <p>© 2026 Trợ lý AI - Nghiên cứu AI & Tư duy.</p>
     </footer>
@@ -338,29 +325,17 @@
 
     <div id="toastContainer" class="fixed bottom-5 left-1/2 transform -translate-x-1/2 z-[99999] flex flex-col gap-2 pointer-events-none"></div>
 
-    <!-- 1. SCRIPT MENU, THEME, AUTH, ADMIN -->
     <script>
-        const API_URL = "https://prompt-tx2e.onrender.com"; 
-        const SUPABASE_URL = "https://egncrbearrwfoslryuga.supabase.co";
-        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVnbmNyYmVhcnJ3Zm9zbHJ5dWdhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI1MDk2MzgsImV4cCI6MjEwODA4NTYzOH0.jX8rz7Fk5wIqdbDqb6ZwKUiMs-wggVRj-dLk2dqlYFM";
-        
-        const supabaseClient = window.supabase?.createClient ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
-        const $ = id => document.getElementById(id);
+        const hamburger = document.getElementById('btnHamburger');
+        const dropdown = document.getElementById('dropdownMenu');
 
-        const moonSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-5 h-5 text-blue-400"><defs><linearGradient id="moonGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#60a5fa" /><stop offset="100%" stop-color="#3b82f6" /></linearGradient></defs><path fill="url(#moonGrad)" d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`;
-        const sunSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-5 h-5 text-yellow-500"><defs><linearGradient id="sunGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#fef08a" /><stop offset="100%" stop-color="#f59e0b" /></linearGradient></defs><circle cx="12" cy="12" r="5" fill="url(#sunGrad)"></circle><path stroke="url(#sunGrad)" stroke-width="2" stroke-linecap="round" d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>`;
-
-        // MENU LOGIC
-        const hamburger = $('btnHamburger');
-        const dropdown = $('dropdownMenu');
-        const overlay = $('menuOverlay');
         if (hamburger && dropdown) {
             hamburger.addEventListener('click', (e) => {
                 e.stopPropagation();
                 const isHidden = dropdown.classList.contains('hidden');
+                
                 if (isHidden) {
                     dropdown.classList.remove('hidden');
-                    if (overlay) overlay.classList.add('active');
                     requestAnimationFrame(() => {
                         dropdown.classList.remove('opacity-0', 'scale-95');
                         dropdown.classList.add('opacity-100', 'scale-100');
@@ -368,99 +343,54 @@
                 } else {
                     dropdown.classList.remove('opacity-100', 'scale-100');
                     dropdown.classList.add('opacity-0', 'scale-95');
-                    if (overlay) overlay.classList.remove('active');
-                    setTimeout(() => { if (dropdown.classList.contains('opacity-0')) dropdown.classList.add('hidden'); }, 200);
+                    setTimeout(() => {
+                        if (dropdown.classList.contains('opacity-0')) {
+                            dropdown.classList.add('hidden');
+                        }
+                    }, 200);
                 }
             });
-            if (overlay) {
-                overlay.addEventListener('click', () => {
-                    dropdown.classList.remove('opacity-100', 'scale-100');
-                    dropdown.classList.add('opacity-0', 'scale-95');
-                    overlay.classList.remove('active');
-                    setTimeout(() => { if (dropdown.classList.contains('opacity-0')) dropdown.classList.add('hidden'); }, 200);
-                });
-            }
+
             document.addEventListener('click', (e) => {
                 if (!dropdown.contains(e.target) && !hamburger.contains(e.target) && !dropdown.classList.contains('hidden')) {
                     dropdown.classList.remove('opacity-100', 'scale-100');
                     dropdown.classList.add('opacity-0', 'scale-95');
-                    if (overlay) overlay.classList.remove('active');
-                    setTimeout(() => { if (dropdown.classList.contains('opacity-0')) dropdown.classList.add('hidden'); }, 200);
+                    setTimeout(() => {
+                        if (dropdown.classList.contains('opacity-0')) {
+                            dropdown.classList.add('hidden');
+                        }
+                    }, 200);
                 }
             });
+
             document.addEventListener('keydown', (e) => {
                 if (e.key === 'Escape' && !dropdown.classList.contains('hidden')) {
                     dropdown.classList.remove('opacity-100', 'scale-100');
                     dropdown.classList.add('opacity-0', 'scale-95');
-                    if (overlay) overlay.classList.remove('active');
-                    setTimeout(() => { if (dropdown.classList.contains('opacity-0')) dropdown.classList.add('hidden'); }, 200);
+                    setTimeout(() => {
+                        if (dropdown.classList.contains('opacity-0')) {
+                            dropdown.classList.add('hidden');
+                        }
+                    }, 200);
                 }
             });
         }
+    </script>
 
-        // THEME LOGIC
+    <script>
+        const moonSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-5 h-5 text-blue-400"><defs><linearGradient id="moonGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#60a5fa" /><stop offset="100%" stop-color="#3b82f6" /></linearGradient></defs><path fill="url(#moonGrad)" d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`;
+        const sunSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-5 h-5 text-yellow-500"><defs><linearGradient id="sunGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#fef08a" /><stop offset="100%" stop-color="#f59e0b" /></linearGradient></defs><circle cx="12" cy="12" r="5" fill="url(#sunGrad)"></circle><path stroke="url(#sunGrad)" stroke-width="2" stroke-linecap="round" d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>`;
+
         function applyTheme(dark) {
-            document.documentElement.classList.toggle('dark', dark); document.documentElement.classList.toggle('light', !dark);
-            if($('themeIconMenu')) $('themeIconMenu').innerHTML = dark ? sunSVG : moonSVG; 
-            if($('themeTextMenu')) $('themeTextMenu').textContent = dark ? 'Chế độ Sáng' : 'Chế độ Tối';
+            document.documentElement.classList.toggle('dark', dark); 
+            document.documentElement.classList.toggle('light', !dark);
+            if(document.getElementById('themeIconMenu')) document.getElementById('themeIconMenu').innerHTML = dark ? sunSVG : moonSVG; 
+            if(document.getElementById('themeTextMenu')) document.getElementById('themeTextMenu').textContent = dark ? 'Chế độ Sáng' : 'Chế độ Tối';
             try { window.localStorage.setItem('theme', dark ? 'dark' : 'light'); } catch (error) { }
             const themeColor = document.querySelector('meta[name="theme-color"]'); 
             if (themeColor) themeColor.setAttribute('content', dark ? '#0b1120' : '#f8f7fc');
         }
-        applyTheme(document.documentElement.classList.contains('dark'));
-        if($('themeToggleMenu')) {
-            $('themeToggleMenu').addEventListener('click', (e) => { 
-                e.preventDefault(); e.stopPropagation(); 
-                applyTheme(!document.documentElement.classList.contains('dark')); 
-            });
-        }
-
-        // ADMIN LOGIC
-        async function checkAdminAccess() {
-            try { 
-                const res = await fetch(`${API_URL}/check_admin_ip`); 
-                if (res.ok) { 
-                    $('adminMenuDivider').style.display = 'block'; 
-                    $('menuBtnAdmin').style.display = 'flex'; 
-                } 
-            } catch (e) { console.log("Không thể xác thực IP Admin."); }
-        }
-        checkAdminAccess();
-
-        // AUTH LOGIC
-        async function checkAuthState() {
-            if (!supabaseClient) return;
-            const { data: { session } } = await supabaseClient.auth.getSession();
-            if (session) {
-                $('btnShowLogin').classList.add('hidden'); $('userAvatarMenu').classList.remove('hidden');
-                const displayName = session.user.email.split('@')[0];
-                $('btnAvatar').textContent = displayName.charAt(0).toUpperCase();
-            } else {
-                $('btnShowLogin').classList.remove('hidden'); $('userAvatarMenu').classList.add('hidden');
-            }
-        }
-        checkAuthState();
-
-        $('btnShowLogin').addEventListener('click', () => { $('loginModal').classList.remove('hidden'); setTimeout(() => $('loginModal').classList.remove('opacity-0'), 10); });
-        $('btnCloseLoginModal').addEventListener('click', () => { $('loginModal').classList.add('opacity-0'); setTimeout(() => $('loginModal').classList.add('hidden'), 300); });
         
-        $('btnSendMagicLink').addEventListener('click', async () => {
-            const email = $('loginEmail').value.trim(); const errorMsg = $('loginError'); const btn = $('btnSendMagicLink');
-            if (!supabaseClient) { errorMsg.textContent = 'Lỗi tải thư viện đăng nhập.'; errorMsg.classList.remove('hidden'); return; }
-            if (!email) { errorMsg.textContent = "Vui lòng nhập email!"; errorMsg.classList.remove('hidden'); return; }
-            btn.textContent = "Đang gửi..."; btn.disabled = true; errorMsg.classList.add('hidden');
-            const { error } = await supabaseClient.auth.signInWithOtp({ email: email, options: { emailRedirectTo: window.location.href } });
-            if (error) { errorMsg.textContent = error.message; errorMsg.classList.remove('hidden'); btn.textContent = "Gửi link đăng nhập"; btn.disabled = false; } 
-            else { alert("Đã gửi link! Vui lòng kiểm tra hộp thư (hoặc mục Spam)."); $('btnCloseLoginModal').click(); btn.textContent = "Gửi link đăng nhập"; btn.disabled = false; }
-        });
-
-        $('btnAvatar').addEventListener('click', (e) => { e.stopPropagation(); $('avatarDropdown').classList.remove('hidden'); setTimeout(() => $('avatarDropdown').classList.remove('opacity-0', 'scale-95'), 10); });
-        document.addEventListener('click', () => { if (!$('avatarDropdown').classList.contains('hidden')) { $('avatarDropdown').classList.add('opacity-0', 'scale-95'); setTimeout(() => $('avatarDropdown').classList.add('hidden'), 200); } });
-        $('btnLogoutHeader').addEventListener('click', async () => { if(supabaseClient) await supabaseClient.auth.signOut(); window.location.reload(); });
-    </script>
-
-    <!-- 2. SCRIPT XỬ LÝ AI LOGIC -->
-    <script>
         function getTodayDateString() {
             const d = new Date();
             return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -483,6 +413,15 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
+            applyTheme(document.documentElement.classList.contains('dark'));
+            const themeBtn = document.getElementById('themeToggleMenu');
+            if (themeBtn) {
+                themeBtn.addEventListener('click', (e) => { 
+                    e.preventDefault(); e.stopPropagation(); 
+                    applyTheme(!document.documentElement.classList.contains('dark')); 
+                });
+            }
+
             const guideModal = document.getElementById('guideModal');
             const todayStr = getTodayDateString();
             let readDate = null;
@@ -497,9 +436,36 @@
                 }
             }
         });
+    </script>
+
+    <script>
+        const API_URL = "https://prompt-tx2e.onrender.com"; 
+        const SUPABASE_URL = "https://egncrbearrwfoslryuga.supabase.co";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVnbmNyYmVhcnJ3Zm9zbHJ5dWdhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI1MDk2MzgsImV4cCI6MjEwODA4NTYzOH0.jX8rz7Fk5wIqdbDqb6ZwKUiMs-wggVRj-dLk2dqlYFM"; 
+        
+        const supabaseClient = window.supabase?.createClient ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 
         const SECTION_NAMES = ["1. VAI TRÒ", "2. BỐI CẢNH", "3. INPUT", "4. MỤC TIÊU", "5. YÊU CẦU", "6. RÀNG BUỘC", "7. TASK", "8. ĐỊNH DẠNG ĐẦU RA", "9. NEVER DO", "10. THỨ TỰ ƯU TIÊN", "11. XỬ LÝ NỘI BỘ"];
+        const $ = id => document.getElementById(id);
         let lastResult = null;
+
+        // TỪ ĐIỂN RÚT GỌN TÊN TIÊU CHÍ
+        const SHORT_NAMES = {
+            "Độ rõ nhiệm vụ": "Độ rõ",
+            "Đối tượng tác động": "Đối tượng",
+            "Bối cảnh": "Bối cảnh",
+            "Định dạng đầu ra": "Định dạng",
+            "Độ chi tiết và ví dụ": "Độ chi tiết",
+            "Không mơ hồ": "Không mơ hồ",
+            "Không chung chung": "Cụ thể",
+            "Có cấu trúc": "Cấu trúc",
+            "Phù hợp nhiệm vụ": "Phù hợp",
+            "Chuyên môn có căn cứ": "Chuyên môn",
+            "Nhất quán lĩnh vực": "Nhất quán",
+            "Yêu cầu khả thi": "Yêu cầu",
+            "Vai trò phù hợp": "Vai trò",
+            "Không mâu thuẫn": "Không mâu thuẫn"
+        };
 
         function formatContent(text) {
             if (!text) return '';
@@ -541,6 +507,43 @@
             } catch (e) { console.error("Lỗi lưu LocalStorage:", e); }
         }
 
+        async function checkAuthState() {
+            if (!supabaseClient) return;
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (session) {
+                $('btnShowLogin').classList.add('hidden'); $('userAvatarMenu').classList.remove('hidden');
+                const displayName = session.user.email.split('@')[0];
+                $('btnAvatar').textContent = displayName.charAt(0).toUpperCase();
+            } else {
+                $('btnShowLogin').classList.remove('hidden'); $('userAvatarMenu').classList.add('hidden');
+            }
+        }
+        checkAuthState();
+
+        $('btnShowLogin').addEventListener('click', () => { $('loginModal').classList.remove('hidden'); setTimeout(() => $('loginModal').classList.remove('opacity-0'), 10); });
+        $('btnCloseLoginModal').addEventListener('click', () => { $('loginModal').classList.add('opacity-0'); setTimeout(() => $('loginModal').classList.add('hidden'), 300); });
+        $('loginModal').addEventListener('click', (e) => { if (e.target === $('loginModal')) $('btnCloseLoginModal').click(); });
+        
+        $('btnSendMagicLink').addEventListener('click', async () => {
+            const email = $('loginEmail').value.trim(); const errorMsg = $('loginError'); const btn = $('btnSendMagicLink');
+            if (!supabaseClient) { errorMsg.textContent = 'Lỗi tải thư viện đăng nhập.'; errorMsg.classList.remove('hidden'); return; }
+            if (!email) { errorMsg.textContent = "Vui lòng nhập email!"; errorMsg.classList.remove('hidden'); return; }
+            btn.textContent = "Đang gửi..."; btn.disabled = true; errorMsg.classList.add('hidden');
+            
+            const { error } = await supabaseClient.auth.signInWithOtp({ email: email, options: { emailRedirectTo: window.location.href } });
+            
+            if (error) { errorMsg.textContent = error.message; errorMsg.classList.remove('hidden'); btn.textContent = "Gửi link đăng nhập"; btn.disabled = false; } 
+            else { alert("Đã gửi link! Vui lòng kiểm tra hộp thư (hoặc mục Spam)."); $('btnCloseLoginModal').click(); btn.textContent = "Gửi link đăng nhập"; btn.disabled = false; }
+        });
+
+        $('btnAvatar').addEventListener('click', (e) => { e.stopPropagation(); $('avatarDropdown').classList.remove('hidden'); setTimeout(() => $('avatarDropdown').classList.remove('opacity-0', 'scale-95'), 10); });
+        document.addEventListener('click', () => { if (!$('avatarDropdown').classList.contains('hidden')) { $('avatarDropdown').classList.add('opacity-0', 'scale-95'); setTimeout(() => $('avatarDropdown').classList.add('hidden'), 200); } });
+        
+        $('btnLogoutHeader').addEventListener('click', async () => { 
+            if(supabaseClient) await supabaseClient.auth.signOut();
+            window.location.reload(); 
+        });
+
         function copyTextToClipboard(text) {
             if (navigator.clipboard && window.isSecureContext) return navigator.clipboard.writeText(text);
             let textArea = document.createElement("textarea"); textArea.value = text; textArea.style.position = "absolute"; textArea.style.left = "-999999px";
@@ -563,6 +566,14 @@
         btnClearInput.addEventListener('click', () => {
             promptInput.value = ''; charCount.textContent = '0/5000'; btnClearInput.classList.add('hidden');
             longPromptWarning.style.display = 'none'; $('resultArea').style.display = 'none'; promptInput.focus();
+        });
+
+        // LẮNG NGHE SỰ KIỆN ENTER ĐỂ ĐÁNH GIÁ
+        promptInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault(); // Ngăn việc xuống dòng mặc định
+                $('btnEvaluate').click(); // Kích hoạt nút đánh giá
+            }
         });
 
         $('btnEvaluate').addEventListener('click', async () => {
@@ -641,8 +652,10 @@
             Object.entries(r.details).forEach(([name, score]) => {
                 if (score >= 7) {
                     hasHighlight = true;
+                    const cleanName = name.replace(/[\.\s]+$/, '');
+                    const displayName = SHORT_NAMES[cleanName] || cleanName;
                     const li = document.createElement('li');
-                    li.innerHTML = `Rất tốt ở tiêu chí <strong>${name.replace(/[\.\s]+$/, '')}</strong> (đạt ${score}/10).`;
+                    li.innerHTML = `Rất tốt ở tiêu chí <strong>${displayName}</strong> (đạt ${score}/10).`;
                     highlightList.appendChild(li);
                 }
             });
@@ -653,8 +666,9 @@
             $('criteriaList').replaceChildren();
             Object.entries(r.details).forEach(([name, score]) => {
                 const cleanName = name.replace(/[\.\s]+$/, '');
+                const displayName = SHORT_NAMES[cleanName] || cleanName;
                 const row = document.createElement('div'); 
-                row.innerHTML = `<div class="flex justify-between items-start mb-1 gap-2"><span class="text-[10px] sm:text-[11px] font-semibold text-slate-600 dark:text-slate-400 leading-tight break-words">${cleanName}</span><span class="text-xs font-bold text-slate-800 dark:text-slate-200 shrink-0">${score}</span></div><div class="w-full bg-slate-100 dark:bg-[#0f172a] rounded-full h-1.5 sm:h-2"><div class="h-1.5 sm:h-2 rounded-full bg-gradient-to-r from-pink-500 to-blue-500" style="width: ${score * 10}%"></div></div>`;
+                row.innerHTML = `<div class="flex justify-between items-start mb-1.5 gap-2"><span class="text-[11px] font-semibold text-slate-600 dark:text-slate-400 leading-tight break-words">${displayName}</span><span class="text-xs font-bold text-slate-800 dark:text-slate-200 shrink-0">${score}</span></div><div class="w-full bg-slate-100 dark:bg-[#0f172a] rounded-full h-1.5 sm:h-2"><div class="h-1.5 sm:h-2 rounded-full bg-gradient-to-r from-pink-500 to-blue-500" style="width: ${score * 10}%"></div></div>`;
                 $('criteriaList').appendChild(row);
             });
 
@@ -672,8 +686,17 @@
                     let severity = "Trung bình"; let badgeClass = "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400";
                     if (code.startsWith("D") || code.startsWith("E")) { severity = "Nghiêm trọng"; badgeClass = "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"; }
                     const card = document.createElement('div');
-                    card.className = "p-3 md:p-4 bg-slate-50 dark:bg-[#0f172a] border border-slate-200 dark:border-slate-700/50 rounded-2xl flex flex-col gap-2";
-                    card.innerHTML = `<div class="flex justify-between items-start"><span class="font-bold text-slate-800 dark:text-slate-200 text-xs md:text-sm">${desc}</span><span class="px-2 py-0.5 md:px-2.5 md:py-1 rounded-md text-[10px] md:text-[11px] font-bold ${badgeClass}">${severity}</span></div><div class="text-[11px] md:text-xs text-blue-600 dark:text-blue-400 flex items-start gap-1.5 mt-1"><span class="text-sm">💡</span><span class="leading-relaxed"><strong>Gợi ý:</strong> ${hint}</span></div>`;
+                    card.className = "p-4 bg-slate-50 dark:bg-[#0f172a] border border-slate-200 dark:border-slate-700/50 rounded-2xl flex flex-col gap-2";
+                    
+                    card.innerHTML = `
+                        <div class="flex justify-between items-start">
+                            <span class="font-bold text-slate-800 dark:text-slate-200 text-sm">${desc}</span>
+                            <span class="px-2.5 py-1 rounded-md text-[11px] font-bold ${badgeClass}">${severity}</span>
+                        </div>
+                        <div class="text-xs text-blue-600 dark:text-blue-400 flex items-start gap-1.5 mt-1">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 mt-0.5 shrink-0 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+                            <span class="leading-relaxed"><strong>Gợi ý:</strong> ${hint}</span>
+                        </div>`;
                     errorListArea.appendChild(card);
                 });
             } else {
@@ -689,8 +712,8 @@
                 contentText = formatContent(contentText);
 
                 const item = document.createElement('div'); 
-                item.className = 'mb-4 md:mb-6 last:mb-0'; 
-                item.innerHTML = `<p class="font-bold text-pink-500 mb-1 md:mb-2 text-[12px] md:text-[13px] uppercase">${sec}</p><p class="text-slate-700 dark:text-slate-300 whitespace-pre-wrap break-words text-[13px] md:text-sm leading-relaxed">${contentText}</p>`;
+                item.className = 'mb-6 last:mb-0'; 
+                item.innerHTML = `<p class="font-bold text-pink-500 mb-2 text-[13px] uppercase">${sec}</p><p class="text-slate-700 dark:text-slate-300 whitespace-pre-wrap break-words text-sm leading-relaxed">${contentText}</p>`;
                 $('rewriteList').appendChild(item);
             });
             
