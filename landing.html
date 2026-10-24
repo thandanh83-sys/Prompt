@@ -182,8 +182,6 @@
                     <button id="btnClearInput" class="hidden text-slate-400 hover:text-red-500"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg></button>
                 </div>
             </div>
-            <!-- HƯỚNG DẪN PHÍM TẮT -->
-            <p class="text-[11px] text-slate-400 dark:text-slate-500 mt-2 text-right">Nhấn <kbd class="bg-slate-200 dark:bg-slate-700 px-1 rounded text-[10px] font-mono">Enter</kbd> để đánh giá, <kbd class="bg-slate-200 dark:bg-slate-700 px-1 rounded text-[10px] font-mono">Shift + Enter</kbd> để xuống dòng.</p>
             
             <p id="longPromptWarning" class="text-yellow-500 text-xs mt-2 font-medium" style="display: none;">⚠️ Prompt khá dài, AI có thể mất 30-60 giây.</p>
             <p id="errorMsg" class="text-red-500 text-xs mt-2 font-medium" style="display: none;">Vui lòng nhập prompt!</p>
@@ -505,6 +503,18 @@
                 }
             } catch (e) { console.error("Lỗi lưu LocalStorage:", e); }
         }
+
+        // HÀM CHECK ADMIN ĐÃ ĐƯỢC THÊM LẠI
+        async function checkAdminAccess() {
+            try {
+                const res = await fetch(`${API_URL}/check_admin_ip`);
+                if (res.ok) { 
+                    $('adminMenuDivider').style.display = 'block'; 
+                    $('menuBtnAdmin').style.display = 'flex'; 
+                } 
+            } catch (e) { console.log("Không thể xác thực IP Admin."); }
+        }
+        checkAdminAccess();
 
         async function checkAuthState() {
             if (!supabaseClient) return;
