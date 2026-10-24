@@ -46,8 +46,8 @@
         }
         .btn-glow { box-shadow: 0 4px 20px rgba(236,72,153,.3); transition: all .2s ease; }
         .btn-glow:hover { box-shadow: 0 6px 25px rgba(59,130,246,.5); transform: translateY(-2px); }
-        
-        /* CSS MENU Y HỆT LANDING.HTML */
+
+        /* CSS CHO MENU DROPDOWN */
         .menu-dropdown { transition: all .2s ease-in-out; transform-origin: top left; width: min(280px, calc(100vw - 32px)); max-height: calc(100dvh - 100px); overflow-y: auto; box-sizing: border-box; z-index: 9999 !important; }
 
         /* ============================================================
@@ -185,7 +185,6 @@
             .text-3xl { font-size: 1.5rem !important; }
             .px-10 { padding-left: 1.5rem !important; padding-right: 1.5rem !important; font-size: 1rem !important; }
             
-            /* Nút bấm Mobile: Thu gọn và căn giữa */
             .btn-hero { 
                 padding: 0.75rem 1.5rem !important; 
                 font-size: 1rem !important; 
@@ -210,8 +209,8 @@
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
                 </button>
                 
-                <!-- MENU DROPDOWN -->
-                <div id="dropdownMenu" class="menu-dropdown absolute top-12 md:top-14 left-0 bg-white/80 dark:bg-[#1e293b]/80 backdrop-blur-2xl border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl hidden opacity-0 scale-95 z-50 p-2">
+                <!-- MENU DROPDOWN CHUẨN -->
+                <div id="dropdownMenu" class="menu-dropdown absolute top-12 md:top-14 left-0 bg-white/95 dark:bg-[#1e293b]/95 backdrop-blur-xl border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl hidden opacity-0 scale-95 z-50 p-2">
                     <div class="flex flex-col gap-1">
                         <a href="./index.html" class="flex items-center gap-3 px-3 py-3 rounded-xl bg-slate-100 dark:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors" title="Về trang chủ">
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-pink-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
@@ -271,7 +270,7 @@
             <!-- CỘT TRÁI -->
             <div class="flex flex-col items-center lg:items-start text-center lg:text-left lg:col-span-8 lg:pr-8 w-full">
                 
-                <!-- BADGE -->
+                <!-- BADGE: Căn giữa trên cả Mobile và PC -->
                 <div class="flex justify-center mb-6 lg:mb-8 w-full">
                     <div class="inline-flex items-center gap-2 px-4 py-2 md:px-5 md:py-2.5 rounded-full bg-white/60 dark:bg-slate-800/60 backdrop-blur-md border border-slate-200 dark:border-slate-700 text-xs md:text-base font-semibold text-pink-500 shadow-sm">
                         <span class="w-2 h-2 rounded-full bg-pink-500 animate-pulse"></span> Chuẩn mực mới cho Prompt Engineering
@@ -290,7 +289,7 @@
                     AI tự động phân tích, chấm điểm và tối ưu hóa câu lệnh của bạn theo cấu trúc <strong class="font-normal lg:font-bold text-slate-900 dark:text-white">chuẩn quốc tế</strong>. Không còn nỗi lo AI trả lời sai ý.
                 </p>
                 
-                <!-- NÚT BẤM -->
+                <!-- NÚT BẤM: Căn giữa trên cả Mobile và PC -->
                 <div class="flex flex-col lg:flex-row items-center justify-center gap-3 sm:gap-4 w-full mx-0">
                     <a href="./landing.html" class="btn-glow btn-hero w-full lg:w-auto px-8 py-3.5 sm:px-10 sm:py-4 rounded-full font-bold text-white bg-gradient-to-r from-pink-500 to-blue-500 transition-all flex items-center justify-center text-base sm:text-lg whitespace-nowrap" title="Bắt đầu sử dụng miễn phí">
                         Bắt đầu miễn phí
@@ -310,7 +309,6 @@
                         <div class="w-3 h-3 rounded-full bg-[#27c93f]"></div>
                         <div class="h-[26px] flex-grow bg-slate-100 dark:bg-[#1e293b] rounded-md ml-2 border border-slate-200 dark:border-slate-800/50 transition-colors"></div>
                     </div>
-                    <!-- Đã thêm title để tránh lỗi Tin nhắn trống -->
                     <div class="relative bg-slate-50 dark:bg-[#1e293b] rounded-2xl border border-slate-200 dark:border-slate-700/60 p-4 mb-5 h-[120px] flex flex-col justify-between transition-colors" title="Khung nhập nội dung mô phỏng">
                         <p class="text-slate-400 dark:text-slate-400 text-base">Mô tả điều bạn muốn AI thực hiện...</p>
                         <div class="text-right text-sm text-slate-400 dark:text-slate-500 font-medium">0/5000</div>
@@ -512,33 +510,47 @@
         <p>© 2026 Trợ lý AI - Nghiên cứu AI & Tư duy.</p>
     </footer>
 
-    <!-- TOÀN BỘ SCRIPT JAVASCRIPT DỜI XUỐNG ĐÂY ĐỂ ĐẢM BẢO HTML ĐÃ LOAD XONG -->
     <script>
         const API_URL = "https://prompt-tx2e.onrender.com"; 
         const $ = id => document.getElementById(id);
 
+        // ==========================================
+        // ĐOẠN JS XỬ LÝ MENU BẠN ĐÃ CUNG CẤP (TÍCH HỢP)
+        // ==========================================
+        const hamburger = $('btnHamburger');
+        const dropdown = $('dropdownMenu');
+
+        if (hamburger && dropdown) {
+            hamburger.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const isHidden = dropdown.classList.contains('hidden');
+                dropdown.classList.toggle('hidden', !isHidden);
+                dropdown.classList.toggle('opacity-0', !isHidden);
+                dropdown.classList.toggle('scale-95', !isHidden);
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!dropdown.contains(e.target) && !hamburger.contains(e.target)) {
+                    dropdown.classList.add('hidden', 'opacity-0', 'scale-95');
+                }
+            });
+
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    dropdown.classList.add('hidden', 'opacity-0', 'scale-95');
+                }
+            });
+        }
+
+        // ==========================================
+        // CÁC LOGIC KHÁC (THEME, POWERPOINT, ADMIN)
+        // ==========================================
         const moonSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-5 h-5 text-blue-400"><defs><linearGradient id="moonGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#60a5fa" /><stop offset="100%" stop-color="#3b82f6" /></linearGradient></defs><path fill="url(#moonGrad)" d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`;
         const sunSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-5 h-5 text-yellow-500"><defs><linearGradient id="sunGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#fef08a" /><stop offset="100%" stop-color="#f59e0b" /></linearGradient></defs><circle cx="12" cy="12" r="5" fill="url(#sunGrad)"></circle><path stroke="url(#sunGrad)" stroke-width="2" stroke-linecap="round" d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>`;
 
-        // --- 1. SCRIPT ĐIỀU KHIỂN MENU ---
-        (function () {
-            function initPromptNavigation() {
-                const button = document.getElementById('btnHamburger');
-                const menu = document.getElementById('dropdownMenu');
-                if (!button || !menu || button.dataset.navigationReady === 'true') return;
-                button.dataset.navigationReady = 'true';
-                let isOpen = false;
-                function closeMenu() { if (!isOpen) return; isOpen = false; menu.classList.remove('opacity-100', 'scale-100'); menu.classList.add('opacity-0', 'scale-95'); window.setTimeout(function () { if (!isOpen) menu.classList.add('hidden'); }, 200); }
-                function openMenu() { isOpen = true; menu.classList.remove('hidden'); void menu.offsetWidth; menu.classList.remove('opacity-0', 'scale-95'); menu.classList.add('opacity-100', 'scale-100'); }
-                button.addEventListener('click', function (event) { event.preventDefault(); event.stopPropagation(); if (isOpen) closeMenu(); else openMenu(); });
-                document.addEventListener('click', function (event) { if (isOpen && !menu.contains(event.target) && !button.contains(event.target)) closeMenu(); });
-            }
-            if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', initPromptNavigation); } else { initPromptNavigation(); }
-        })();
-
-        // --- 2. SCRIPT ĐIỀU KHIỂN CHẾ ĐỘ SÁNG/TỐI ---
         function applyTheme(dark) {
-            document.documentElement.classList.toggle('dark', dark); document.documentElement.classList.toggle('light', !dark);
+            document.documentElement.classList.toggle('dark', dark); 
+            document.documentElement.classList.toggle('light', !dark);
             if($('themeIconMenu')) $('themeIconMenu').innerHTML = dark ? sunSVG : moonSVG; 
             if($('themeTextMenu')) $('themeTextMenu').textContent = dark ? 'Chế độ Sáng' : 'Chế độ Tối';
             try { window.localStorage.setItem('theme', dark ? 'dark' : 'light'); } catch (error) { }
@@ -554,8 +566,7 @@
             });
         }
 
-        // --- 3. SCRIPT XỬ LÝ POWERPOINT MODE ---
-        function toggleFeature(event, element) {
+        window.toggleFeature = function(event, element) {
             if (event && event.target) {
                 if (event.target.closest('.child-card') || event.target.closest('.accordion-content')) return;
             }
@@ -571,22 +582,18 @@
             }
         }
 
-        // --- 4. SCRIPT NÚT "TÌM HIỂU THÊM" ---
-        document.addEventListener('DOMContentLoaded', () => {
-            const btnLearnMore = document.getElementById('btnLearnMore');
-            if (btnLearnMore) {
-                btnLearnMore.addEventListener('click', function (e) {
-                    e.preventDefault();
-                    const target = document.getElementById('features');
-                    if (target) {
-                        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                        history.replaceState(null, null, '#features');
-                    }
-                });
-            }
-        });
+        const btnLearnMore = document.getElementById('btnLearnMore');
+        if (btnLearnMore) {
+            btnLearnMore.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.getElementById('features');
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    history.replaceState(null, null, '#features');
+                }
+            });
+        }
 
-        // --- 5. SCRIPT CHECK ADMIN ---
         async function syncAdminMenuVisibility() {
             try {
                 const res = await fetch(`${API_URL}/check_admin_ip`);
