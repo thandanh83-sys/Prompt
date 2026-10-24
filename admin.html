@@ -122,6 +122,7 @@
             
             #adminDashboard > div:first-child { padding: 0.5rem 0.75rem !important; gap: 0.5rem !important; }
             .tab-btn { font-size: 0.8rem !important; padding-bottom: 0.5rem !important; }
+            .tab-btn svg { width: 1rem !important; height: 1rem !important; }
             #btnAdminLogout { padding: 0.4rem 0.6rem !important; font-size: 10px !important; }
             
             .h-56 { height: 200px !important; }
@@ -197,7 +198,6 @@
 
     <main class="w-full max-w-5xl mx-auto px-3 sm:px-6 pt-24 md:pt-32 pb-32 flex-grow flex flex-col items-center justify-center relative z-10">
         
-        <!-- THÔNG BÁO LỖI IP -->
         <div id="adminAccessNotice" class="glass-panel rounded-[2rem] p-8 max-w-md w-full text-center" style="display:none;">
             <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
@@ -207,7 +207,6 @@
             <a href="./index.html" class="inline-flex items-center justify-center px-6 py-2.5 rounded-xl font-bold text-white bg-gradient-to-r from-pink-500 to-blue-500 hover:scale-105 transition-transform shadow-md">Về trang chủ</a>
         </div>
         
-        <!-- FORM ĐĂNG NHẬP -->
         <div id="adminLoginBox" class="glass-panel rounded-[2rem] p-6 md:p-10 max-w-md w-full text-center relative overflow-hidden z-10" style="display: none;">
             <div class="absolute top-0 left-1/2 transform -translate-x-1/2 w-32 h-1 bg-gradient-to-r from-pink-500 to-blue-500 rounded-b-full opacity-80"></div>
             
@@ -237,15 +236,25 @@
         <!-- DASHBOARD -->
         <div id="adminDashboard" class="w-full mt-4 sm:mt-6 relative z-10" style="display: none;">
             
+            <!-- TABS -->
             <div class="flex justify-between items-center mb-4 sm:mb-6 bg-white/50 dark:bg-slate-800/40 backdrop-blur-md rounded-[1.5rem] px-3 sm:px-4 pt-2 border border-white/20 dark:border-slate-700/50 shadow-sm relative w-full">
                 <div class="flex gap-4 sm:gap-6">
-                    <button id="tabBtnOverview" class="tab-btn active pb-3 text-sm md:text-base font-bold text-slate-500 dark:text-slate-400 hover:text-pink-500 dark:hover:text-blue-400" onclick="switchTab('overview')">📊 Tổng quan</button>
-                    <button id="tabBtnIpLogs" class="tab-btn pb-3 text-sm md:text-base font-bold text-slate-500 dark:text-slate-400 hover:text-pink-500 dark:hover:text-blue-400" onclick="switchTab('iplogs')">🌐 Lịch sử IP</button>
+                    <button id="tabBtnOverview" class="tab-btn active pb-3 text-sm md:text-base font-bold text-slate-500 dark:text-slate-400 hover:text-pink-500 dark:hover:text-blue-400 flex items-center" onclick="switchTab('overview')">
+                        <!-- SVG ICON TỔNG QUAN -->
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-1.5 align-middle -mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+                        Tổng quan
+                    </button>
+                    <button id="tabBtnIpLogs" class="tab-btn pb-3 text-sm md:text-base font-bold text-slate-500 dark:text-slate-400 hover:text-pink-500 dark:hover:text-blue-400 flex items-center" onclick="switchTab('iplogs')">
+                        <!-- SVG ICON LỊCH SỬ IP -->
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-1.5 align-middle -mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        Lịch sử IP
+                    </button>
                 </div>
                 <button id="btnAdminLogout" class="px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl text-xs font-bold bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-600 hover:bg-red-50 hover:text-red-600 hover:border-red-200 dark:hover:bg-red-900/30 dark:hover:border-red-800 transition mb-2 shrink-0">Đăng xuất</button>
             </div>
 
             <div id="tabContentOverview" class="space-y-4 sm:space-y-6">
+                <!-- STAT CARDS -->
                 <div class="grid grid-cols-3 gap-2 sm:gap-4">
                     <div class="stat-card flex flex-col justify-center items-center text-center relative overflow-hidden group">
                         <p class="text-[10px] md:text-xs font-bold text-slate-500 uppercase tracking-wider mb-1 relative z-10">Lượt đánh giá</p>
@@ -261,6 +270,7 @@
                     </div>
                 </div>
 
+                <!-- CHARTS -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="glass-panel chart-container p-4 sm:p-5 relative overflow-hidden">
                         <p class="text-[10px] sm:text-xs font-bold text-slate-600 dark:text-slate-300 mb-2 sm:mb-4 uppercase tracking-widest text-center">Top Lỗi Phổ Biến</p>
@@ -272,9 +282,16 @@
                     </div>
                 </div>
 
+                <!-- HISTORY TABLE -->
                 <div class="glass-panel overflow-hidden">
                     <div class="px-4 sm:px-6 py-4 border-b border-white/20 dark:border-slate-700/50 flex flex-wrap gap-3 justify-between items-center bg-white/30 dark:bg-slate-800/30">
-                        <p class="text-sm font-bold text-slate-800 dark:text-white uppercase tracking-wider flex items-center gap-2"><span>🕒</span> Lịch sử gần đây</p>
+                        <p class="text-sm font-bold text-slate-800 dark:text-white uppercase tracking-wider flex items-center">
+                            <!-- SVG ICON ĐỒNG HỒ -->
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-2 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                            Lịch sử gần đây
+                        </p>
+                        
+                        <!-- NÚT XÓA TẤT CẢ -->
                         <button onclick="deleteAllPrompts()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-500 hover:text-white dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-500 dark:hover:text-white transition-all text-xs font-bold border border-red-200 dark:border-red-800/50 shrink-0">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                             Xóa tất cả
@@ -298,10 +315,14 @@
                 </div>
             </div>
 
+            <!-- TAB IP LOGS -->
             <div id="tabContentIpLogs" class="space-y-5" style="display: none;">
                 <div class="glass-panel overflow-hidden">
                     <div class="px-6 py-5 border-b border-white/20 dark:border-slate-700/50 flex justify-between items-center bg-white/30 dark:bg-slate-800/30">
-                        <p class="text-sm font-bold text-slate-800 dark:text-white uppercase tracking-wider flex items-center gap-2"><span>🌐</span> Danh sách IP Đăng nhập</p>
+                        <p class="text-sm font-bold text-slate-800 dark:text-white uppercase tracking-wider flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-2 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                            Danh sách IP Đăng nhập
+                        </p>
                     </div>
                     <div class="overflow-x-auto max-h-[500px] overflow-y-auto custom-scrollbar">
                         <table class="w-full text-sm text-left relative whitespace-nowrap min-w-[500px]">
@@ -408,7 +429,6 @@
 
         // 3. HÀM KHỞI TẠO TRANG ADMIN (CHẶN LỖI ĐỔI MẠNG)
         async function initAdminPage() {
-            // 1. Kiểm tra IP trước
             let isIpValid = false;
             try {
                 const res = await fetch(`${API_URL}/check_admin_ip`);
@@ -420,7 +440,6 @@
             } catch (e) { console.log("Lỗi check IP:", e); }
 
             if (!isIpValid) {
-                // IP sai -> Xóa token cũ, hiện thông báo chặn
                 sessionStorage.removeItem('adminToken');
                 adminToken = null;
                 $('adminLoginBox').style.display = 'none';
@@ -430,17 +449,14 @@
                 return; 
             }
 
-            // IP đúng -> Check Token cũ
             const t = sessionStorage.getItem('adminToken');
             if (!t) {
-                // Không có token -> Hiện form đăng nhập
                 $('adminAccessNotice').style.display = 'none';
                 $('adminLoginBox').style.display = 'block';
                 $('adminDashboard').style.display = 'none';
                 return;
             }
 
-            // Có token -> Xác thực token qua API /history
             try {
                 const response = await fetch(`${API_URL}/history`, { method: 'GET', headers: { 'X-Admin-Token': t } });
                 const data = await response.json();
@@ -455,7 +471,6 @@
                     throw new Error('Token hết hạn');
                 }
             } catch {
-                // Token sai/hết hạn -> Xóa token, hiện form
                 adminToken = null;
                 sessionStorage.removeItem('adminToken');
                 $('adminAccessNotice').style.display = 'none';
