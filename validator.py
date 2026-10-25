@@ -19,16 +19,16 @@ def validate_scores_only(ai_scores: dict, required_criteria: dict) -> bool:
     required_ids = set(required_criteria.keys())
     received_ids = set(ai_scores.keys())
     
-    # [LINH HOẠT] Chỉ bắt buộc phải có các tiêu chí Lõi (Core) và Kỹ thuật (Tech).
-    # Không bắt buộc phải có DYN01, DYN02... (vì AI có thể không sinh ra nếu prompt quá ngắn)
-    missing_core = required_ids - received_ids
+    # [QUAN TRỌNG] Lọc bỏ các DYN để kiểm tra. Chỉ bắt buộc phải có Core + Tech.
+    received_core_ids = {k for k in received_ids if not k.startswith("DYN")}
+    
+    missing_core = required_ids - received_core_ids
     if missing_core:
         raise ReportValidationError(f"Thiếu điểm cho các tiêu chí bắt buộc: {missing_core}")
         
-    # Kiểm tra tính hợp lệ của điểm số (từ 0-10)
     for crit_id, score in ai_scores.items():
         if type(score) is not int:
-            raise ReportValidationError(f"Điểm của '{crit_id}' phải là số nguyên (nhận được {type(score).__name__}).")
+            raise ReportValidationError(f"Điểm của '{crit_id}' phải là số nguyên.")
         if not (0 <= score <= 10):
             raise ReportValidationError(f"Điểm của '{crit_id}' phải nằm trong khoảng 0-10.")
     return True
@@ -50,17 +50,14 @@ def validate_full_report(ai_json: dict, main_criteria: dict, tech_criteria: dict
         
     prompt_norm = normalize_text(original_prompt)
     MISSING_INFO_ERRORS = {"B01", "C02", "C04"}
-    
-    # Đọc danh sách lỗi hợp lệ trực tiếp từ file error_rules.py
     valid_error_codes = set(error_rules.ERROR_RULES.keys())
 
     for err in errors:
-        # Chấp nhận dict có code, evidence và có thể có thêm hint
         if not isinstance(err, dict) or not {"code", "evidence"}.issubset(set(err.keys())):
             raise ReportValidationError("Mỗi lỗi phải là dict chứa ít nhất 'code' và 'evidence'.")
         
         if not isinstance(err["code"], str) or err["code"] not in valid_error_codes:
-            raise ReportValidationError(f"Mã lỗi '{err['code']}' không hợp lệ hoặc chưa được định nghĩa.")
+            raise ReportValidationError(f"Mã lỗi '{err['code']}' không hợp lệ.")
             
         evidence = err["evidence"]
         if not isinstance(evidence, str):
@@ -68,7 +65,7 @@ def validate_full_report(ai_json: dict, main_criteria: dict, tech_criteria: dict
             
         ev_norm = normalize_text(evidence)
         if not ev_norm:
-            raise ReportValidationError(f"Lỗi '{err['code']}' phải có bằng chứng trích dẫn hoặc mô tả.")
+            raise ReportValidationError(f"Lỗi '{err['code']}' phải có bằng chứng.")
             
         if err["code"] not in MISSING_INFO_ERRORS:
             ev_clean = evidence.strip(' "\'\n\r\t')
@@ -81,13 +78,12 @@ def validate_full_report(ai_json: dict, main_criteria: dict, tech_criteria: dict
         raise ReportValidationError("Trường 'rewrite' phải là dict.")
         
     expected_sections = rules_v38.REQUIRED_REWRITE_SECTIONS
-    received_sections = list(rewrite.keys())
-    if received_sections != expected_sections:
-        raise ReportValidationError("Bản sửa phải có đúng 11 mục theo thứ tự quy định.")
+    if list(rewrite.keys()) != expected_sections:
+        raise ReportValidationError("Bản sửa phải có đúng 11 mục theo thứ tự.")
         
     for sec, val in rewrite.items():
         if not isinstance(val, str) or not val.strip():
-            raise ReportValidationError(f"Mục '{sec}' trong bản sửa không được để trống.")
+            raise ReportValidationError(f"Mục '{sec}' không được để trống.")
             
     return True
 
@@ -103,8 +99,6 @@ def _calc_tier_score(ai_scores: dict, criteria: dict) -> Decimal:
 
 def calculate_final_score(ai_scores: dict, main_criteria: dict, tech_criteria: dict) -> float:
     all_criteria = {**main_criteria, **tech_criteria}
-    
-    # [LINH HOẠT] Tự động gán trọng số = 1.0 cho các tiêu chí động (nếu AI có sinh ra)
     for key in ai_scores.keys():
         if key.startswith("DYN") and key not in all_criteria:
             all_criteria[key] = {"name": "Tiêu chí chuyên ngành", "weight": 1.0}
