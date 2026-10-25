@@ -53,15 +53,10 @@
         .toast-error { border-left: 4px solid #ef4444; }
         .toast-show { opacity: 1; transform: translateY(0); }
 
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 20px; }
         .dark .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #475569; }
-
-        /* CSS TÙY CHỈNH CHO FILTER TAB */
-        .filter-tab { transition: all 0.2s; }
-        .filter-tab.active { background-color: #ec4899; color: white; border-color: #ec4899; box-shadow: 0 4px 15px rgba(236,72,153,0.3); }
-        .dark .filter-tab.active { background-color: #3b82f6; border-color: #3b82f6; box-shadow: 0 4px 15px rgba(59,130,246,0.3); }
 
         /* SKELETON LOADING */
         .skeleton { background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%); background-size: 200% 100%; animation: loading 1.5s infinite; }
@@ -145,7 +140,6 @@
         </div>
     </header>
 
-    <!-- BỔ SUNG LẠI MODAL ĐĂNG NHẬP (BỊ THIẾU TRONG BẢN TRƯỚC) -->
     <div id="loginModal" class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm hidden opacity-0 transition-opacity duration-300">
         <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-sm p-6 relative border border-slate-200 dark:border-slate-700">
             <button type="button" id="btnCloseLoginModal" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 bg-transparent hover:bg-slate-100 dark:hover:bg-slate-700 w-8 h-8 rounded-full flex items-center justify-center transition-colors">
@@ -172,7 +166,6 @@
         </div>
     </div>
 
-    <!-- BỔ SUNG LẠI MODAL RATE LIMIT -->
     <div id="rateLimitModal" class="fixed inset-0 z-[99999] flex flex-col items-center justify-center p-4 bg-black/70 backdrop-blur-md transition-opacity duration-300" style="display: none;">
         <div class="bg-white dark:bg-[#1e293b] border border-slate-200 dark:border-slate-700/50 rounded-3xl shadow-2xl w-full max-w-[400px] p-6 sm:p-7 relative">
             <button type="button" onclick="closeRateLimitModal()" title="Đóng" class="absolute top-5 right-5 text-slate-500 hover:text-slate-800 bg-slate-100 hover:bg-slate-200 dark:text-slate-300 dark:hover:text-white dark:bg-slate-700/50 dark:hover:bg-slate-600 w-8 h-8 rounded-full flex items-center justify-center transition-colors">
@@ -196,7 +189,6 @@
 
     <main class="w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 md:pt-28 pb-32 flex-grow flex flex-col mt-4">
         
-        <!-- TIÊU ĐỀ & MÔ TẢ -->
         <div class="text-center mb-8">
             <h1 class="text-3xl md:text-4xl font-extrabold text-slate-800 dark:text-white mb-3">
                 Thư viện <span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-blue-500">Prompt Xuất sắc</span>
@@ -206,25 +198,41 @@
             </p>
         </div>
 
-        <!-- THANH CÔNG CỤ (TÌM KIẾM & LỌC) -->
+        <!-- THANH CÔNG CỤ -->
         <div class="bg-white/80 dark:bg-[#1e293b]/80 backdrop-blur-md border border-slate-200 dark:border-slate-700/60 shadow-lg rounded-2xl p-4 mb-8 sticky top-20 z-30">
-            <!-- Search Bar -->
-            <div class="relative mb-4">
-                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <svg class="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+            <div class="flex flex-col md:flex-row gap-3">
+                <!-- Search Bar -->
+                <div class="relative flex-grow">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <svg class="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                    </div>
+                    <input type="text" id="searchInput" class="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 transition-all" placeholder="Tìm kiếm prompt...">
                 </div>
-                <input type="text" id="searchInput" class="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 dark:focus:ring-blue-500 transition-all" placeholder="Tìm kiếm prompt (VD: viết email, code python, marketing...)">
-            </div>
 
-            <!-- Filter Tabs -->
-            <div class="flex gap-2 overflow-x-auto custom-scrollbar pb-1" id="filterTabs">
-                <!-- Các nút lọc sẽ được JS đổ vào đây -->
+                <div class="flex gap-2 shrink-0">
+                    <!-- NÚT LỌC DROPDOWN MỚI -->
+                    <div class="relative flex-grow md:w-48" id="filterDropdownContainer">
+                        <button id="filterBtn" class="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-semibold text-slate-700 dark:text-slate-200 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-sm">
+                            <span id="currentFilterText" class="truncate">Tất cả</span>
+                            <svg id="filterIcon" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-slate-400 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" /></svg>
+                        </button>
+                        <!-- Menu Xổ Xuống -->
+                        <div id="filterDropdownMenu" class="absolute top-full left-0 mt-2 w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl hidden z-50 max-h-60 overflow-y-auto custom-scrollbar">
+                            <!-- Các option sẽ được JS đổ vào đây -->
+                        </div>
+                    </div>
+
+                    <!-- Nút Làm mới -->
+                    <button onclick="refreshRandom()" class="px-4 py-3 bg-pink-50 dark:bg-blue-900/20 text-pink-600 dark:text-blue-400 rounded-xl border border-pink-200 dark:border-blue-800 hover:bg-pink-100 dark:hover:bg-blue-800/40 transition-colors flex items-center justify-center gap-2 shadow-sm" title="Tải 30 prompt ngẫu nhiên khác">
+                        <svg id="refreshIcon" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                        <span class="hidden md:inline text-sm font-bold">Làm mới</span>
+                    </button>
+                </div>
             </div>
         </div>
 
-        <!-- DANH SÁCH PROMPT (GRID LAYOUT) -->
+        <!-- DANH SÁCH PROMPT -->
         <div id="libraryGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
-            <!-- Skeleton Loading -->
             <div id="skeletonLoader" class="col-span-full grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
                 <div class="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700 h-48">
                     <div class="skeleton h-4 w-1/4 rounded mb-4"></div>
@@ -239,14 +247,20 @@
             </div>
         </div>
 
-        <!-- TRẠNG THÁI TRỐNG -->
+        <div id="loadMoreContainer" class="hidden text-center mt-8">
+            <button onclick="loadMorePrompts()" class="px-6 py-2.5 bg-white dark:bg-[#1e293b] border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-bold rounded-xl shadow-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-sm flex items-center justify-center gap-2 mx-auto">
+                <span>Tải thêm Prompt</span>
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" /></svg>
+            </button>
+        </div>
+
         <div id="emptyState" class="hidden text-center py-16">
             <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-slate-100 dark:bg-slate-800 mb-4">
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-10 h-10 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
             </div>
             <h3 class="text-slate-800 dark:text-slate-200 font-bold text-lg mb-2" id="emptyTitle">Không tìm thấy Prompt nào</h3>
             <p class="text-slate-500 text-sm mb-6" id="emptyDesc">Thử thay đổi từ khóa hoặc bộ lọc xem sao nhé!</p>
-            <button onclick="resetSearch()" class="px-5 py-2.5 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 rounded-xl text-sm font-bold transition-colors">Xóa bộ lọc</button>
+            <button onclick="resetSearch()" id="btnResetSearch" class="px-5 py-2.5 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 rounded-xl text-sm font-bold transition-colors">Xóa bộ lọc</button>
         </div>
 
     </main>
@@ -257,7 +271,6 @@
 
     <div id="toastContainer" class="fixed bottom-5 left-1/2 transform -translate-x-1/2 z-[99999] flex flex-col gap-2 pointer-events-none"></div>
 
-    <!-- SCRIPT MENU & OVERLAY -->
     <script>
         const hamburger = document.getElementById('btnHamburger');
         const dropdown = document.getElementById('dropdownMenu');
@@ -311,11 +324,9 @@
         }
     </script>
 
-    <!-- SCRIPT LOGIC CHÍNH -->
     <script>
         const API_URL = "https://prompt-tx2e.onrender.com"; 
         const SUPABASE_URL = "https://egncrbearrwfoslryuga.supabase.co";
-        // KEY ĐÃ KIỂM TRA CHÍNH XÁC
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVnbmNyYmVhcnJ3Zm9zbHJ5dWdhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI1MDk2MzgsImV4cCI6MjEwODA4NTYzOH0.jX8rz7Fk5wIqdbDqb6ZwKUiMs-wggVRj-dLk2dqlYFM";
         
         const supabaseClient = window.supabase?.createClient ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
@@ -382,7 +393,6 @@
             });
         }
 
-        // ĐÃ THÊM LẠI SỰ KIỆN NÚT ĐĂNG NHẬP
         if ($('btnShowLogin')) $('btnShowLogin').addEventListener('click', () => { $('loginModal').classList.remove('hidden'); setTimeout(() => $('loginModal').classList.remove('opacity-0'), 10); });
         if ($('btnCloseLoginModal')) $('btnCloseLoginModal').addEventListener('click', () => { $('loginModal').classList.add('opacity-0'); setTimeout(() => $('loginModal').classList.add('hidden'), 300); });
         if ($('loginModal')) $('loginModal').addEventListener('click', (e) => { if (e.target === $('loginModal')) $('btnCloseLoginModal').click(); });
@@ -484,14 +494,42 @@
         }
 
         // ==========================================
-        // LOGIC TÌM KIẾM VÀ LỌC (NÂNG CẤP MỚI + FIX LỖI TIMEOUT)
+        // LOGIC DROPDOWN FILTER VÀ PHÂN TRANG
         // ==========================================
         let allPrompts = [];
         let currentFilter = 'Tất cả';
         let currentSearch = '';
+        let displayedCount = 10; 
+
+        // Xử lý Đóng/Mở Dropdown Filter
+        const filterBtn = $('filterBtn');
+        const filterMenu = $('filterDropdownMenu');
+        const filterIcon = $('filterIcon');
+
+        if (filterBtn && filterMenu) {
+            filterBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const isHidden = filterMenu.classList.contains('hidden');
+                if (isHidden) {
+                    filterMenu.classList.remove('hidden');
+                    filterIcon.style.transform = 'rotate(180deg)';
+                } else {
+                    filterMenu.classList.add('hidden');
+                    filterIcon.style.transform = 'rotate(0deg)';
+                }
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!filterMenu.contains(e.target) && !filterBtn.contains(e.target)) {
+                    filterMenu.classList.add('hidden');
+                    filterIcon.style.transform = 'rotate(0deg)';
+                }
+            });
+        }
 
         async function fetchLibrary() {
             const grid = $('libraryGrid'); const skeleton = $('skeletonLoader'); const empty = $('emptyState');
+            const loadMoreContainer = $('loadMoreContainer');
             
             skeleton.style.display = 'grid'; 
             skeleton.innerHTML = `
@@ -511,10 +549,11 @@
             `;
             grid.innerHTML = ''; 
             empty.classList.add('hidden');
+            loadMoreContainer.classList.add('hidden');
 
-            // TẠO BỘ ĐẾM NGƯỢC (TIMEOUT 15 GIÂY)
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 15000); 
+            // Tăng timeout lên 20s cho các trường hợp Render ngủ đông
+            const timeoutId = setTimeout(() => controller.abort(), 20000); 
 
             try {
                 const res = await fetch(`${API_URL}/top_prompts`, { signal: controller.signal });
@@ -529,13 +568,13 @@
                 else if (data && Array.isArray(data.data)) allPrompts = data.data;
                 else allPrompts = []; 
 
-                generateFilterTabs();
+                displayedCount = 10; 
+                generateFilterOptions(); // Đổi tên hàm
                 renderPrompts();
 
             } catch (e) { 
                 clearTimeout(timeoutId);
                 console.error("Fetch Error:", e);
-                
                 skeleton.style.display = 'none';
                 grid.innerHTML = '';
                 empty.classList.remove('hidden');
@@ -548,33 +587,37 @@
                     $('emptyDesc').textContent = "Có thể API đang gặp sự cố hoặc chưa có dữ liệu.";
                 }
                 
-                const resetBtn = empty.querySelector('button');
+                const resetBtn = $('btnResetSearch');
                 resetBtn.textContent = "Thử lại";
                 resetBtn.onclick = () => fetchLibrary();
             }
         }
 
-        function generateFilterTabs() {
-            const tabsContainer = $('filterTabs');
+        // Đổ dữ liệu vào Dropdown
+        function generateFilterOptions() {
             const types = ['Tất cả', ...new Set(allPrompts.map(p => p.type || 'PROMPT'))]; 
+            filterMenu.innerHTML = '';
             
-            tabsContainer.innerHTML = '';
             types.forEach(type => {
                 const btn = document.createElement('button');
-                btn.className = `filter-tab px-4 py-1.5 rounded-full text-sm font-semibold whitespace-nowrap border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 ${type === currentFilter ? 'active' : ''}`;
+                const isActive = type === currentFilter;
+                btn.className = `w-full text-left px-4 py-2.5 text-sm font-semibold transition-colors ${isActive ? 'bg-pink-50 dark:bg-blue-900/30 text-pink-500 dark:text-blue-400' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'}`;
                 btn.textContent = type;
                 btn.onclick = () => {
                     currentFilter = type;
-                    document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
-                    btn.classList.add('active');
+                    $('currentFilterText').textContent = type; // Cập nhật text nút bấm
+                    filterMenu.classList.add('hidden'); // Đóng menu
+                    filterIcon.style.transform = 'rotate(0deg)';
+                    displayedCount = 10; 
                     renderPrompts();
                 };
-                tabsContainer.appendChild(btn);
+                filterMenu.appendChild(btn);
             });
         }
 
         function renderPrompts() {
             const grid = $('libraryGrid'); const skeleton = $('skeletonLoader'); const empty = $('emptyState');
+            const loadMoreContainer = $('loadMoreContainer');
             skeleton.style.display = 'none';
             grid.innerHTML = '';
 
@@ -586,14 +629,16 @@
 
             if (filtered.length === 0) {
                 empty.classList.remove('hidden');
+                loadMoreContainer.classList.add('hidden');
                 $('emptyTitle').textContent = "Không tìm thấy Prompt nào";
                 $('emptyDesc').textContent = "Thử thay đổi từ khóa hoặc bộ lọc xem sao nhé!";
                 return;
             }
 
             empty.classList.add('hidden');
+            const promptsToShow = filtered.slice(0, displayedCount);
 
-            filtered.forEach((item, index) => {
+            promptsToShow.forEach((item, index) => {
                 const card = document.createElement('div');
                 card.className = 'card-enter bg-white/90 dark:bg-[#1e293b]/90 backdrop-blur-sm border border-slate-200 dark:border-slate-700/60 rounded-2xl p-5 shadow-sm hover:shadow-xl hover:border-pink-300 dark:hover:border-blue-500 transition-all flex flex-col';
                 card.style.animationDelay = `${index * 0.05}s`;
@@ -643,11 +688,36 @@
                     } catch (err) { showToast("Trình duyệt không cho phép copy.", "error"); }
                 });
             });
+
+            if (filtered.length > displayedCount) {
+                loadMoreContainer.classList.remove('hidden');
+            } else {
+                loadMoreContainer.classList.add('hidden');
+            }
+        }
+
+        window.loadMorePrompts = function() {
+            displayedCount += 10; 
+            renderPrompts();      
+        }
+
+        window.refreshRandom = function() {
+            const icon = document.getElementById('refreshIcon');
+            icon.classList.add('animate-spin');
+            
+            // Reset bộ lọc về Tất cả khi làm mới
+            currentFilter = 'Tất cả';
+            $('currentFilterText').textContent = 'Tất cả';
+            
+            fetchLibrary().finally(() => {
+                setTimeout(() => icon.classList.remove('animate-spin'), 500);
+            });
         }
 
         if ($('searchInput')) {
             $('searchInput').addEventListener('input', (e) => {
                 currentSearch = e.target.value;
+                displayedCount = 10; 
                 renderPrompts();
             });
         }
@@ -656,10 +726,13 @@
             $('searchInput').value = '';
             currentSearch = '';
             currentFilter = 'Tất cả';
-            document.querySelectorAll('.filter-tab').forEach((t, i) => {
-                if(i === 0) t.classList.add('active');
-                else t.classList.remove('active');
-            });
+            $('currentFilterText').textContent = 'Tất cả';
+            displayedCount = 10;
+            
+            const resetBtn = $('btnResetSearch');
+            resetBtn.textContent = "Xóa bộ lọc";
+            resetBtn.onclick = () => resetSearch();
+            
             renderPrompts();
         }
 
