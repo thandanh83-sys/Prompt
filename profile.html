@@ -223,7 +223,8 @@
     <script>
         const API_URL = "https://prompt-tx2e.onrender.com";
         const SUPABASE_URL = "https://egncrbearrwfoslryuga.supabase.co";
-        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVnbmNyYmVhcnJ3Zm9zbHJ5dWdhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI1MDk2MzgsImV4cCI6MjEwODA4NTYzOH0.jX8rz7Fk5wqdbDqb6ZwKUiMs-wggVRj-dLk2dqlYFM";
+        // ĐÃ SỬA CHÍNH XÁC KEY (jX8rz7Fk5wIqdbDqb6ZwKUiMs)
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVnbmNyYmVhcnJ3Zm9zbHJ5dWdhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI1MDk2MzgsImV4cCI6MjEwODA4NTYzOH0.jX8rz7Fk5wIqdbDqb6ZwKUiMs-wggVRj-dLk2dqlYFM";
         
         const supabaseClient = window.supabase?.createClient ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
         const $ = id => document.getElementById(id);
@@ -338,9 +339,14 @@
         // BẮT SỰ KIỆN ENTER TRÊN Ô EMAIL
         $('loginEmail').addEventListener('keypress', function (e) {
             if (e.key === 'Enter') {
-                e.preventDefault(); // Ngăn trình duyệt tự động submit form (nếu có)
-                $('btnSendMagicLink').click(); // Kích hoạt nút Gửi
+                e.preventDefault(); 
+                $('btnSendMagicLink').click(); 
             }
+        });
+
+        // TỰ ĐỘNG XÓA LỖI KHI NGƯỜI DÙNG GÕ LẠI EMAIL
+        $('loginEmail').addEventListener('input', function() {
+            $('loginError').style.display = 'none';
         });
 
         // 4. ĐĂNG NHẬP BẰNG EMAIL (MAGIC LINK)
@@ -350,7 +356,21 @@
             const btn = $('btnSendMagicLink');
             
             if (!supabaseClient) { errorMsg.textContent = 'Lỗi tải thư viện.'; errorMsg.style.display = 'block'; return; }
-            if (!email) { errorMsg.textContent = "Vui lòng nhập email!"; errorMsg.style.display = 'block'; return; }
+            
+            // VALIDATE 1: KIỂM TRA RỖNG
+            if (!email) { 
+                errorMsg.textContent = "Vui lòng nhập email!"; 
+                errorMsg.style.display = 'block'; 
+                return; 
+            }
+
+            // VALIDATE 2: KIỂM TRA ĐỊNH DẠNG EMAIL BẰNG REGEX
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                errorMsg.textContent = "Email không đúng định dạng. Vui lòng kiểm tra lại!";
+                errorMsg.style.display = 'block';
+                return;
+            }
             
             btn.textContent = "Đang gửi..."; btn.disabled = true; errorMsg.style.display = 'none';
             
