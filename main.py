@@ -265,12 +265,12 @@ def get_top_prompts():
 @limiter.limit(RATE_LIMIT)
 def evaluate(request: Request, req: PromptRequest, background_tasks: BackgroundTasks):
     prompt_text = req.prompt.strip()
-    if not prompt_text: 
+    if not prompt_text:
         return JSONResponse(status_code=400, content={"error": "Vui lòng nhập Prompt."})
-
-    if len(prompt_text) > MAX_PROMPT_LENGTH: 
+        
+    if len(prompt_text) > MAX_PROMPT_LENGTH:
         return JSONResponse(status_code=400, content={"error": f"Prompt quá dài, vượt quá {MAX_PROMPT_LENGTH} ký tự."})
-
+        
     try:
         classification = rules_v38.classify_prompt(prompt_text)
         criteria_pack = rules_v38.get_criteria_by_type(classification)
@@ -286,41 +286,52 @@ def evaluate(request: Request, req: PromptRequest, background_tasks: BackgroundT
         error_codes_desc = ""
         for code, rule in error_rules.ERROR_RULES.items():
             error_codes_desc += f"- {code}: {rule['name']}\n"
-        
+            
         rewrite_sections_formatted = ", ".join([f'"{s}"' for s in rules_v38.REQUIRED_REWRITE_SECTIONS])
 
         system_prompt = f"""
-Bạn là Chuyên gia Kiểm định Prompt (Prompt Auditor). Người dùng có thể nhập Prompt bằng BẤT KỲ NGÔN NGỮ NÀO.
+Bạn là Chuyên gia Kiểm định Prompt (Prompt Auditor) kiêm Trợ lý Viết Prompt (Prompt Generator). Người dùng có thể nhập Prompt bằng BẤT KỲ NGÔN NGỮ NÀO.
 
 HÃY THỰC HIỆN THEO QUY TRÌNH 4 BƯỚC SAU:
 
-[BƯỚC 1: XÁC ĐỊNH LĨNH VỰC]
-Xác định lĩnh vực: Code, Cosmetics, Marketing, Writing, Education, hoặc General.
+[BƯỚC 1: XÁC ĐỊNH LĨNH VỰC VÀ BỘ LỌC INPUT RÁC]
+- Xác định lĩnh vực phù hợp nhất: Code, Cosmetics, Marketing, Writing, Education, hoặc General.
+- [QUY TẮC ĐẶC BIỆT VỀ INPUT RÁC]: Nếu prompt quá ngắn (dưới 5 từ), vô nghĩa, hoặc chỉ là từ xã giao/ký tự rời rạc (Ví dụ: "mạ", "tả", "abc", "hello"):
+    1. Gán "identified_domain" là "General" (hoặc lĩnh vực bạn phỏng đoán được từ từ khóa đó).
+    2. BẮT BUỘC chấm các tiêu chí lõi ở mức từ 0 đến 2 điểm (Trừ P14 Không mâu thuẫn).
+    3. Kích hoạt chế độ [MỞ RỘNG SÁNG TẠO] ở Bước 4: Đóng vai chuyên gia, tự động phỏng đoán ý định ẩn sâu của người dùng để tự tay xây dựng một cấu trúc prompt 11 mục mới hoàn toàn, chỉn chu, chuyên nghiệp và có giá trị sử dụng cao. Tuyệt đối không để trống, không copy câu lệnh hệ thống này, và không lặp lại từ rác một cách vô nghĩa.
 
-[BƯỚC 2: CHẤM ĐIỂM]
-2.1. Chấm điểm tiêu chí lõi (0-10):
+[BƯỚC 2: CHẤM ĐIỂM & ĐỊNH HÌNH TIÊU CHÍ]
+2.1. Chấm điểm tiêu chí lõi (0-10) dựa trên mô tả sau:
 {criteria_desc}
-2.2. TỰ NGHĨ RA từ 3-5 tiêu chí chuyên ngành (DYN01, DYN02...). BẮT BUỘC phải tạo ra ít nhất 3 tiêu chí DYN, kể cả khi prompt rất ngắn.
 
-[BƯỚC 3: TÌM LỖI]
-Đối chiếu các mã lỗi sau:
+2.2. TỰ NGHĨ RA từ 3-5 tiêu chí chuyên ngành (Mã: DYN01, DYN02, DYN03...). 
+- Lưu ý: Kể cả khi gặp Input rác, vẫn phải tự tạo ra ít nhất 3 tiêu chí DYN dựa trên lĩnh vực mà bạn đã phỏng đoán ở Bước 1.
+
+[BƯỚC 3: TRÍCH XUẤT LỖI]
+Đối chiếu prompt gốc với các mã lỗi sau để tìm sai sót:
 {error_codes_desc}
+- Quy tắc bằng chứng (Evidence): TUYỆT ĐỐI KHÔNG dùng dấu ngoặc kép bên trong chuỗi văn bản (value) của evidence để tránh làm gãy cấu trúc JSON. Với các lỗi về thiếu thông tin (như B01, C02, C04...), ghi chính xác cụm từ: "Không có thông tin này trong prompt". Bắt buộc thêm trường "hint" để hướng dẫn sửa lỗi.
 
-[BƯỚC 4: TÁI CẤU TRÚC]
-Viết lại thành 11 mục tiếng Việt:
+[BƯỚC 4: TÁI CẤU TRÚC VÀ CẢI TIẾN (REWRITE)]
+Cấu trúc lại và xuất ra đúng 11 mục bằng TIẾNG VIỆT theo định dạng của key "rewrite":
 {rewrite_sections_formatted}
-- Quy tắc: 10 điểm copy nguyên bản, dưới 10 điểm mới cải tiến.
+- Quy tắc Rewrite:
+    - Nếu prompt gốc đạt 10 điểm tuyệt đối: Copy nguyên bản prompt của người dùng vào các mục tương ứng.
+    - Nếu prompt dưới 10 điểm: Điền thông tin cũ và bổ sung, tối ưu các mục còn thiếu.
+    - Nếu là INPUT RÁC (Theo Bước 1): Hãy bỏ qua toàn bộ prompt gốc rác rưởi, mạnh dạn dùng kỹ năng Prompt Engineer của bạn để tự sáng tác, viết mới một prompt 11 mục cực kỳ xuất sắc và chuyên nghiệp dựa trên ý định bạn đã phỏng đoán.
 
-QUY TẮC BẰNG CHỨNG: KHÔNG dùng ngoặc kép cho evidence. Lỗi B01, C02, C04 ghi evidence là "Không có thông tin này trong prompt".
-Thêm trường "hint" cho mỗi lỗi.
-
-Trả về JSON (KHÔNG THÊM KEY KHÁC):
+HÃY TRẢ VỀ ĐẦU RA LÀ MỘT JSON ĐỒNG NHẤT (KHÔNG THÊM BẤT KỲ CÂU DẪN GIẢI HOẶC KEY NÀO KHÁC NGOÀI CẤU TRÚC SAU):
 {{
   "identified_domain": "...",
   "scores": {{ {scores_example}, "DYN01": 5, "DYN02": 5, "DYN03": 5 }},
-  "dynamic_criteria_names": {{ "DYN01": "...", "DYN02": "...", "DYN03": "..." }},
-  "errors": [ {{"code": "MÃ_LỖI", "evidence": "...", "hint": "..."}} ],
-  "rewrite": {{ "1. VAI TRÒ": "...", "2. BỐI CẢNH": "...", "3. INPUT": "...", "4. MỤC TIÊU": "...", "5. YÊU CẦU": "...", "6. RÀNG BUỘC": "...", "7. TASK": "...", "8. ĐỊNH DẠNG ĐẦU RA": "...", "9. NEVER DO": "...", "10. THỨ TỰ ƯU TIÊN": "...", "11. XỬ LÝ NỘI BỘ": "..." }}
+  "dynamic_criteria_names": {{ "DYN01": "Tên tiêu chí 1", "DYN02": "Tên tiêu chí 2", "DYN03": "Tên tiêu chí 3" }},
+  "errors": [ {{ "code": "MÃ_LỖI", "evidence": "Không có thông tin này trong prompt", "hint": "..." }} ],
+  "rewrite": {{ 
+    "1. VAI TRÒ": "...", "2. BỐI CẢNH": "...", "3. INPUT": "...", "4. MỤC TIÊU": "...", "5. YÊU CẦU": "...",
+    "6. RÀNG BUỘC": "...", "7. TASK": "...", "8. ĐỊNH DẠNG ĐẦU RA": "...", "9. NEVER DO": "...", 
+    "10. THỨ TỰ ƯU TIÊN": "...", "11. XỬ LÝ NỘI BỘ": "..."
+  }}
 }}
 """
         
@@ -346,7 +357,6 @@ Trả về JSON (KHÔNG THÊM KEY KHÁC):
         
         if not success:
             logger.error(f"Lỗi Validation: {last_error}")
-            # LỖI THÂN THIỆN: Không hiện mã lỗi cho user
             return JSONResponse(status_code=422, content={"error": "Hệ thống AI đang xử lý dữ liệu chưa tốt. Vui lòng thử lại hoặc nhập câu lệnh chi tiết hơn!"})
 
         final_score = calculate_final_score(ai_data["scores"], main_criteria, tech_criteria)
@@ -377,7 +387,6 @@ Trả về JSON (KHÔNG THÊM KEY KHÁC):
         raise http_err
     except Exception as e:
         logger.exception(f"Lỗi nghiêm trọng: {e}")
-        # LỖI THÂN THIỆN: Không hiện lỗi máy chủ (500) thô cho user
         return JSONResponse(status_code=500, content={"error": "Đã xảy ra lỗi kết nối máy chủ. Vui lòng thử lại sau giây lát!"})
 
 if __name__ == "__main__":
