@@ -17,19 +17,14 @@ TECH_CREATIVE = "CREATIVE_GEN"
 class ConfigurationError(Exception):
     pass
 
-VALID_ERROR_CODES = {
-    "A01": "Lỗi chính tả", "A02": "Thiếu dấu câu", "A03": "Lặp lại",
-    "B01": "Thiếu thành phần cấu trúc", "B02": "Mục không logic", "B03": "Sai phân cấp", "B04": "Chưa quy định định dạng đầu ra",
-    "C01": "Đối tượng chưa rõ", "C02": "Thiếu bối cảnh", "C03": "Yêu cầu chung chung", "C04": "Thiếu ví dụ",
-    "D01": "Mâu thuẫn nội bộ", "D02": "Yêu cầu bất khả thi", "D03": "Vai trò không phù hợp",
-    "E01": "Trộn lĩnh vực", "E02": "Thuật ngữ không nhất quán", "E03": "Thiếu tính đặc thù lĩnh vực"
-}
-
-# BỘ TIÊU CHÍ LÕI (Dùng chung cho mọi Prompt)
+# ==========================================
+# BỘ TIÊU CHÍ LÕI (CORE CRITERIA)
+# Áp dụng cho TẤT CẢ mọi loại Prompt trên đời
+# ==========================================
 CRITERIA_CORE = {
     "P01": {"name": "Độ rõ nhiệm vụ", "weight": 1.2, "rubric": "0-2: Không có động từ hành động. 3-4: Động từ mơ hồ. 5-6: Rõ hành động. 7-10: Rõ hành động, rõ kết quả."},
-    "P02": {"name": "Đối tượng tác động", "weight": 1.2, "rubric": "0-2: Không có đối tượng. 3-4: Đối tượng chung chung. 5-6: Đối tượng cụ thể. 7-10: Đối tượng rất chi tiết."},
-    "P03": {"name": "Bối cảnh", "weight": 0.8, "rubric": "0-2: Không có bối cảnh. 3-4: Bối cảnh sơ sài. 5-6: Có bối cảnh rõ. 7-10: Bối cảnh phong phú."},
+    "P02": {"name": "Đối tượng tác động", "weight": 1.2, "rubric": "0-2: Không có đối tượng. 3-4: Đối tượng chung chung. 5P03":-6: {" Đối tượng cụ thể. 7-10: Đối tượng rất chi tiết."},
+    "name": "Bối cảnh", "weight": 0.8, "rubric": "0-2: Không có bối cảnh. 3-4: Bối cảnh sơ sài. 5-6: Có bối cảnh rõ. 7-10: Bối cảnh phong phú."},
     "P04": {"name": "Định dạng đầu ra", "weight": 0.8, "rubric": "0-2: Không yêu cầu định dạng. 3-4: Yêu cầu chung chung. 5-6: Có yêu cầu cụ thể. 7-10: Yêu cầu rất chi tiết."},
     "P05": {"name": "Độ chi tiết và ví dụ", "weight": 1.6, "rubric": "0-2: Không có ví dụ. 3-4: Ít chi tiết. 5-6: Có ví dụ cơ bản. 7-10: Nhiều ví dụ và chi tiết."},
     "P06": {"name": "Không mơ hồ", "weight": 0.2, "rubric": "0-2: Rất mơ hồ. 3-4: Có từ mơ hồ. 5-6: Ít mơ hồ. 7-10: Hoàn toàn rõ ràng."},
@@ -39,25 +34,41 @@ CRITERIA_CORE = {
     "P14": {"name": "Không mâu thuẫn", "weight": 0.2, "rubric": "0-2: Nhiều mâu thuẫn. 3-4: Có mâu thuẫn. 5-6: Ít mâu thuẫn. 7-10: Không mâu thuẫn."}
 }
 
-# BỘ TIÊU CHÍ KỸ THUẬT
+# ==========================================
+# BỘ TIÊU CHÍ KỸ THUẬT (TECHNIQUES)
+# Chỉ kích hoạt khi người dùng dùng các kỹ thuật tương ứng
+# ==========================================
 CRITERIA_ROLE_PLAY = {
-    "R01": {"name": "Sự phù hợp của vai trò", "weight": 1.5, "rubric": "0-2: Vai trò không liên quan. 7-10: Vai trò tối ưu."},
-    "R02": {"name": "Mục tiêu hội thoại", "weight": 1.2, "rubric": "0-2: Không có mục tiêu. 7-10: Mục tiêu cụ thể."},
-}
-CRITERIA_FEW_SHOT = {
-    "F01": {"name": "Tính liên quan của ví dụ", "weight": 1.5, "rubric": "0-2: Không liên quan. 7-10: Ví dụ hoàn hảo."},
-    "F02": {"name": "Độ bao quát của ví dụ", "weight": 1.2, "rubric": "0-2: Chỉ 1 ví dụ. 7-10: Bao quát ngoại lệ."},
-}
-CRITERIA_COT = {
-    "C01": {"name": "Yêu cầu giải quyết có cấu trúc", "weight": 1.5, "rubric": "0-2: Không yêu cầu. 7-10: Quy trình từng bước rõ ràng."},
-}
-CRITERIA_FORMATTED_OUTPUT = {
-    "FO01": {"name": "Schema và kiểu dữ liệu", "weight": 1.5, "rubric": "0-2: Không xác định. 7-10: Schema chi tiết."},
-}
-CRITERIA_CREATIVE = {
-    "CG01": {"name": "Mục tiêu sáng tạo", "weight": 1.5, "rubric": "0-2: Không có. 7-10: Định nghĩa sắc nét."},
+    "R01": {"name": "Sự phù hợp của vai trò", "weight": 1.5, "rubric": "0-2: Vai trò không liên quan. 3-4: Vai trò chung chung. 5-6: Vai trò phù hợp. 7-10: Vai trò tối ưu cho nhiệm vụ."},
+    "R02": {"name": "Mục tiêu hội thoại", "weight": 1.2, "rubric": "0-2: Không có mục tiêu. 3-4: Mục tiêu mơ hồ. 5-6: Mục tiêu rõ. 7-10: Mục tiêu cụ thể, đo lường được."},
+    "R03": {"name": "Giới hạn hành vi", "weight": 0.8, "rubric": "0-2: Không có ràng buộc. 3-4: Ràng buộc chung. 5-6: Ràng buộc rõ. 7-10: Ràng buộc chi tiết."}
 }
 
+CRITERIA_FEW_SHOT = {
+    "F01": {"name": "Tính liên quan của ví dụ", "weight": 1.5, "rubric": "0-2: Ví dụ không liên quan. 3-4: Xa rời thực tế. 5-6: Sát với yêu cầu. 7-10: Ví dụ hoàn hảo."},
+    "F02": {"name": "Độ bao quát của ví dụ", "weight": 1.2, "rubric": "0-2: Chỉ 1 ví dụ. 3-4: 1-2 ví dụ chưa bao quát. 5-6: Bao quát trường hợp phổ biến. 7-10: Bao quát cả ngoại lệ."},
+    "F03": {"name": "Cấu trúc Input-Output", "weight": 0.8, "rubric": "0-2: Không cấu trúc. 3-4: Lỏng lẻo. 5-6: Rõ ràng, dễ hiểu. 7-10: Chuẩn hóa (delimiter rõ ràng)."}
+}
+
+CRITERIA_COT = {
+    "C01": {"name": "Yêu cầu giải quyết có cấu trúc", "weight": 1.5, "rubric": "0-2: Không yêu cầu. 3-4: Chung chung. 5-6: Chia nhỏ vấn đề. 7-10: Quy trình từng bước rõ ràng."},
+    "C02": {"name": "Khả năng kiểm tra lập luận", "weight": 1.2, "rubric": "0-2: Không có. 3-4: Sơ sài. 5-6: Yêu cầu giải thích lý do. 7-10: Yêu cầu chứng minh và kiểm tra chéo."},
+    "C03": {"name": "Kết luận rõ ràng", "weight": 0.8, "rubric": "0-2: Không yêu cầu. 3-4: Mơ hồ. 5-6: Có đáp án cuối cùng. 7-10: Tách biệt rõ quá trình và kết quả."}
+}
+
+CRITERIA_FORMATTED_OUTPUT = {
+    "FO01": {"name": "Schema và kiểu dữ liệu", "weight": 1.5, "rubric": "0-2: Không định dạng. 3-4: Xác định chung (JSON). 5-6: Cấu trúc cơ bản. 7-10: Schema chi tiết, rõ kiểu dữ liệu."},
+    "FO02": {"name": "Trường bắt buộc", "weight": 1.0, "rubric": "0-2: Không có. 3-4: Có đề cập. 5-6: Liệt kê trường. 7-10: Chỉ định rõ bắt buộc/tùy chọn."},
+    "FO03": {"name": "Quy tắc xử lý lỗi", "weight": 1.0, "rubric": "0-2: Không có. 3-4: Đề cập. 5-6: Hướng dẫn chung. 7-10: Quy định rõ cách xử lý lỗi (VD: trả về null)."}
+}
+
+CRITERIA_CREATIVE = {
+    "CG01": {"name": "Mục tiêu sáng tạo", "weight": 1.5, "rubric": "0-2: Không mục tiêu. 3-4: Mơ hồ. 5-6: Rõ ràng. 7-10: Định nghĩa sắc nét, đo lường được."},
+    "CG02": {"name": "Đối tượng độc giả", "weight": 1.2, "rubric": "0-2: Không có. 3-4: Chung. 5-6: Cụ thể. 7-10: Rất chi tiết (độ tuổi, sở thích...)."},
+    "CG03": {"name": "Phong cách và ràng buộc", "weight": 1.0, "rubric": "0-2: Không ràng buộc. 3-4: Lỏng lẻo. 5-6: Có phong cách. 7-10: Rõ phong cách, tông giọng, số từ."}
+}
+
+# 11 Mục bắt buộc phải có trong Bản sửa (Rewrite)
 REQUIRED_REWRITE_SECTIONS = [
     "1. VAI TRÒ", "2. BỐI CẢNH", "3. INPUT", "4. MỤC TIÊU", "5. YÊU CẦU", 
     "6. RÀNG BUỘC", "7. TASK", "8. ĐỊNH DẠNG ĐẦU RA", "9. NEVER DO", 
@@ -65,15 +76,21 @@ REQUIRED_REWRITE_SECTIONS = [
 ]
 
 def validate_config(main_criteria: dict, tech_criteria: dict):
-    if not main_criteria: raise ConfigurationError("Rỗng.")
+    if not main_criteria:
+        raise ConfigurationError("Nhóm tiêu chí chính bị rỗng.")
     all_criteria = {**main_criteria, **tech_criteria}
+    if len(all_criteria) != len(main_criteria) + len(tech_criteria):
+        raise ConfigurationError("Phát hiện ID tiêu chí bị trùng giữa Main và Tech.")
     for k, v in all_criteria.items():
         w = v.get("weight", 0)
-        if type(w) not in (int, float) or not math.isfinite(w) or w <= 0:
-            raise ConfigurationError(f"Trọng số '{k}' không hợp lệ.")
+        is_valid_type = type(w) in (int, float) and not isinstance(w, bool)
+        if not is_valid_type or not math.isfinite(w) or w <= 0:
+            raise ConfigurationError(f"Trọng số của '{k}' không hợp lệ.")
 
 def get_criteria_by_type(classification: dict) -> dict:
+    """Trả về bộ tiêu chí Lõi + Kỹ thuật (Không còn chia theo ngành nghề cứng nhắc)"""
     techniques = classification.get("techniques", [])
+    
     main_criteria = CRITERIA_CORE.copy()
     tech_criteria = {}
     
@@ -87,6 +104,10 @@ def get_criteria_by_type(classification: dict) -> dict:
     return {"main": main_criteria, "tech": tech_criteria}
 
 def classify_prompt(prompt_text: str) -> dict:
+    """
+    Nhận diện xem người dùng đang dùng Kỹ thuật (Techniques) nào.
+    Việc nhận diện ngành nghề (Mỹ phẩm, Code, Marketing) sẽ do AI tự động làm ở Bước 2 trong main.py.
+    """
     if not isinstance(prompt_text, str): return {"main_task": TYPE_EMPTY, "techniques": []}
     text = prompt_text.strip()
     if not text: return {"main_task": TYPE_EMPTY, "techniques": []}
@@ -94,10 +115,16 @@ def classify_prompt(prompt_text: str) -> dict:
     lower_text = text.lower()
     techniques = []
     
-    if any(kw in lower_text for kw in ["đóng vai", "bạn là", "act as", "role:"]): techniques.append(TECH_ROLE_PLAY)
-    if any(kw in lower_text for kw in ["ví dụ 1:", "few-shot"]): techniques.append(TECH_FEW_SHOT)
-    if any(kw in lower_text for kw in ["từng bước", "step-by-step", "quy trình"]): techniques.append(TECH_COT)
-    if any(kw in lower_text for kw in ["json", "xml", "markdown", "output format:"]): techniques.append(TECH_FORMAT)
-    if any(kw in lower_text for kw in ["viết truyện", "làm thơ", "sáng tác", "story"]): techniques.append(TECH_CREATIVE)
+    if any(kw in lower_text for kw in ["đóng vai", "bạn là", "hãy vào vai", "giả sử bạn là", "act as", "role:", "persona:", "vai trò:"]):
+        techniques.append(TECH_ROLE_PLAY)
+    if any(kw in lower_text for kw in ["ví dụ 1:", "ví dụ mẫu", "input:", "output:", "dưới đây là ví dụ", "ví dụ như sau", "example:", "few-shot"]):
+        techniques.append(TECH_FEW_SHOT)
+    if any(kw in lower_text for kw in ["từng bước", "suy luận", "giải thích từng bước", "chain of thought", "các bước sau", "quy trình", "step-by-step", "think step by step", "cot"]):
+        techniques.append(TECH_COT)
+    if any(kw in lower_text for kw in ["json", "xml", "định dạng bảng", "markdown", "trả về dạng", "cấu trúc dữ liệu", "output format:", "format:", "yaml", "csv"]):
+        techniques.append(TECH_FORMAT)
+    if any(kw in lower_text for kw in ["viết truyện", "làm thơ", "sáng tác", "kịch bản", "viết quảng cáo", "brainstorm", "viết content", "story", "poem", "script", "write a"]):
+        techniques.append(TECH_CREATIVE)
 
+    # Trả về loại mặc định là PROMPT (AI sẽ tự lo phần chuyên ngành)
     return {"main_task": TYPE_PROMPT, "techniques": techniques}
