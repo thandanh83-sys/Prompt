@@ -40,8 +40,10 @@
         .btn-glow { box-shadow: 0 4px 20px rgba(236,72,153,.3); transition: all .2s ease; }
         .btn-glow:hover { box-shadow: 0 6px 25px rgba(59,130,246,.5); transform: translateY(-2px); }
         
+        /* CSS MENU CHUẨN */
         .menu-dropdown { transition: opacity 0.2s ease-out, transform 0.2s ease-out; transform-origin: top left; will-change: opacity, transform; width: min(280px, calc(100vw - 32px)); max-height: calc(100dvh - 100px); overflow-y: auto; box-sizing: border-box; z-index: 9999 !important; }
 
+        /* HIỆU ỨNG POWERPOINT */
         .feature-wrapper { cursor: pointer; transition: all 0.4s ease; }
         .feature-header { position: relative; background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 1.5rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03); transition: all 0.4s ease; }
         .dark .feature-header { background-color: #1e293b; border-color: #334155; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.3); }
@@ -116,6 +118,7 @@
 <body class="antialiased font-sans min-h-screen relative text-slate-800 dark:text-slate-200 flex flex-col">
     <div class="page-bg"></div>
 
+    <!-- HEADER -->
     <header class="app-header fixed top-0 left-0 w-full z-50 border-b pt-[env(safe-area-inset-top,0px)]">
         <div class="w-full max-w-7xl mx-auto px-3 sm:px-6 h-16 md:h-20 grid grid-cols-3 items-center">
             
@@ -399,7 +402,6 @@
             <div class="bg-white/50 dark:bg-[#1e293b]/50 backdrop-blur-md rounded-3xl p-10 md:p-16 text-center relative overflow-hidden border border-slate-200 dark:border-slate-700/50 shadow-lg">
                 <h2 class="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-6 relative z-10">Sẵn sàng nâng cấp Prompt của bạn?</h2>
                 <p class="text-lg md:text-xl text-slate-600 dark:text-slate-300 mb-8 max-w-xl mx-auto relative z-10">Trải nghiệm ngay công cụ đánh giá Prompt thông minh nhất.</p>
-                <!-- ĐÃ XÓA EMOJI 🚀 VÀ THAY BẰNG SVG -->
                 <a href="./landing.html" class="inline-flex items-center justify-center gap-2 px-10 py-4 rounded-full font-bold text-lg text-white bg-gradient-to-r from-pink-500 to-blue-500 shadow-lg hover:scale-105 transition-transform relative z-10" title="Chuyển đến ứng dụng">
                     Vào ứng dụng ngay
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 9l3 3m0 0l-3 3m3-3H8m13 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
@@ -413,8 +415,13 @@
     </footer>
 
     <script>
-        const hamburger = document.getElementById('btnHamburger');
-        const dropdown = document.getElementById('dropdownMenu');
+        // KHAI BÁO BIẾN QUAN TRỌNG ĐÃ BỊ THIẾU
+        const API_URL = "https://prompt-tx2e.onrender.com";
+        const $ = id => document.getElementById(id);
+
+        // 1. MENU LOGIC
+        const hamburger = $('btnHamburger');
+        const dropdown = $('dropdownMenu');
 
         if (hamburger && dropdown) {
             hamburger.addEventListener('click', (e) => {
@@ -448,11 +455,13 @@
             });
         }
 
+        // 2. THEME LOGIC
         const moonSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-5 h-5 text-blue-400"><defs><linearGradient id="moonGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#60a5fa" /><stop offset="100%" stop-color="#3b82f6" /></linearGradient></defs><path fill="url(#moonGrad)" d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`;
         const sunSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-5 h-5 text-yellow-500"><defs><linearGradient id="sunGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#fef08a" /><stop offset="100%" stop-color="#f59e0b" /></linearGradient></defs><circle cx="12" cy="12" r="5" fill="url(#sunGrad)"></circle><path stroke="url(#sunGrad)" stroke-width="2" stroke-linecap="round" d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>`;
 
         function applyTheme(dark) {
-            document.documentElement.classList.toggle('dark', dark); document.documentElement.classList.toggle('light', !dark);
+            document.documentElement.classList.toggle('dark', dark); 
+            document.documentElement.classList.toggle('light', !dark);
             if($('themeIconMenu')) $('themeIconMenu').innerHTML = dark ? sunSVG : moonSVG; 
             if($('themeTextMenu')) $('themeTextMenu').textContent = dark ? 'Chế độ Sáng' : 'Chế độ Tối';
             try { window.localStorage.setItem('theme', dark ? 'dark' : 'light'); } catch (error) { }
@@ -468,6 +477,7 @@
             });
         }
 
+        // 3. HIỆU ỨNG POWERPOINT
         function toggleFeature(event, element) {
             if (event && event.target) {
                 if (event.target.closest('.child-card') || event.target.closest('.accordion-content')) return;
@@ -484,6 +494,7 @@
             }
         }
 
+        // 4. NÚT TÌM HIỂU THÊM
         document.addEventListener('DOMContentLoaded', () => {
             const btnLearnMore = document.getElementById('btnLearnMore');
             if (btnLearnMore) {
@@ -498,12 +509,13 @@
             }
         });
 
+        // 5. KIỂM TRA QUYỀN ADMIN
         async function syncAdminMenuVisibility() {
             try {
                 const res = await fetch(`${API_URL}/check_admin_ip`);
                 if (res.ok) { 
-                    $('adminMenuDivider').style.display = 'block'; 
-                    $('menuBtnAdmin').style.display = 'flex'; 
+                    if($('adminMenuDivider')) $('adminMenuDivider').style.display = 'block'; 
+                    if($('menuBtnAdmin')) $('menuBtnAdmin').style.display = 'flex'; 
                 } 
             } catch (e) { console.log("Không thể xác thực IP Admin."); }
         }
