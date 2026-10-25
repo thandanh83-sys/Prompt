@@ -43,9 +43,21 @@
         /* CSS MENU CHUẨN */
         .menu-dropdown { transition: opacity 0.2s ease-out, transform 0.2s ease-out; transform-origin: top left; will-change: opacity, transform; width: min(280px, calc(100vw - 32px)); max-height: calc(100dvh - 100px); overflow-y: auto; box-sizing: border-box; z-index: 9999 !important; }
 
-        /* HIỆU ỨNG POWERPOINT ĐÃ TỐI ƯU TỐC ĐỘ (SIÊU MƯỢT) */
-        .feature-wrapper { cursor: pointer; transition: transform 0.3s ease, opacity 0.3s ease; }
-        .feature-header { position: relative; background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 1.5rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03); transition: all 0.3s ease; }
+        /* TỐI ƯU HIỆU NĂNG (KHÔNG DÙNG TRANSITION ALL) */
+        .feature-wrapper { 
+            cursor: pointer; 
+            transition: transform 0.3s ease, opacity 0.3s ease; 
+            transform: translateZ(0); /* Kích hoạt GPU */
+            will-change: transform, opacity;
+        }
+        .feature-header { 
+            position: relative; 
+            background-color: #ffffff; 
+            border: 1px solid #e2e8f0; 
+            border-radius: 1.5rem; 
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03); 
+            transition: border-color 0.3s ease, box-shadow 0.3s ease; 
+        }
         .dark .feature-header { background-color: #1e293b; border-color: #334155; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.3); }
         
         @media (min-width: 1024px) {
@@ -56,30 +68,42 @@
         .expand-icon { transition: transform 0.3s ease, color 0.3s ease; }
         .feature-wrapper.active .expand-icon { transform: rotate(180deg); color: #ec4899; }
 
+        /* MƯỢT MÀ BÊN TRONG ACCORDION */
         .accordion-content { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.3s ease-out; will-change: grid-template-rows; }
         .feature-wrapper.active .accordion-content { grid-template-rows: 1fr; }
         .accordion-inner { overflow: hidden; }
 
-        /* TỐI ƯU CHILD CARD: KHÔNG DELAY, HIỆN NGAY LẬP TỨC */
         .child-card { background-color: #ffffff; border: 1px solid #f1f5f9; border-radius: 1rem; box-shadow: 0 2px 4px -1px rgba(0,0,0,0.02); opacity: 0; transform: translateY(10px); transition: opacity 0.3s ease, transform 0.3s ease; margin-left: 1.5rem; margin-right: 1.5rem; margin-bottom: 0.75rem; }
         .dark .child-card { background-color: #1e293b; border-color: #475569; box-shadow: 0 2px 4px -1px rgba(0,0,0,0.2); }
         .feature-wrapper.active .child-card { opacity: 1; transform: translateY(0); }
         
         @media (min-width: 1024px) {
-            /* ĐÃ XÓA TRANSITION-DELAY: Các ô con hiện ra ngay lập tức khi mở */
             .child-card:hover { background-color: #f8fafc; border-color: rgba(236,72,153,0.4); transform: translateX(4px) !important; }
             .dark .child-card:hover { background-color: #0f172a; border-color: rgba(59,130,246,0.4); }
         }
 
+        /* HIỆU ỨNG POWERPOINT TỐI ƯU (ẨN NGAY LẬP TỨC, CHỈ ANIMATE THẺ ACTIVE) */
         @media (min-width: 1024px) {
-            /* HIỆU ỨNG POWERPOINT: RÚT NGẮN ANIMATION XUỐNG 0.3s */
-            #features.has-active > .feature-wrapper:not(.active) { opacity: 0; transform: scale(0.95); pointer-events: none; position: absolute; visibility: hidden; transition: opacity 0.3s ease, transform 0.3s ease; }
-            #features.has-active > .feature-wrapper.active { grid-column: 1 / -1; max-width: 1000px; margin: 0 auto; width: 100%; animation: slideInSmooth 0.3s cubic-bezier(0.1, 0.9, 0.2, 1) forwards; will-change: transform, opacity; }
+            /* Các thẻ khác biến mất ngay lập tức (không transition để tránh reflow) */
+            #features.has-active > .feature-wrapper:not(.active) { 
+                opacity: 0; 
+                pointer-events: none; 
+                position: absolute; 
+                visibility: hidden; 
+            }
+            /* Thẻ active chiếm toàn bộ, dùng animation mượt */
+            #features.has-active > .feature-wrapper.active { 
+                grid-column: 1 / -1; 
+                max-width: 1000px; 
+                margin: 0 auto; 
+                width: 100%; 
+                animation: slideInSmooth 0.3s ease forwards; 
+            }
             #features.has-active > .feature-wrapper.active .accordion-inner > div { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; padding-top: 1.5rem; }
             #features.has-active > .feature-wrapper.active .child-card { margin-left: 0 !important; margin-right: 0 !important; margin-bottom: 0 !important; }
         }
 
-        @keyframes slideInSmooth { from { opacity: 0; transform: translateY(10px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        @keyframes slideInSmooth { from { opacity: 0; transform: translateY(10px) scale(0.98) translateZ(0); } to { opacity: 1; transform: translateY(0) scale(1) translateZ(0); } }
 
         @media (max-width: 640px) {
             .app-header .px-3 { padding-left: 0.5rem; padding-right: 0.5rem; }
