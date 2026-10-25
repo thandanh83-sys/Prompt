@@ -125,11 +125,13 @@ def call_llm(system_prompt: str, user_prompt: str) -> str:
     
     try:
         resp = client.chat.completions.create(
-            model="openai/gpt-oss-120b", 
+            # [TỐI ƯU CỰC ĐẠI] Chuyển sang model 20B cực nhanh, rate limit cao
+            model="openai/gpt-oss-20b", 
             messages=messages,
             response_format={"type": "json_object"},
             temperature=0.1, 
-            timeout=30.0
+            max_tokens=4000, # Giới hạn độ dài để tránh tràn token
+            timeout=20.0 # Timeout 20s, nếu quá sẽ báo lỗi ngay chứ không treo máy
         )
         return resp.choices[0].message.content
     except RateLimitError as e:
@@ -265,8 +267,13 @@ def get_top_prompts():
 @limiter.limit(RATE_LIMIT)
 def evaluate(request: Request, req: PromptRequest, background_tasks: BackgroundTasks):
     prompt_text = req.prompt.strip()
+    
     if not prompt_text:
         return JSONResponse(status_code=400, content={"error": "Vui lòng nhập Prompt."})
+        
+    # [TỐI ƯU UX] Chặn prompt quá ngắn để tránh lãng phí thời gian chờ đợi của người dùng
+    if len(prompt_text) < 3:
+        return JSONResponse(status_code=400, content={"error": "Prompt quá ngắn. Vui lòng nhập ít nhất 3 ký tự để AI có cơ sở phân tích!"})
         
     if len(prompt_text) > MAX_PROMPT_LENGTH:
         return JSONResponse(status_code=400, content={"error": f"Prompt quá dài, vượt quá {MAX_PROMPT_LENGTH} ký tự."})
