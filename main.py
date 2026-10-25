@@ -1,742 +1,404 @@
-<!DOCTYPE html>
-<html lang="vi" class="light" translate="no">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+import os
+import json
+import re
+import logging
+import random  
+import time
+import uvicorn
+from fastapi import FastAPI, Request, HTTPException, Depends, BackgroundTasks
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from fastapi.security import APIKeyHeader
+from pydantic import BaseModel
+from groq import Groq, RateLimitError
+from supabase import create_client, Client
+from slowapi import Limiter
+from slowapi.errors import RateLimitExceeded
+
+import rules_v38
+import error_rules
+from validator import validate_full_report, calculate_final_score, ReportValidationError
+
+logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
+logger = logging.getLogger("prompt-evaluator")
+
+MAX_PROMPT_LENGTH = 5000
+RATE_LIMIT = "20/minute"
+
+ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD")
+ADMIN_SECRET_TOKEN = os.environ.get("ADMIN_SECRET_TOKEN")
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
+
+ADMIN_ALLOWED_IPS = os.environ.get("ADMIN_ALLOWED_IPS", "").split(",")
+ADMIN_ALLOWED_IPS = [ip.strip() for ip in ADMIN_ALLOWED_IPS if ip.strip()]
+
+if not ADMIN_PASSWORD or not ADMIN_SECRET_TOKEN or not GROQ_API_KEY:
+    raise RuntimeError("LỖI BẢO MẬT: Thiếu biến môi trường bắt buộc trên Render.")
+
+api_key_header = APIKeyHeader(name="X-Admin-Token", auto_error=False)
+
+DEFAULT_ORIGINS = ["https://thandanh83-sys.github.io"]
+env_origins = os.environ.get("ALLOWED_ORIGINS", "")
+configured_origins = [origin.strip() for origin in env_origins.split(",") if origin.strip()]
+ALLOWED_ORIGINS = list(dict.fromkeys([*DEFAULT_ORIGINS, *configured_origins]))
+
+def get_client_ip(request: Request) -> str:
+    forwarded = request.headers.get("x-forwarded-for")
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+    return request.client.host if request.client else "unknown"
+
+def verify_admin_ip(request: Request):
+    client_ip = get_client_ip(request)
+    if ADMIN_ALLOWED_IPS:
+        if client_ip not in ADMIN_ALLOWED_IPS:
+            raise HTTPException(status_code=403, detail="Truy cập bị từ chối.")
+    return client_ip
+
+def verify_admin_token(token: str = Depends(api_key_header)):
+    if not token or token != ADMIN_SECRET_TOKEN:
+        raise HTTPException(status_code=401, detail="Token không hợp lệ hoặc đã hết hạn.")
+    return token
+
+# ==========================================
+# KHỞI TẠO FASTAPI VÀ CẤU HÌNH MIDDLEWARE
+# ==========================================
+limiter = Limiter(key_func=get_client_ip)
+app = FastAPI()
+app.state.limiter = limiter
+
+@app.exception_handler(RateLimitExceeded)
+async def rate_limit_handler(request: Request, exc: RateLimitExceeded):
+    return JSONResponse(status_code=429, content={"error": "Bạn đã đạt giới hạn sử dụng, vui lòng thử lại sau 1 phút."})
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=ALLOWED_ORIGINS,
+    allow_origin_regex=r"https://.*\.vercel\.app",
+    allow_methods=["GET", "POST", "DELETE", "OPTIONS"],
+    allow_headers=["Content-Type", "X-Admin-Token"],
+)
+
+# KHAI BÁO CÁC CLASS REQUEST
+class PromptRequest(BaseModel):
+    prompt: str
+
+class AdminLoginRequest(BaseModel):
+    password: str
+
+# Sử dụng Groq
+client = Groq(api_key=GROQ_API_KEY)
+
+supabase_url = os.environ.get("SUPABASE_URL", "")
+supabase_key = os.environ.get("SUPABASE_KEY", "")
+supabase: Client = create_client(supabase_url, supabase_key) if supabase_url and supabase_key else None
+
+def extract_json(text: str) -> str:
+    if not isinstance(text, str) or not text.strip(): return ""
+    text = text.strip()
+    try:
+        json.loads(text)
+        return text
+    except json.JSONDecodeError:
+        pass
+    match = re.search(r'```(?:json)?\s*(\{.*?\})\s*```', text, re.DOTALL)
+    if match:
+        candidate = match.group(1).strip()
+        try:
+            json.loads(candidate)
+            return candidate
+        except json.JSONDecodeError:
+            pass
+    for i, char in enumerate(text):
+        if char == '{':
+            try:
+                obj, end_idx = json.JSONDecoder().raw_decode(text[i:])
+                return text[i:i+end_idx]
+            except json.JSONDecodeError:
+                continue
+    return ""
+
+# Hàm call_llm với cơ chế Tự động Thử lại (Retry) chống quá tải
+def call_llm(system_prompt: str, user_prompt: str) -> str:
+    messages = [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": "Dữ liệu prompt cần đánh giá:\n" + json.dumps({"prompt_can_cham": user_prompt}, ensure_ascii=False)},
+    ]
     
-    <meta name="theme-color" content="#f8f7fc">
-    <title>Thư viện Prompt - Trợ lý AI</title>
+    max_retries = 3
+    for attempt in range(max_retries):
+        try:
+            resp = client.chat.completions.create(
+                model="openai/gpt-oss-120b", 
+                messages=messages,
+                response_format={"type": "json_object"},
+                temperature=0.1, 
+                max_tokens=3000, 
+                timeout=40.0 
+            )
+            return resp.choices[0].message.content
+            
+        except RateLimitError as e:
+            logger.warning(f"Groq Rate Limit (Lần {attempt+1}/{max_retries}): {e}")
+            if attempt == max_retries - 1:
+                raise HTTPException(status_code=429, detail="Hệ thống AI đang quá tải do quá nhiều yêu cầu. Vui lòng đợi 1 phút rồi thử lại!")
+            time.sleep(5 * (attempt + 1))
+            
+        except Exception as e:
+            logger.error(f"Groq API Error (Lần {attempt+1}/{max_retries}): {e}")
+            if attempt == max_retries - 1:
+                raise HTTPException(status_code=503, detail="Hệ thống AI đang bảo trì hoặc quá tải. Vui lòng thử lại sau ít phút!")
+            time.sleep(2 ** attempt)
+
+def bg_save_history(payload: dict):
+    if not supabase: return
+    try:
+        supabase.table("history").insert(payload).execute()
+    except Exception as e:
+        if '23505' in str(e) or 'duplicate key' in str(e):
+            pass
+        else:
+            logger.error(f"LỖI BACKGROUND: Không thể lưu lịch sử: {e}")
+
+@app.get("/")
+def read_root(): return {"status": "Backend đang chạy ổn định!"}
+
+@app.get("/health")
+def health_check(): return {"status": "ok"}
+
+@app.get("/check_admin_ip")
+def check_admin_ip(client_ip: str = Depends(verify_admin_ip)):
+    return {"is_admin": True}
+
+# ==========================================
+# API ĐĂNG NHẬP ADMIN
+# ==========================================
+@app.post("/login")
+def login(req: AdminLoginRequest, request: Request):
+    if req.password != ADMIN_PASSWORD:
+        raise HTTPException(status_code=401, detail="Sai mật khẩu")
     
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23ec4899'/%3E%3Cstop offset='100%25' stop-color='%233b82f6'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' rx='20' fill='url(%23g)'/%3E%3Ctext x='50' y='72' font-size='60' font-family='Arial,sans-serif' font-weight='bold' fill='white' text-anchor='middle'%3EP%3C/text%3E%3C/svg%3E">
+    if supabase:
+        try:
+            client_ip = get_client_ip(request)
+            user_agent = request.headers.get("user-agent", "Unknown")
+            supabase.table("admin_login_logs").insert({
+                "ip_address": client_ip,
+                "user_agent": user_agent
+            }).execute()
+        except Exception as e:
+            logger.error(f"Lỗi lưu log admin login: {e}")
 
-    <script>
-        if ('scrollRestoration' in history) { history.scrollRestoration = 'manual'; }
-        window.scrollTo(0, 0);
+    return {"token": ADMIN_SECRET_TOKEN}
 
-        let savedTheme = null;
-        try { savedTheme = window.localStorage.getItem('theme'); } catch (error) { }
-        const useDarkTheme = savedTheme ? savedTheme === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
-        document.documentElement.classList.toggle('dark', useDarkTheme);
-        document.documentElement.classList.toggle('light', !useDarkTheme);
+# ==========================================
+# API LẤY LỊCH SỬ ĐÁNH GIÁ (CHO ADMIN)
+# ==========================================
+@app.get("/history")
+def get_history(token: str = Depends(verify_admin_token)):
+    if not supabase:
+        return JSONResponse(status_code=500, content={"error": "Supabase chưa cấu hình."})
+    try:
+        response = supabase.table("history").select("*").order("created_at", desc=True).limit(100).execute()
+        return {"history": response.data}
+    except Exception as e:
+        logger.error(f"Lỗi lấy history: {e}")
+        return JSONResponse(status_code=500, content={"error": "Không thể lấy lịch sử."})
+
+# ==========================================
+# API XÓA 1 PROMPT (CHO ADMIN)
+# ==========================================
+@app.delete("/admin/delete_prompt/{prompt_id}")
+def delete_prompt(prompt_id: str, token: str = Depends(verify_admin_token)):
+    if not supabase:
+        return JSONResponse(status_code=500, content={"error": "Supabase chưa cấu hình."})
+    try:
+        supabase.table("history").delete().eq("id", prompt_id).execute()
+        return {"status": "success"}
+    except Exception as e:
+        logger.error(f"Lỗi xóa prompt: {e}")
+        return JSONResponse(status_code=500, content={"error": "Không thể xóa prompt."})
+
+@app.delete("/admin/delete_all_prompts")
+def delete_all_prompts(token: str = Depends(verify_admin_token)):
+    if not supabase:
+        return JSONResponse(status_code=500, content={"error": "Supabase chưa cấu hình."})
+    try:
+        supabase.table("history").delete().neq("id", "0").execute()
+        return {"status": "success", "message": "Đã xóa toàn bộ lịch sử."}
+    except Exception as e:
+        logger.error(f"Lỗi xóa toàn bộ prompt: {e}")
+        return JSONResponse(status_code=500, content={"error": "Không thể xóa toàn bộ dữ liệu."})
+
+# ==========================================
+# API LẤY LỊCH SỬ IP ĐĂNG NHẬP ADMIN
+# ==========================================
+@app.get("/admin/ip_logs")
+def get_ip_logs(token: str = Depends(verify_admin_token)):
+    if not supabase:
+        return JSONResponse(status_code=500, content={"error": "Supabase chưa cấu hình."})
+    try:
+        response = supabase.table("admin_login_logs").select("*").order("login_time", desc=True).limit(50).execute()
+        return {"logs": response.data}
+    except Exception as e:
+        logger.error(f"Lỗi lấy IP logs: {e}")
+        return JSONResponse(status_code=500, content={"error": "Không thể lấy log IP."})
+
+# ==========================================
+# API LẤY DANH SÁCH PROMPT CHO THƯ VIỆN
+# ==========================================
+@app.get("/top_prompts")
+def get_top_prompts():
+    if not supabase:
+        return JSONResponse(status_code=500, content={"error": "Supabase chưa được cấu hình."})
+    
+    try:
+        response = supabase.table("history") \
+            .select("prompt", "type", "total_score", "created_at") \
+            .gte("total_score", 7.0) \
+            .limit(100) \
+            .execute()
         
-        if (useDarkTheme) {
-            const metaTheme = document.querySelector('meta[name="theme-color"]');
-            if (metaTheme) metaTheme.setAttribute('content', '#0b1120');
-        }
-    </script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script>tailwind.config = { darkMode: 'class' }</script>
-
-    <style>
-        html { background-color: #f8f7fc; transition: background-color .15s ease; min-height: 100vh; min-height: 100dvh; scroll-behavior: smooth; }
-        html.dark { background-color: #0b1120 !important; }
-        body { -webkit-tap-highlight-color: transparent; overflow-x: hidden; background-color: transparent !important; overscroll-behavior-y: none; min-height: 100vh; min-height: 100dvh; padding-top: env(safe-area-inset-top, 0px); }
+        prompts = response.data
         
-        .page-bg { position: fixed; inset: 0; z-index: -1; pointer-events: none; background-color: #f8f7fc; background-image: radial-gradient(circle at 50% -20%, rgba(236,72,153,0.15) 0%, transparent 70%), radial-gradient(circle at 50% 120%, rgba(59,130,246,0.15) 0%, transparent 70%); }
-        html.dark .page-bg { background-color: #0b1120; background-image: radial-gradient(ellipse at 50% -10%, rgba(236, 72, 153, 0.5) 0%, rgba(168, 85, 247, 0.3) 50%, transparent 80%), radial-gradient(ellipse at 50% 110%, rgba(59, 130, 246, 0.4) 0%, transparent 80%); }
-
-        .app-header { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(12px); border-color: rgba(0,0,0,.06); transition: all .2s; }
-        .dark .app-header { background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(12px); border-color: rgba(255,255,255,.1); }
-        
-        .brand-text { background: linear-gradient(100deg, #ec4899, #a052c8 52%, #3979f5); -webkit-background-clip: text; background-clip: text; color: transparent; line-height: 1.2; }
-        
-        .menu-dropdown { transition: opacity 0.2s ease-out, transform 0.2s ease-out; transform-origin: top left; will-change: opacity, transform; width: min(280px, calc(100vw - 32px)); max-height: calc(100dvh - 100px); overflow-y: auto; box-sizing: border-box; z-index: 9999 !important; }
-        
-        .menu-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.5); backdrop-filter: blur(4px); z-index: 40; opacity: 0; pointer-events: none; transition: all .2s ease; }
-        .menu-overlay.active { opacity: 1; pointer-events: auto; }
-        
-        .toast-msg { background-color: #1e293b; color: white; padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 500; box-shadow: 0 4px 6px rgba(0,0,0,.1); opacity: 0; transform: translateY(20px); transition: all .3s ease; pointer-events: auto; display: flex; align-items: center; gap: 8px; white-space: nowrap; z-index: 99999; }
-        .toast-success { border-left: 4px solid #22c55e; }
-        .toast-error { border-left: 4px solid #ef4444; }
-        .toast-show { opacity: 1; transform: translateY(0); }
-
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 20px; }
-        .dark .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #475569; }
-
-        /* SKELETON LOADING */
-        .skeleton { background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%); background-size: 200% 100%; animation: loading 1.5s infinite; }
-        .dark .skeleton { background: linear-gradient(90deg, #1e293b 25%, #334155 50%, #1e293b 75%); background-size: 200% 100%; }
-        @keyframes loading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
-
-        /* CARD ANIMATION */
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .card-enter { animation: fadeIn 0.3s ease-out forwards; }
-    </style>
-</head>
-
-<body class="antialiased font-sans min-h-screen relative text-slate-800 dark:text-slate-200 flex flex-col">
-    <div class="page-bg"></div>
-    <div id="menuOverlay" class="menu-overlay"></div>
-
-    <header class="app-header fixed top-0 left-0 w-full z-50 border-b pt-[env(safe-area-inset-top,0px)]">
-        <div class="w-full max-w-7xl mx-auto px-3 sm:px-6 h-16 md:h-20 grid grid-cols-3 items-center">
+        # Trả về ngẫu nhiên 30 prompt để trang web nhẹ và đa dạng
+        if len(prompts) > 30:
+            prompts = random.sample(prompts, 30)
             
-            <div class="flex items-center justify-start relative z-50">
-                <button id="btnHamburger" class="w-10 h-10 shrink-0 flex items-center justify-center rounded-full text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" title="Mở menu">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
-                </button>
-                
-                <div id="dropdownMenu" class="menu-dropdown absolute top-12 md:top-14 left-0 bg-white/95 dark:bg-[#1e293b]/95 backdrop-blur-xl border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl hidden opacity-0 scale-95 z-50 p-2">
-                    <div class="flex flex-col gap-1">
-                        <a href="./index.html" class="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-pink-50 dark:hover:bg-pink-900/20 text-sm font-semibold text-pink-600 dark:text-pink-400 transition-colors" title="Về trang chủ">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-pink-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-                            Trang chủ
-                        </a>
-                        <a href="./landing.html" class="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-blue-50 dark:hover:bg-blue-900/20 text-sm font-semibold text-blue-600 dark:text-blue-400 transition-colors" title="Đi đến trang Đánh giá">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-blue-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>
-                            Đánh giá
-                        </a>
-                        <a href="./library.html" class="flex items-center gap-3 px-3 py-3 rounded-xl bg-purple-50 dark:bg-purple-900/20 text-sm font-semibold text-purple-600 dark:text-purple-400 transition-colors" title="Đi đến Thư viện">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-purple-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
-                            Thư viện
-                        </a>
-                        <a href="./profile.html" class="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-300 transition-colors" title="Đi đến Trang cá nhân">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-slate-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-                            Trang cá nhân
-                        </a>
-                        
-                        <div class="h-px bg-slate-100 dark:bg-slate-700/50 my-1 mx-2"></div>
-                        
-                        <button id="themeToggleMenu" class="w-full flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-colors text-left" title="Chuyển đổi chế độ Sáng/Tối">
-                            <span id="themeIconMenu" class="w-5 h-5 flex items-center justify-center shrink-0">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-5 h-5 text-blue-500"><path fill="currentColor" d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
-                            </span>
-                            <span id="themeTextMenu" class="text-sm font-semibold text-blue-500">Chế độ Tối</span>
-                        </button>
+        return {"prompts": prompts}
+    except Exception as e:
+        logger.error(f"Lỗi khi lấy top prompts: {e}")
+        return JSONResponse(status_code=500, content={"error": "Không thể lấy dữ liệu thư viện."})
 
-                        <div id="adminMenuDivider" class="h-px bg-slate-100 dark:bg-slate-700/50 my-1 mx-2" style="display:none;"></div>
-                        <a id="menuBtnAdmin" href="./admin.html" class="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-green-50 dark:hover:bg-green-900/20 text-sm font-semibold text-green-600 dark:text-green-400 transition-colors" style="display:none;" title="Trang Quản trị viên">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-green-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                            Quản trị viên
-                        </a>
-                    </div>
-                </div>
-            </div>
-
-            <div class="flex items-center justify-center z-40">
-                <a href="./index.html" class="flex items-center gap-1.5 min-w-0 no-underline focus:outline-none" title="Trợ lý AI - Trang chủ">
-                    <svg class="w-5 h-5 sm:w-7 sm:h-7 shrink-0" viewBox="0 0 24 24"><defs><linearGradient id="brandSparkGradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ec4899"/><stop offset="100%" stop-color="#3b82f6"/></linearGradient></defs><path fill="url(#brandSparkGradient)" d="M12 2L14.7 9.3 22 12l-7.3 2.7L12 22l-2.7-7.3L2 12l7.3-2.7L12 2Z"/></svg>
-                    <span class="brand-text text-[15px] sm:text-lg font-extrabold truncate">Trợ lý AI</span>
-                </a>
-            </div>
-            
-            <div class="flex items-center justify-end z-50">
-                <button id="btnShowLogin" class="px-3 py-1.5 md:px-5 md:py-2.5 rounded-full text-xs md:text-sm font-bold text-white bg-gradient-to-r from-pink-500 to-blue-500 shadow-sm hover:scale-105 transition-all">
-                    Đăng nhập
-                </button>
-                <div id="userAvatarMenu" class="relative hidden">
-                    <button id="btnAvatar" class="w-9 h-9 md:w-10 md:h-10 rounded-full overflow-hidden border-2 border-pink-500 shadow-sm hover:scale-105 transition-transform flex items-center justify-center bg-gray-200 dark:bg-gray-700 text-white font-bold text-lg"></button>
-                    <div id="avatarDropdown" class="absolute right-0 top-12 w-48 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl hidden opacity-0 scale-95 transition-all z-50 p-2">
-                        <a href="./profile.html" class="block px-3 py-2 text-sm font-semibold hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg">Trang cá nhân</a>
-                        <button id="btnLogoutHeader" class="w-full text-left px-3 py-2 text-sm font-semibold text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg mt-1">Đăng xuất</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </header>
-
-    <div id="loginModal" class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm hidden opacity-0 transition-opacity duration-300">
-        <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-sm p-6 relative border border-slate-200 dark:border-slate-700">
-            <button type="button" id="btnCloseLoginModal" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 bg-transparent hover:bg-slate-100 dark:hover:bg-slate-700 w-8 h-8 rounded-full flex items-center justify-center transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-            </button>
-            <h2 class="text-xl font-bold text-center mb-2 text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-blue-500">Đăng nhập / Đăng ký</h2>
-            <p class="text-xs text-center text-slate-500 mb-6">Nhập email để nhận link đăng nhập tự động</p>
-            <input type="email" id="loginEmail" class="w-full p-4 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 mb-4 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500" placeholder="Email của bạn...">
-            <p id="loginError" class="text-red-500 text-xs font-bold mb-4 hidden bg-red-50 p-2 rounded-lg"></p>
-            <button id="btnSendMagicLink" class="w-full py-3.5 rounded-xl font-bold text-white bg-gradient-to-r from-pink-500 to-blue-500 shadow-md hover:scale-[1.02] transition-transform text-sm">Gửi link đăng nhập</button>
-            
-            <div class="relative flex py-3 items-center my-2">
-                <div class="flex-grow border-t border-slate-300 dark:border-slate-600"></div>
-                <span class="flex-shrink mx-4 text-xs text-slate-400">HOẶC</span>
-                <div class="flex-grow border-t border-slate-300 dark:border-slate-600"></div>
-            </div>
-
-            <div class="flex w-full mb-2">
-                <button onclick="signInWithGoogle()" class="w-full flex items-center justify-center gap-3 py-3 rounded-xl bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 font-bold text-sm hover:bg-slate-50 dark:hover:bg-slate-600 transition shadow-sm">
-                    <svg class="w-5 h-5" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
-                    Đăng nhập bằng Google
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <div id="rateLimitModal" class="fixed inset-0 z-[99999] flex flex-col items-center justify-center p-4 bg-black/70 backdrop-blur-md transition-opacity duration-300" style="display: none;">
-        <div class="bg-white dark:bg-[#1e293b] border border-slate-200 dark:border-slate-700/50 rounded-3xl shadow-2xl w-full max-w-[400px] p-6 sm:p-7 relative">
-            <button type="button" onclick="closeRateLimitModal()" title="Đóng" class="absolute top-5 right-5 text-slate-500 hover:text-slate-800 bg-slate-100 hover:bg-slate-200 dark:text-slate-300 dark:hover:text-white dark:bg-slate-700/50 dark:hover:bg-slate-600 w-8 h-8 rounded-full flex items-center justify-center transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-            </button>
-            <div class="text-center mb-6">
-                <div class="w-16 h-16 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
-                </div>
-                <h3 class="font-extrabold text-xl text-slate-800 dark:text-white mb-2">Đã đạt giới hạn gửi Email</h3>
-                <p class="text-sm text-slate-600 dark:text-slate-400">Hệ thống mặc định chỉ cho phép gửi tối đa <strong>2 email đăng nhập mỗi giờ</strong> để chống Spam.</p>
-            </div>
-            <div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl text-sm text-blue-700 dark:text-blue-300 text-center mb-6 border border-blue-100 dark:border-blue-800/50">
-                💡 Để tiếp tục, vui lòng đóng bảng này và sử dụng tính năng <strong>Đăng nhập bằng Google</strong> (Không giới hạn, nhanh và an toàn hơn).
-            </div>
-            <button type="button" onclick="closeRateLimitModal()" class="w-full py-3.5 rounded-xl font-bold text-white bg-gradient-to-r from-pink-500 to-blue-500 shadow-md transition-all text-[15px]">
-                Đã hiểu
-            </button>
-        </div>
-    </div>
-
-    <main class="w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 md:pt-28 pb-32 flex-grow flex flex-col mt-4">
+# ==========================================
+# API ĐÁNH GIÁ PROMPT (AI)
+# ==========================================
+@app.post("/evaluate")
+@limiter.limit(RATE_LIMIT)
+def evaluate(request: Request, req: PromptRequest, background_tasks: BackgroundTasks):
+    prompt_text = req.prompt.strip()
+    
+    if not prompt_text:
+        return JSONResponse(status_code=400, content={"error": "Vui lòng nhập Prompt."})
         
-        <div class="text-center mb-8">
-            <h1 class="text-3xl md:text-4xl font-extrabold text-slate-800 dark:text-white mb-3">
-                Thư viện <span class="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-blue-500">Prompt Xuất sắc</span>
-            </h1>
-            <p class="text-sm md:text-base text-slate-500 dark:text-slate-400 max-w-2xl mx-auto">
-                Nơi tổng hợp những câu lệnh (Prompt) đạt điểm 7.0 trở lên từ cộng đồng. Bấm "Copy" để sử dụng ngay cho AI của bạn.
-            </p>
-        </div>
-
-        <!-- THANH CÔNG CỤ -->
-        <div class="bg-white/80 dark:bg-[#1e293b]/80 backdrop-blur-md border border-slate-200 dark:border-slate-700/60 shadow-lg rounded-2xl p-4 mb-8 sticky top-20 z-30">
-            <div class="flex flex-col md:flex-row gap-3">
-                <!-- Search Bar -->
-                <div class="relative flex-grow">
-                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <svg class="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-                    </div>
-                    <input type="text" id="searchInput" class="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 transition-all" placeholder="Tìm kiếm prompt...">
-                </div>
-
-                <div class="flex gap-2 shrink-0">
-                    <!-- NÚT LỌC DROPDOWN MỚI -->
-                    <div class="relative flex-grow md:w-48" id="filterDropdownContainer">
-                        <button id="filterBtn" class="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-semibold text-slate-700 dark:text-slate-200 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-sm">
-                            <span id="currentFilterText" class="truncate">Tất cả</span>
-                            <svg id="filterIcon" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-slate-400 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" /></svg>
-                        </button>
-                        <!-- Menu Xổ Xuống -->
-                        <div id="filterDropdownMenu" class="absolute top-full left-0 mt-2 w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl hidden z-50 max-h-60 overflow-y-auto custom-scrollbar">
-                            <!-- Các option sẽ được JS đổ vào đây -->
-                        </div>
-                    </div>
-
-                    <!-- Nút Làm mới -->
-                    <button onclick="refreshRandom()" class="px-4 py-3 bg-pink-50 dark:bg-blue-900/20 text-pink-600 dark:text-blue-400 rounded-xl border border-pink-200 dark:border-blue-800 hover:bg-pink-100 dark:hover:bg-blue-800/40 transition-colors flex items-center justify-center gap-2 shadow-sm" title="Tải 30 prompt ngẫu nhiên khác">
-                        <svg id="refreshIcon" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
-                        <span class="hidden md:inline text-sm font-bold">Làm mới</span>
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- DANH SÁCH PROMPT -->
-        <div id="libraryGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
-            <div id="skeletonLoader" class="col-span-full grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
-                <div class="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700 h-48">
-                    <div class="skeleton h-4 w-1/4 rounded mb-4"></div>
-                    <div class="skeleton h-20 w-full rounded mb-4"></div>
-                    <div class="skeleton h-8 w-1/3 rounded ml-auto"></div>
-                </div>
-                <div class="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700 h-48">
-                    <div class="skeleton h-4 w-1/4 rounded mb-4"></div>
-                    <div class="skeleton h-20 w-full rounded mb-4"></div>
-                    <div class="skeleton h-8 w-1/3 rounded ml-auto"></div>
-                </div>
-            </div>
-        </div>
-
-        <div id="loadMoreContainer" class="hidden text-center mt-8">
-            <button onclick="loadMorePrompts()" class="px-6 py-2.5 bg-white dark:bg-[#1e293b] border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-bold rounded-xl shadow-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-sm flex items-center justify-center gap-2 mx-auto">
-                <span>Tải thêm Prompt</span>
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" /></svg>
-            </button>
-        </div>
-
-        <div id="emptyState" class="hidden text-center py-16">
-            <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-slate-100 dark:bg-slate-800 mb-4">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-10 h-10 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
-            </div>
-            <h3 class="text-slate-800 dark:text-slate-200 font-bold text-lg mb-2" id="emptyTitle">Không tìm thấy Prompt nào</h3>
-            <p class="text-slate-500 text-sm mb-6" id="emptyDesc">Thử thay đổi từ khóa hoặc bộ lọc xem sao nhé!</p>
-            <button onclick="resetSearch()" id="btnResetSearch" class="px-5 py-2.5 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 rounded-xl text-sm font-bold transition-colors">Xóa bộ lọc</button>
-        </div>
-
-    </main>
-
-    <footer class="border-t border-slate-200 dark:border-white/10 py-8 text-center text-slate-500 text-sm relative z-10 mt-auto">
-        <p>© 2026 Trợ lý AI - Nghiên cứu AI & Tư duy.</p>
-    </footer>
-
-    <div id="toastContainer" class="fixed bottom-5 left-1/2 transform -translate-x-1/2 z-[99999] flex flex-col gap-2 pointer-events-none"></div>
-
-    <script>
-        const hamburger = document.getElementById('btnHamburger');
-        const dropdown = document.getElementById('dropdownMenu');
-        const overlay = document.getElementById('menuOverlay');
-
-        if (hamburger && dropdown) {
-            hamburger.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const isHidden = dropdown.classList.contains('hidden');
-                if (isHidden) {
-                    dropdown.classList.remove('hidden');
-                    if (overlay) overlay.classList.add('active');
-                    requestAnimationFrame(() => {
-                        dropdown.classList.remove('opacity-0', 'scale-95');
-                        dropdown.classList.add('opacity-100', 'scale-100');
-                    });
-                } else {
-                    dropdown.classList.remove('opacity-100', 'scale-100');
-                    dropdown.classList.add('opacity-0', 'scale-95');
-                    if (overlay) overlay.classList.remove('active');
-                    setTimeout(() => { if (dropdown.classList.contains('opacity-0')) dropdown.classList.add('hidden'); }, 200);
-                }
-            });
-
-            if (overlay) {
-                overlay.addEventListener('click', () => {
-                    dropdown.classList.remove('opacity-100', 'scale-100');
-                    dropdown.classList.add('opacity-0', 'scale-95');
-                    overlay.classList.remove('active');
-                    setTimeout(() => { if (dropdown.classList.contains('opacity-0')) dropdown.classList.add('hidden'); }, 200);
-                });
-            }
-
-            document.addEventListener('click', (e) => {
-                if (!dropdown.contains(e.target) && !hamburger.contains(e.target) && !dropdown.classList.contains('hidden')) {
-                    dropdown.classList.remove('opacity-100', 'scale-100');
-                    dropdown.classList.add('opacity-0', 'scale-95');
-                    if (overlay) overlay.classList.remove('active');
-                    setTimeout(() => { if (dropdown.classList.contains('opacity-0')) dropdown.classList.add('hidden'); }, 200);
-                }
-            });
-
-            document.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape' && !dropdown.classList.contains('hidden')) {
-                    dropdown.classList.remove('opacity-100', 'scale-100');
-                    dropdown.classList.add('opacity-0', 'scale-95');
-                    if (overlay) overlay.classList.remove('active');
-                    setTimeout(() => { if (dropdown.classList.contains('opacity-0')) dropdown.classList.add('hidden'); }, 200);
-                }
-            });
-        }
-    </script>
-
-    <script>
-        const API_URL = "https://prompt-tx2e.onrender.com"; 
-        const SUPABASE_URL = "https://egncrbearrwfoslryuga.supabase.co";
-        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVnbmNyYmVhcnJ3Zm9zbHJ5dWdhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI1MDk2MzgsImV4cCI6MjEwODA4NTYzOH0.jX8rz7Fk5wIqdbDqb6ZwKUiMs-wggVRj-dLk2dqlYFM";
+    if len(prompt_text) > MAX_PROMPT_LENGTH:
+        return JSONResponse(status_code=400, content={"error": f"Prompt quá dài, vượt quá {MAX_PROMPT_LENGTH} ký tự."})
         
-        const supabaseClient = window.supabase?.createClient ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
-
-        const $ = id => document.getElementById(id);
-        const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
-
-        const moonSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-5 h-5 text-blue-500"><defs><linearGradient id="moonGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#60a5fa" /><stop offset="100%" stop-color="#3b82f6" /></linearGradient></defs><path fill="url(#moonGrad)" d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`;
-        const sunSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-5 h-5 text-yellow-500"><defs><linearGradient id="sunGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#fef08a" /><stop offset="100%" stop-color="#f59e0b" /></linearGradient></defs><circle cx="12" cy="12" r="5" fill="url(#sunGrad)"></circle><path stroke="url(#sunGrad)" stroke-width="2" stroke-linecap="round" d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>`;
-
-        function applyTheme(dark) {
-            document.documentElement.classList.toggle('dark', dark); document.documentElement.classList.toggle('light', !dark);
-            
-            if($('themeIconMenu')) $('themeIconMenu').innerHTML = dark ? sunSVG : moonSVG; 
-            if($('themeTextMenu')) {
-                $('themeTextMenu').textContent = dark ? 'Chế độ Sáng' : 'Chế độ Tối';
-                $('themeTextMenu').className = dark ? 'text-sm font-semibold text-yellow-500' : 'text-sm font-semibold text-blue-500';
-            }
-
-            try { window.localStorage.setItem('theme', dark ? 'dark' : 'light'); } catch (error) { }
-            const themeColor = document.querySelector('meta[name="theme-color"]'); 
-            if (themeColor) themeColor.setAttribute('content', dark ? '#0b1120' : '#f8f7fc');
-        }
-        applyTheme(document.documentElement.classList.contains('dark'));
+    try:
+        classification = rules_v38.classify_prompt(prompt_text)
+        criteria_pack = rules_v38.get_criteria_by_type(classification)
+        main_task = classification["main_task"]
+        techniques = classification["techniques"]
+        main_criteria = criteria_pack["main"]
+        tech_criteria = criteria_pack["tech"]
         
-        if($('themeToggleMenu')) {
-            $('themeToggleMenu').addEventListener('click', (e) => { 
-                e.preventDefault(); e.stopPropagation(); 
-                applyTheme(!document.documentElement.classList.contains('dark')); 
-            });
-        }
-
-        async function checkAdminAccess() {
-            try { 
-                const res = await fetch(`${API_URL}/check_admin_ip`); 
-                if (res.ok) { 
-                    $('adminMenuDivider').style.display = 'block'; 
-                    $('menuBtnAdmin').style.display = 'flex'; 
-                } 
-            } catch (e) { }
-        }
-        checkAdminAccess();
-
-        async function checkAuthState() {
-            if (!supabaseClient) return;
-            const { data: { session } } = await supabaseClient.auth.getSession();
-            if (session) {
-                $('btnShowLogin').classList.add('hidden'); $('userAvatarMenu').classList.remove('hidden');
-                const displayName = session.user.email.split('@')[0];
-                $('btnAvatar').textContent = displayName.charAt(0).toUpperCase();
-            } else {
-                $('btnShowLogin').classList.remove('hidden'); $('userAvatarMenu').classList.add('hidden');
-            }
-        }
-        checkAuthState();
-
-        if (supabaseClient) {
-            supabaseClient.auth.onAuthStateChange((event, session) => {
-                if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-                    checkAuthState();
-                } else if (event === 'SIGNED_OUT') {
-                    window.location.reload();
-                }
-            });
-        }
-
-        if ($('btnShowLogin')) $('btnShowLogin').addEventListener('click', () => { $('loginModal').classList.remove('hidden'); setTimeout(() => $('loginModal').classList.remove('opacity-0'), 10); });
-        if ($('btnCloseLoginModal')) $('btnCloseLoginModal').addEventListener('click', () => { $('loginModal').classList.add('opacity-0'); setTimeout(() => $('loginModal').classList.add('hidden'), 300); });
-        if ($('loginModal')) $('loginModal').addEventListener('click', (e) => { if (e.target === $('loginModal')) $('btnCloseLoginModal').click(); });
-
-        window.closeRateLimitModal = function() {
-            const modal = $('rateLimitModal');
-            if (modal) modal.style.display = 'none';
-        }
-
-        function openRateLimitModal() {
-            const modal = $('rateLimitModal');
-            if (modal) modal.style.display = 'flex';
-        }
-
-        if ($('btnSendMagicLink')) {
-            $('btnSendMagicLink').addEventListener('click', async () => {
-                const email = $('loginEmail').value.trim(); const errorMsg = $('loginError'); const btn = $('btnSendMagicLink');
-                if (!supabaseClient) { errorMsg.textContent = 'Lỗi tải thư viện đăng nhập.'; errorMsg.classList.remove('hidden'); return; }
-                if (!email) { errorMsg.textContent = "Vui lòng nhập email!"; errorMsg.classList.remove('hidden'); return; }
-                btn.textContent = "Đang gửi..."; btn.disabled = true; errorMsg.classList.add('hidden');
-                const { error } = await supabaseClient.auth.signInWithOtp({ email: email, options: { emailRedirectTo: window.location.href } });
-                if (error) { 
-                    btn.textContent = "Gửi link đăng nhập"; btn.disabled = false; 
-                    if (error.message.includes("rate limit") || error.message.includes("email rate limit exceeded")) {
-                        openRateLimitModal();
-                    } else {
-                        errorMsg.textContent = error.message; 
-                        errorMsg.classList.remove('hidden'); 
-                    }
-                } 
-                else { alert("Đã gửi link! Vui lòng kiểm tra hộp thư (hoặc mục Spam)."); $('btnCloseLoginModal').click(); btn.textContent = "Gửi link đăng nhập"; btn.disabled = false; }
-            });
-        }
-
-        async function signInWithGoogle() {
-            if (!supabaseClient) return;
-            const { error } = await supabaseClient.auth.signInWithOAuth({
-                provider: 'google',
-                options: { redirectTo: 'https://thandanh83-sys.github.io/Prompt/library.html' }
-            });
-            if (error) alert("Lỗi đăng nhập Google: " + error.message);
-        }
-
-        const btnAvatar = $('btnAvatar');
-        const avatarDropdown = $('avatarDropdown');
-
-        if (btnAvatar && avatarDropdown) {
-            btnAvatar.addEventListener('click', (e) => { 
-                e.stopPropagation(); 
-                const isHidden = avatarDropdown.classList.contains('hidden');
-                
-                if (isHidden) {
-                    avatarDropdown.classList.remove('hidden');
-                    requestAnimationFrame(() => {
-                        avatarDropdown.classList.remove('opacity-0', 'scale-95');
-                    });
-                } else {
-                    avatarDropdown.classList.add('opacity-0', 'scale-95');
-                    setTimeout(() => {
-                        if (avatarDropdown.classList.contains('opacity-0')) {
-                            avatarDropdown.classList.add('hidden');
-                        }
-                    }, 200);
-                }
-            });
-
-            document.addEventListener('click', (e) => { 
-                if (!avatarDropdown.classList.contains('hidden') && !btnAvatar.contains(e.target)) { 
-                    avatarDropdown.classList.add('opacity-0', 'scale-95'); 
-                    setTimeout(() => {
-                        if (avatarDropdown.classList.contains('opacity-0')) {
-                            avatarDropdown.classList.add('hidden'); 
-                        }
-                    }, 200); 
-                } 
-            });
-        }
+        all_criteria = {**main_criteria, **tech_criteria}
+        criteria_desc = "".join([f"- {k}: {v['name']}\n" for k, v in all_criteria.items()])
+        scores_example = ", ".join([f'"{k}": 5' for k in all_criteria.keys()])
         
-        if ($('btnLogoutHeader')) {
-            $('btnLogoutHeader').addEventListener('click', async () => { if(supabaseClient) await supabaseClient.auth.signOut(); window.location.reload(); });
-        }
+        error_codes_desc = ""
+        for code, rule in error_rules.ERROR_RULES.items():
+            error_codes_desc += f"- {code}: {rule['name']}\n"
+            
+        rewrite_sections_formatted = ", ".join([f'"{s}"' for s in rules_v38.REQUIRED_REWRITE_SECTIONS])
 
-        function copyTextToClipboard(text) {
-            if (navigator.clipboard && window.isSecureContext) return navigator.clipboard.writeText(text);
-            let textArea = document.createElement("textarea"); textArea.value = text; textArea.style.position = "absolute"; textArea.style.left = "-999999px";
-            document.body.appendChild(textArea); textArea.focus(); textArea.select();
-            return new Promise((res, rej) => { try { document.execCommand('copy'); res(); } catch (e) { rej(e); } finally { textArea.remove(); } });
-        }
+        system_prompt = f"""
+Bạn là Chuyên gia Kiểm định Prompt. Hãy thực hiện 4 bước sau và trả về JSON:
+
+[BƯỚC 1: XÁC ĐỊNH LĨNH VỰC & INPUT RÁC]
+- Lĩnh vực: Code, Cosmetics, Marketing, Writing, Education, General.
+- [QUY TẮC ĐẶC BIỆT VỀ INPUT RÁC]: Nếu prompt quá ngắn (dưới 3 từ), vô nghĩa, hoặc chỉ là từ rời rạc (Ví dụ: "mạ", "tả"):
+  1. Chấm 0 điểm cho TẤT CẢ các tiêu chí.
+  2. Mảng "errors" để trống [].
+  3. Kích hoạt chế độ [MỞ RỘNG SÁNG TẠO] ở Bước 4: Tự phỏng đoán ý định (VD: "tả" -> tả mẹ), và viết mới một prompt 11 mục thật hoàn chỉnh, chuyên nghiệp.
+
+[BƯỚC 2: CHẤM ĐIỂM & TIÊU CHÍ ĐỘNG]
+2.1. Chấm điểm lõi (0-10):
+{criteria_desc}
+2.2. Tự sinh 3 tiêu chí chuyên ngành (DYN01, DYN02, DYN03) và chấm điểm.
+
+[BƯỚC 3: LỖI]
+Đối chiếu mã lỗi:
+{error_codes_desc}
+- Evidence: KHÔNG dùng ngoặc kép. Lỗi B01, C02, C04 ghi đúng "Không có thông tin này trong prompt". Bắt buộc thêm "hint".
+
+[BƯỚC 4: TÁI CẤU TRÚC VÀ CẢI TIẾN (REWRITE)]
+Viết lại đúng 11 mục tiếng Việt:
+{rewrite_sections_formatted}
+
+[NGUYÊN TẮC VÀNG KHI VIẾT LẠI - BẮT BUỘC TUÂN THỦ]:
+1. TUYỆT ĐỐI KHÔNG ĐƯỢC XÓA HOẶC TÓM TẮT Ý CỦA NGƯỜI DÙNG. Thà bài dài và thừa ý còn hơn thiếu ý của họ.
+2. Với những phần người dùng đã viết tốt (Điểm cao 8-10): BẮT BUỘC phải BÊ NGUYÊN VĂN từ ngữ của họ vào mục tương ứng. Không được tự ý đổi từ đồng nghĩa hay viết lại theo văn phong của bạn.
+3. Với những phần người dùng viết chưa tốt (Điểm thấp <8): Bạn ĐƯỢC PHÉP viết thêm ý mới, bổ sung chi tiết, nhưng PHẢI GIỮ LẠI các từ khóa/ý chính cốt lõi của họ, không được phủ định hay thay thế hoàn toàn.
+4. Nếu là INPUT RÁC: Hãy tự sáng tác một prompt 11 mục xuất sắc dựa trên phỏng đoán.
+
+TRẢ VỀ DUY NHẤT JSON SAU:
+{{
+  "identified_domain": "...",
+  "scores": {{ {scores_example}, "DYN01": 5, "DYN02": 5, "DYN03": 5 }},
+  "dynamic_criteria_names": {{ "DYN01": "...", "DYN02": "...", "DYN03": "..." }},
+  "errors": [ {{ "code": "MÃ_LỖI", "evidence": "Không có thông tin này trong prompt", "hint": "..." }} ],
+  "rewrite": {{ 
+    "1. VAI TRÒ": "...", "2. BỐI CẢNH": "...", "3. INPUT": "...", "4. MỤC TIÊU": "...", "5. YÊU CẦU": "...",
+    "6. RÀNG BUỘC": "...", "7. TASK": "...", "8. ĐỊNH DẠNG ĐẦU RA": "...", "9. NEVER DO": "...", 
+    "10. THỨ TỰ ƯU TIÊN": "...", "11. XỬ LÝ NỘI BỘ": "..."
+  }}
+}}
+"""
         
-        function showToast(message, type = 'success') {
-            const container = document.getElementById('toastContainer'); const toast = document.createElement('div');
-            toast.className = `toast-msg toast-${type}`; 
-            const iconSvg = type === 'success' 
-                ? `<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`
-                : `<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>`;
-            toast.innerHTML = `${iconSvg} <span>${message}</span>`;
-            container.appendChild(toast); setTimeout(() => toast.classList.add('toast-show'), 10);
-            setTimeout(() => { toast.classList.remove('toast-show'); setTimeout(() => toast.remove(), 300); }, 3000);
+        last_error = None
+        success = False
+        ai_data = {}
+        
+        for attempt in range(2):
+            try:
+                raw_text = call_llm(system_prompt, prompt_text)
+                json_str = extract_json(raw_text)
+                if not json_str:
+                    raise ReportValidationError("AI trả về định dạng không hợp lệ.")
+                ai_data = json.loads(json_str)
+                validate_full_report(ai_data, main_criteria, tech_criteria, prompt_text)
+                success = True
+                break
+            except HTTPException:
+                raise
+            except (json.JSONDecodeError, ReportValidationError, TypeError, ValueError) as e:
+                last_error = e
+                logger.warning(f"Lần thử {attempt + 1} thất bại: {e}")
+        
+        if not success:
+            logger.error(f"Lỗi Validation sau 2 lần thử: {last_error}")
+            return JSONResponse(status_code=422, content={"error": "Hệ thống AI đang xử lý dữ liệu chưa tốt. Vui lòng thử lại!"})
+
+        final_score = calculate_final_score(ai_data["scores"], main_criteria, tech_criteria)
+        
+        display_details = {}
+        for k, v in ai_data["scores"].items():
+            if k in all_criteria:
+                display_details[all_criteria[k]["name"]] = v
+            elif k in ai_data.get("dynamic_criteria_names", {}):
+                display_details[ai_data["dynamic_criteria_names"][k]] = v
+        
+        result = {
+            "prompt": prompt_text, "type": main_task, "techniques": techniques, 
+            "domain": ai_data.get("identified_domain", "General"),
+            "total": final_score, "details": display_details,
+            "errors": ai_data.get("errors", []), 
+            "rewrite": ai_data["rewrite"]
         }
 
-        // ==========================================
-        // LOGIC DROPDOWN FILTER VÀ PHÂN TRANG
-        // ==========================================
-        let allPrompts = [];
-        let currentFilter = 'Tất cả';
-        let currentSearch = '';
-        let displayedCount = 10; 
-
-        // Xử lý Đóng/Mở Dropdown Filter
-        const filterBtn = $('filterBtn');
-        const filterMenu = $('filterDropdownMenu');
-        const filterIcon = $('filterIcon');
-
-        if (filterBtn && filterMenu) {
-            filterBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const isHidden = filterMenu.classList.contains('hidden');
-                if (isHidden) {
-                    filterMenu.classList.remove('hidden');
-                    filterIcon.style.transform = 'rotate(180deg)';
-                } else {
-                    filterMenu.classList.add('hidden');
-                    filterIcon.style.transform = 'rotate(0deg)';
-                }
-            });
-
-            document.addEventListener('click', (e) => {
-                if (!filterMenu.contains(e.target) && !filterBtn.contains(e.target)) {
-                    filterMenu.classList.add('hidden');
-                    filterIcon.style.transform = 'rotate(0deg)';
-                }
-            });
+        db_payload = {
+            "prompt": prompt_text, "type": main_task, "total_score": final_score,
+            "details": result["details"], "errors": result["errors"], "rewrite": result["rewrite"],
         }
+        background_tasks.add_task(bg_save_history, db_payload)
+        return result
 
-        async function fetchLibrary() {
-            const grid = $('libraryGrid'); const skeleton = $('skeletonLoader'); const empty = $('emptyState');
-            const loadMoreContainer = $('loadMoreContainer');
-            
-            skeleton.style.display = 'grid'; 
-            skeleton.innerHTML = `
-                <div class="col-span-full text-center py-4">
-                    <p class="text-slate-500 dark:text-slate-400 text-sm animate-pulse">Đang đánh thức Server (Lần đầu có thể mất 30-50s)...</p>
-                </div>
-                <div class="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700 h-48">
-                    <div class="skeleton h-4 w-1/4 rounded mb-4"></div>
-                    <div class="skeleton h-20 w-full rounded mb-4"></div>
-                    <div class="skeleton h-8 w-1/3 rounded ml-auto"></div>
-                </div>
-                <div class="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700 h-48">
-                    <div class="skeleton h-4 w-1/4 rounded mb-4"></div>
-                    <div class="skeleton h-20 w-full rounded mb-4"></div>
-                    <div class="skeleton h-8 w-1/3 rounded ml-auto"></div>
-                </div>
-            `;
-            grid.innerHTML = ''; 
-            empty.classList.add('hidden');
-            loadMoreContainer.classList.add('hidden');
+    except HTTPException as http_err:
+        raise http_err
+    except Exception as e:
+        logger.exception(f"Lỗi nghiêm trọng: {e}")
+        return JSONResponse(status_code=500, content={"error": "Đã xảy ra lỗi kết nối máy chủ. Vui lòng thử lại sau giây lát!"})
 
-            const controller = new AbortController();
-            // Tăng timeout lên 20s cho các trường hợp Render ngủ đông
-            const timeoutId = setTimeout(() => controller.abort(), 20000); 
-
-            try {
-                const res = await fetch(`${API_URL}/top_prompts`, { signal: controller.signal });
-                clearTimeout(timeoutId); 
-                
-                if (!res.ok) throw new Error(`Lỗi kết nối: ${res.status}`);
-                
-                const data = await res.json();
-                
-                if (Array.isArray(data)) allPrompts = data;
-                else if (data && Array.isArray(data.prompts)) allPrompts = data.prompts;
-                else if (data && Array.isArray(data.data)) allPrompts = data.data;
-                else allPrompts = []; 
-
-                displayedCount = 10; 
-                generateFilterOptions(); // Đổi tên hàm
-                renderPrompts();
-
-            } catch (e) { 
-                clearTimeout(timeoutId);
-                console.error("Fetch Error:", e);
-                skeleton.style.display = 'none';
-                grid.innerHTML = '';
-                empty.classList.remove('hidden');
-                
-                if (e.name === 'AbortError') {
-                    $('emptyTitle').textContent = "Server đang khởi động quá lâu";
-                    $('emptyDesc').textContent = "Hệ thống đang bận hoặc chưa thức dậy. Vui lòng bấm 'Thử lại' sau vài giây.";
-                } else {
-                    $('emptyTitle').textContent = "Không thể kết nối tới Server";
-                    $('emptyDesc').textContent = "Có thể API đang gặp sự cố hoặc chưa có dữ liệu.";
-                }
-                
-                const resetBtn = $('btnResetSearch');
-                resetBtn.textContent = "Thử lại";
-                resetBtn.onclick = () => fetchLibrary();
-            }
-        }
-
-        // Đổ dữ liệu vào Dropdown
-        function generateFilterOptions() {
-            const types = ['Tất cả', ...new Set(allPrompts.map(p => p.type || 'PROMPT'))]; 
-            filterMenu.innerHTML = '';
-            
-            types.forEach(type => {
-                const btn = document.createElement('button');
-                const isActive = type === currentFilter;
-                btn.className = `w-full text-left px-4 py-2.5 text-sm font-semibold transition-colors ${isActive ? 'bg-pink-50 dark:bg-blue-900/30 text-pink-500 dark:text-blue-400' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'}`;
-                btn.textContent = type;
-                btn.onclick = () => {
-                    currentFilter = type;
-                    $('currentFilterText').textContent = type; // Cập nhật text nút bấm
-                    filterMenu.classList.add('hidden'); // Đóng menu
-                    filterIcon.style.transform = 'rotate(0deg)';
-                    displayedCount = 10; 
-                    renderPrompts();
-                };
-                filterMenu.appendChild(btn);
-            });
-        }
-
-        function renderPrompts() {
-            const grid = $('libraryGrid'); const skeleton = $('skeletonLoader'); const empty = $('emptyState');
-            const loadMoreContainer = $('loadMoreContainer');
-            skeleton.style.display = 'none';
-            grid.innerHTML = '';
-
-            const filtered = allPrompts.filter(item => {
-                const matchType = currentFilter === 'Tất cả' || (item.type || 'PROMPT') === currentFilter;
-                const matchSearch = (item.prompt || '').toLowerCase().includes(currentSearch.toLowerCase());
-                return matchType && matchSearch;
-            });
-
-            if (filtered.length === 0) {
-                empty.classList.remove('hidden');
-                loadMoreContainer.classList.add('hidden');
-                $('emptyTitle').textContent = "Không tìm thấy Prompt nào";
-                $('emptyDesc').textContent = "Thử thay đổi từ khóa hoặc bộ lọc xem sao nhé!";
-                return;
-            }
-
-            empty.classList.add('hidden');
-            const promptsToShow = filtered.slice(0, displayedCount);
-
-            promptsToShow.forEach((item, index) => {
-                const card = document.createElement('div');
-                card.className = 'card-enter bg-white/90 dark:bg-[#1e293b]/90 backdrop-blur-sm border border-slate-200 dark:border-slate-700/60 rounded-2xl p-5 shadow-sm hover:shadow-xl hover:border-pink-300 dark:hover:border-blue-500 transition-all flex flex-col';
-                card.style.animationDelay = `${index * 0.05}s`;
-                
-                const safePrompt = encodeURIComponent(item.prompt); 
-                const type = item.type || 'PROMPT';
-                const dateStr = item.created_at ? new Date(item.created_at).toLocaleDateString('vi-VN') : 'Gần đây';
-                const score = item.total_score || item.score || '7.0+';
-                
-                let scoreColor = "text-green-500 bg-green-50 dark:bg-green-900/20 dark:text-green-400";
-                if (score < 8) scoreColor = "text-blue-500 bg-blue-50 dark:bg-blue-900/20 dark:text-blue-400";
-
-                card.innerHTML = `
-                    <div class="flex justify-between items-start mb-3">
-                        <div class="flex items-center gap-2">
-                            <span class="px-2.5 py-1 rounded-md text-[10px] font-bold text-white bg-gradient-to-r from-pink-500 to-blue-500 shadow-sm">${escapeHtml(type)}</span>
-                            <span class="text-[11px] text-slate-400 font-medium">${dateStr}</span>
-                        </div>
-                        <div class="px-2.5 py-1 rounded-md text-sm font-extrabold ${scoreColor}">
-                            ${score} <span class="text-[10px] font-semibold opacity-70">điểm</span>
-                        </div>
-                    </div>
-                    <div class="relative flex-grow mb-4">
-                        <div class="max-h-40 overflow-y-auto custom-scrollbar bg-slate-50 dark:bg-[#0f172a] p-3.5 rounded-xl border border-slate-100 dark:border-slate-700/50">
-                            <p class="text-[13px] text-slate-700 dark:text-slate-300 whitespace-pre-wrap leading-relaxed">${escapeHtml(item.prompt)}</p>
-                        </div>
-                    </div>
-                    <div class="flex justify-end mt-auto">
-                        <button class="btn-copy-lib text-xs font-bold text-white bg-slate-800 dark:bg-slate-700 hover:bg-black dark:hover:bg-slate-600 px-4 py-2 rounded-xl transition-all flex items-center gap-2 shadow-sm" data-prompt="${safePrompt}">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
-                            <span>Copy</span>
-                        </button>
-                    </div>
-                `;
-                grid.appendChild(card);
-                
-                card.querySelector('.btn-copy-lib').addEventListener('click', async function() {
-                    const textToCopy = decodeURIComponent(this.getAttribute('data-prompt'));
-                    try {
-                        await copyTextToClipboard(textToCopy); showToast("Đã copy vào bộ nhớ tạm!", "success");
-                        const original = this.innerHTML; this.innerHTML = '<span>Đã chép!</span>';
-                        this.classList.replace('bg-slate-800', 'bg-green-500'); this.classList.replace('dark:bg-slate-700', 'dark:bg-green-600');
-                        setTimeout(() => { 
-                            this.innerHTML = original; 
-                            this.classList.replace('bg-green-500', 'bg-slate-800'); this.classList.replace('dark:bg-green-600', 'dark:bg-slate-700');
-                        }, 2000);
-                    } catch (err) { showToast("Trình duyệt không cho phép copy.", "error"); }
-                });
-            });
-
-            if (filtered.length > displayedCount) {
-                loadMoreContainer.classList.remove('hidden');
-            } else {
-                loadMoreContainer.classList.add('hidden');
-            }
-        }
-
-        window.loadMorePrompts = function() {
-            displayedCount += 10; 
-            renderPrompts();      
-        }
-
-        window.refreshRandom = function() {
-            const icon = document.getElementById('refreshIcon');
-            icon.classList.add('animate-spin');
-            
-            // Reset bộ lọc về Tất cả khi làm mới
-            currentFilter = 'Tất cả';
-            $('currentFilterText').textContent = 'Tất cả';
-            
-            fetchLibrary().finally(() => {
-                setTimeout(() => icon.classList.remove('animate-spin'), 500);
-            });
-        }
-
-        if ($('searchInput')) {
-            $('searchInput').addEventListener('input', (e) => {
-                currentSearch = e.target.value;
-                displayedCount = 10; 
-                renderPrompts();
-            });
-        }
-
-        window.resetSearch = function() {
-            $('searchInput').value = '';
-            currentSearch = '';
-            currentFilter = 'Tất cả';
-            $('currentFilterText').textContent = 'Tất cả';
-            displayedCount = 10;
-            
-            const resetBtn = $('btnResetSearch');
-            resetBtn.textContent = "Xóa bộ lọc";
-            resetBtn.onclick = () => resetSearch();
-            
-            renderPrompts();
-        }
-
-        fetchLibrary();
-    </script>
-</body>
-</html>
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=int(os.environ.get("PORT", 8000)))
