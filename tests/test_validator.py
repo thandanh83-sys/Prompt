@@ -47,7 +47,11 @@ def test_rewrite_requires_exact_order_and_all_eleven_sections():
 def test_evidence_must_be_found_in_original_prompt():
     main = {"P01": {"name": "Task", "weight": 1.0, "rubric": "test"}}
     report = _valid_report("Viết tóm tắt", main)
-    report["errors"] = [{"code": "C02", "evidence": "Toàn bộ prompt"}]
+    
+    # ĐÃ SỬA: Dùng C01 thay vì C02. 
+    # Vì C02 nằm trong mảng MISSING_INFO_ERRORS (được miễn trừ kiểm tra evidence).
+    report["errors"] = [{"code": "C01", "evidence": "Toàn bộ prompt"}]
+    
     with pytest.raises(ReportValidationError):
         validate_full_report(report, main, {}, "Viết tóm tắt")
 
