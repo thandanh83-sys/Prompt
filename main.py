@@ -3,6 +3,7 @@ import json
 import re
 import logging
 import random  
+import time
 import uvicorn
 from fastapi import FastAPI, Request, HTTPException, Depends, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
@@ -117,29 +118,37 @@ def extract_json(text: str) -> str:
                 continue
     return ""
 
-# [TỐI ƯU] Chỉ dùng 1 model duy nhất là 120b, timeout lên 40s để chống Cold Start của Render
+# CẬP NHẬT: Hàm call_llm với cơ chế Tự động Thử lại (Retry)
 def call_llm(system_prompt: str, user_prompt: str) -> str:
     messages = [
         {"role": "system", "content": system_prompt},
         {"role": "user", "content": "Dữ liệu prompt cần đánh giá:\n" + json.dumps({"prompt_can_cham": user_prompt}, ensure_ascii=False)},
     ]
     
-    try:
-        resp = client.chat.completions.create(
-            model="openai/gpt-oss-120b", 
-            messages=messages,
-            response_format={"type": "json_object"},
-            temperature=0.1, 
-            max_tokens=3000, 
-            timeout=40.0 # Tăng lên 40s
-        )
-        return resp.choices[0].message.content
-    except RateLimitError as e:
-        logger.warning(f"Groq Rate Limit Reached: {e}")
-        raise HTTPException(status_code=429, detail="Hệ thống đang bận. Vui lòng đợi 1 phút rồi thử lại!")
-    except Exception as e:
-        logger.error(f"Groq thất bại: {e}")
-        raise HTTPException(status_code=503, detail="Hệ thống AI đang quá tải. Vui lòng thử lại sau.")
+    max_retries = 3
+    for attempt in range(max_retries):
+        try:
+            resp = client.chat.completions.create(
+                model="openai/gpt-oss-120b", 
+                messages=messages,
+                response_format={"type": "json_object"},
+                temperature=0.1, 
+                max_tokens=3000, 
+                timeout=40.0 
+            )
+            return resp.choices[0].message.content
+            
+        except RateLimitError as e:
+            logger.warning(f"Groq Rate Limit (Lần {attempt+1}/{max_retries}): {e}")
+            if attempt == max_retries - 1:
+                raise HTTPException(status_code=429, detail="Hệ thống AI đang quá tải do quá nhiều yêu cầu. Vui lòng đợi 1 phút rồi thử lại!")
+            time.sleep(5 * (attempt + 1))
+            
+        except Exception as e:
+            logger.error(f"Groq API Error (Lần {attempt+1}/{max_retries}): {e}")
+            if attempt == max_retries - 1:
+                raise HTTPException(status_code=503, detail="Hệ thống AI đang bảo trì hoặc quá tải. Vui lòng thử lại sau ít phút!")
+            time.sleep(2 ** attempt)
 
 def bg_save_history(payload: dict):
     if not supabase: return
@@ -197,7 +206,7 @@ def get_history(token: str = Depends(verify_admin_token)):
         return JSONResponse(status_code=500, content={"error": "Không thể lấy lịch sử."})
 
 # ==========================================
-# API XÓA PROMPT (CHO ADMIN)
+# API XÓA 1 PROMPT (CHO ADMIN)
 # ==========================================
 @app.delete("/admin/delete_prompt/{prompt_id}")
 def delete_prompt(prompt_id: str, token: str = Depends(verify_admin_token)):
@@ -247,13 +256,14 @@ def get_top_prompts():
         response = supabase.table("history") \
             .select("prompt", "type", "total_score", "created_at") \
             .gte("total_score", 7.0) \
-            .limit(50) \
+            .limit(100) \
             .execute()
         
         prompts = response.data
         
-        if len(prompts) > 5:
-            prompts = random.sample(prompts, 5)
+        # Trả về ngẫu nhiên 30 prompt để trang web nhẹ và đa dạng
+        if len(prompts) > 30:
+            prompts = random.sample(prompts, 30)
             
         return {"prompts": prompts}
     except Exception as e:
@@ -317,9 +327,9 @@ Viết lại đúng 11 mục tiếng Việt:
 {rewrite_sections_formatted}
 
 [NGUYÊN TẮC VÀNG KHI VIẾT LẠI - BẮT BUỘC TUÂN THỦ]:
-1. TUYỆT ĐỐI KHÔNG ĐƯỢC XÓA HOẶC TÓM TẮT Ý CỦA NGƯỜI DÙNG.
-2. Với phần điểm cao (8-10): BẮT BUỘC BÊ NGUYÊN VĂN từ ngữ của họ vào mục tương ứng.
-3. Với phần điểm thấp (<8): ĐƯỢC PHÉP viết thêm ý mới, bổ sung chi tiết, nhưng PHẢI GIỮ LẠI từ khóa/ý chính cốt lõi của họ.
+1. TUYỆT ĐỐI KHÔNG ĐƯỢC XÓA HOẶC TÓM TẮT Ý CỦA NGƯỜI DÙNG. Thà bài dài và thừa ý còn hơn thiếu ý của họ.
+2. Với những phần người dùng đã viết tốt (Điểm cao 8-10): BẮT BUỘC phải BÊ NGUYÊN VĂN từ ngữ của họ vào mục tương ứng. Không được tự ý đổi từ đồng nghĩa hay viết lại theo văn phong của bạn.
+3. Với những phần người dùng viết chưa tốt (Điểm thấp <8): Bạn ĐƯỢC PHÉP viết thêm ý mới, bổ sung chi tiết, nhưng PHẢI GIỮ LẠI các từ khóa/ý chính cốt lõi của họ, không được phủ định hay thay thế hoàn toàn.
 4. Nếu là INPUT RÁC: Hãy tự sáng tác một prompt 11 mục xuất sắc dựa trên phỏng đoán.
 
 TRẢ VỀ DUY NHẤT JSON SAU:
@@ -340,7 +350,6 @@ TRẢ VỀ DUY NHẤT JSON SAU:
         success = False
         ai_data = {}
         
-        # [TỐI ƯU] Chỉ thử lại 1 lần, không dùng 2 model để tránh bị chậm
         for attempt in range(2):
             try:
                 raw_text = call_llm(system_prompt, prompt_text)
