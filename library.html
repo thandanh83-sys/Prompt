@@ -552,7 +552,6 @@
             loadMoreContainer.classList.add('hidden');
 
             const controller = new AbortController();
-            // Tăng timeout lên 20s cho các trường hợp Render ngủ đông
             const timeoutId = setTimeout(() => controller.abort(), 20000); 
 
             try {
@@ -569,7 +568,7 @@
                 else allPrompts = []; 
 
                 displayedCount = 10; 
-                generateFilterOptions(); // Đổi tên hàm
+                generateFilterOptions(); 
                 renderPrompts();
 
             } catch (e) { 
@@ -593,7 +592,6 @@
             }
         }
 
-        // Đổ dữ liệu vào Dropdown
         function generateFilterOptions() {
             const types = ['Tất cả', ...new Set(allPrompts.map(p => p.type || 'PROMPT'))]; 
             filterMenu.innerHTML = '';
@@ -605,8 +603,8 @@
                 btn.textContent = type;
                 btn.onclick = () => {
                     currentFilter = type;
-                    $('currentFilterText').textContent = type; // Cập nhật text nút bấm
-                    filterMenu.classList.add('hidden'); // Đóng menu
+                    $('currentFilterText').textContent = type; 
+                    filterMenu.classList.add('hidden'); 
                     filterIcon.style.transform = 'rotate(0deg)';
                     displayedCount = 10; 
                     renderPrompts();
@@ -705,7 +703,6 @@
             const icon = document.getElementById('refreshIcon');
             icon.classList.add('animate-spin');
             
-            // Reset bộ lọc về Tất cả khi làm mới
             currentFilter = 'Tất cả';
             $('currentFilterText').textContent = 'Tất cả';
             
