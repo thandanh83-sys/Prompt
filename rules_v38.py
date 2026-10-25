@@ -19,12 +19,11 @@ class ConfigurationError(Exception):
 
 # ==========================================
 # BỘ TIÊU CHÍ LÕI (CORE CRITERIA)
-# Áp dụng cho TẤT CẢ mọi loại Prompt trên đời
 # ==========================================
 CRITERIA_CORE = {
     "P01": {"name": "Độ rõ nhiệm vụ", "weight": 1.2, "rubric": "0-2: Không có động từ hành động. 3-4: Động từ mơ hồ. 5-6: Rõ hành động. 7-10: Rõ hành động, rõ kết quả."},
-    "P02": {"name": "Đối tượng tác động", "weight": 1.2, "rubric": "0-2: Không có đối tượng. 3-4: Đối tượng chung chung. 5P03":-6: {" Đối tượng cụ thể. 7-10: Đối tượng rất chi tiết."},
-    "name": "Bối cảnh", "weight": 0.8, "rubric": "0-2: Không có bối cảnh. 3-4: Bối cảnh sơ sài. 5-6: Có bối cảnh rõ. 7-10: Bối cảnh phong phú."},
+    "P02": {"name": "Đối tượng tác động", "weight": 1.2, "rubric": "0-2: Không có đối tượng. 3-4: Đối tượng chung chung. 5-6: Đối tượng cụ thể. 7-10: Đối tượng rất chi tiết."},
+    "P03": {"name": "Bối cảnh", "weight": 0.8, "rubric": "0-2: Không có bối cảnh. 3-4: Bối cảnh sơ sài. 5-6: Có bối cảnh rõ. 7-10: Bối cảnh phong phú."},
     "P04": {"name": "Định dạng đầu ra", "weight": 0.8, "rubric": "0-2: Không yêu cầu định dạng. 3-4: Yêu cầu chung chung. 5-6: Có yêu cầu cụ thể. 7-10: Yêu cầu rất chi tiết."},
     "P05": {"name": "Độ chi tiết và ví dụ", "weight": 1.6, "rubric": "0-2: Không có ví dụ. 3-4: Ít chi tiết. 5-6: Có ví dụ cơ bản. 7-10: Nhiều ví dụ và chi tiết."},
     "P06": {"name": "Không mơ hồ", "weight": 0.2, "rubric": "0-2: Rất mơ hồ. 3-4: Có từ mơ hồ. 5-6: Ít mơ hồ. 7-10: Hoàn toàn rõ ràng."},
@@ -36,7 +35,6 @@ CRITERIA_CORE = {
 
 # ==========================================
 # BỘ TIÊU CHÍ KỸ THUẬT (TECHNIQUES)
-# Chỉ kích hoạt khi người dùng dùng các kỹ thuật tương ứng
 # ==========================================
 CRITERIA_ROLE_PLAY = {
     "R01": {"name": "Sự phù hợp của vai trò", "weight": 1.5, "rubric": "0-2: Vai trò không liên quan. 3-4: Vai trò chung chung. 5-6: Vai trò phù hợp. 7-10: Vai trò tối ưu cho nhiệm vụ."},
@@ -88,7 +86,6 @@ def validate_config(main_criteria: dict, tech_criteria: dict):
             raise ConfigurationError(f"Trọng số của '{k}' không hợp lệ.")
 
 def get_criteria_by_type(classification: dict) -> dict:
-    """Trả về bộ tiêu chí Lõi + Kỹ thuật (Không còn chia theo ngành nghề cứng nhắc)"""
     techniques = classification.get("techniques", [])
     
     main_criteria = CRITERIA_CORE.copy()
@@ -104,10 +101,6 @@ def get_criteria_by_type(classification: dict) -> dict:
     return {"main": main_criteria, "tech": tech_criteria}
 
 def classify_prompt(prompt_text: str) -> dict:
-    """
-    Nhận diện xem người dùng đang dùng Kỹ thuật (Techniques) nào.
-    Việc nhận diện ngành nghề (Mỹ phẩm, Code, Marketing) sẽ do AI tự động làm ở Bước 2 trong main.py.
-    """
     if not isinstance(prompt_text, str): return {"main_task": TYPE_EMPTY, "techniques": []}
     text = prompt_text.strip()
     if not text: return {"main_task": TYPE_EMPTY, "techniques": []}
@@ -126,5 +119,4 @@ def classify_prompt(prompt_text: str) -> dict:
     if any(kw in lower_text for kw in ["viết truyện", "làm thơ", "sáng tác", "kịch bản", "viết quảng cáo", "brainstorm", "viết content", "story", "poem", "script", "write a"]):
         techniques.append(TECH_CREATIVE)
 
-    # Trả về loại mặc định là PROMPT (AI sẽ tự lo phần chuyên ngành)
     return {"main_task": TYPE_PROMPT, "techniques": techniques}
