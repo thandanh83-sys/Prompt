@@ -288,26 +288,35 @@ def evaluate(request: Request, req: PromptRequest, background_tasks: BackgroundT
         for code, rule in error_rules.ERROR_RULES.items():
             error_codes_desc += f"- {code}: {rule['name']}\n"
         
-        # TỐI ƯU HÓA SYSTEM PROMPT: HỖ TRỢ ĐA NGÔN NGỮ, GIỮ NGUYÊN CHẤT XÁM VÀ CẢI TIẾN
+        # TỐI ƯU HÓA SYSTEM PROMPT: CHỈ 10 ĐIỂM MỚI ĐƯỢC GIỮ NGUYÊN BẢN GỐC
         system_prompt = f"""
-Bạn là chuyên gia chấm điểm và tối ưu hóa Prompt. Người dùng có thể nhập Prompt bằng BẤT KỲ NGÔN NGỮ NÀO (Tiếng Việt, Tiếng Anh, Tiếng Trung, v.v. - ví dụ: ROLE, CONTEXT, TASK, CONSTRAINTS, OUTPUT FORMAT...). Hãy đọc hiểu ý nghĩa của nó để đánh giá chính xác.
+Bạn là chuyên gia chấm điểm và tối ưu hóa Prompt. Người dùng có thể nhập Prompt bằng BẤT KỲ NGÔN NGỮ NÀO. Hãy đọc hiểu ý nghĩa của nó để đánh giá.
 
-Nhiệm vụ 1: Chấm điểm các tiêu chí sau (từ 0-10):
+HÃY THỰC HIỆN THEO QUY TRÌNH 4 BƯỚC SAU (Suy luận nội bộ trước khi xuất JSON):
+
+[BƯỚC 1: CHẤM ĐIỂM]
+Chấm điểm các tiêu chí sau (từ 0-10):
 {criteria_desc}
 
-Nhiệm vụ 2: Phát hiện lỗi trong các mã sau:
+[BƯỚC 2: TÌM LỖI]
+Phát hiện lỗi trong các mã sau:
 {error_codes_desc}
 
-Nhiệm vụ 3: TÁI CẤU TRÚC VÀ TỐI ƯU HÓA (Rewrite). 
-DÙ prompt đầu vào là ngôn ngữ gì, bạn BẮT BUỘC phải chuyển nó thành 11 mục tiếng Việt chính xác như sau (Mỗi mục nếu có nhiều ý phải dùng \\n để xuống dòng):
-"1. VAI TRÒ", "2. BỐI CẢNH", "3. INPUT", "4. MỤC TIÊU", "5. YÊU CẦU", "6. RÀNG BUỘC", "7. TASK", "8. ĐỊNH DẠNG ĐẦU RA", "9. NEVER DO", "10. THỨ TỰ ƯU TIÊN", "11. XỬ LÝ NỘI BỘ".
+[BƯỚC 2.5: ĐỐI CHIẾU VÀ LẬP KẾ HOẠCH VIẾT LẠI]
+Hãy nhìn lại bảng điểm ở Bước 1 và tự nhủ:
+- Tiêu chí đạt 10/10 điểm (Tuyệt đối): "Phần này đã hoàn hảo, mình PHẢI COPY NGUYÊN VĂN 100% chữ của người dùng, TUYỆT ĐỐI KHÔNG SỬA DÙ CHỈ 1 CHỮ".
+- Tiêu chí đạt 9 điểm trở xuống (Cần cải thiện): "Phần này vẫn chưa đạt điểm tối đa, mình ĐƯỢC PHÉP CẢI TIẾN (thêm từ ngữ chuyên nghiệp hơn, rõ nghĩa hơn, bổ sung chi tiết) để nó trở nên hoàn hảo hơn".
 
-QUY TẮC TỐI ƯU (CỰC KỲ QUAN TRỌNG): 
-- Hãy GIỮ LẠI TỐI ĐA các chi tiết chuyên môn, ví dụ, và ý tưởng cốt lõi của prompt gốc. 
-- KHÔNG ĐƯỢC viết chung chung hay rút gọn làm mất đi sự sâu sắc của prompt gốc.
-- Nếu prompt gốc đã quá tốt và chi tiết, bạn CHỈ CẦN chia lại bố cục cho đúng 11 mục, tuyệt đối không được làm mất chữ nghĩa gốc.
+[BƯỚC 3: TÁI CẤU TRÚC VÀ CẢI TIẾN (Thực thi kế hoạch ở Bước 2.5)]
+Chuyển đổi prompt gốc thành 11 mục tiếng Việt chính xác10:
+"1/. VAI TR10Ò", "2. BỐ điểmI CẢNH", "3. INPUT", "4. MỤC TIÊU", "5. YÊU CẦU", "6. RÀNG BUỘC", "7. TASK", "8. ĐỊNH DẠNG ĐẦU RA", "9. NEVER DO", "10. THỨ TỰ ƯU TIÊN", "11. XỬ LÝ NỘI BỘ".
 
-QUY TẮC BẰNG CHỨNG: Khi trích dẫn lỗi (evidence), TUYỆT ĐỐI KHÔNG dùng dấu ngoặc kép (") bao quanh, không thêm lời giải thích. Chỉ copy nguyên văn một đoạn ngắn có trong prompt gốc (giữ nguyên ngôn ngữ gốc của đoạn đó).
+QUY TẮC VIẾT LẠI (CỰC KỲ QUAN TRỌNG):
+- Với các phần đạt : COPY Y NGUYÊN CHỮ CỦA NGƯỜI DÙNG.
+- Với các phần từ 9 điểm trở xuống: Hãy mạnh dạn cải tiến, viết lại cho hay hơn, chuyên nghiệp hơn để đạt chuẩn 10 điểm.
+- Mỗi mục nếu có nhiều ý phải dùng \\n để xuống dòng.
+
+QUY TẮC BẰNG CHỨNG: Khi trích dẫn lỗi (evidence), TUYỆT ĐỐI KHÔNG dùng dấu ngoặc kép (") bao quanh, không thêm lời giải thích. Chỉ copy nguyên văn một đoạn ngắn có trong prompt gốc.
 LƯU Ý QUAN TRỌNG: Đối với các lỗi thuộc dạng thiếu thông tin (ví dụ: B01 thiếu cấu trúc, C02 thiếu bối cảnh, C04 thiếu ví dụ) mà không có từ khóa nào để trích dẫn, bạn BẮT BUỘC phải ghi vào trường "evidence" đúng câu sau: "Không có thông tin này trong prompt".
 
 Trả về JSON chính xác cấu trúc sau (KHÔNG THÊM KEY NÀO KHÁC):
