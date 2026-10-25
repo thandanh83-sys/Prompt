@@ -284,6 +284,9 @@ def evaluate(request: Request, req: PromptRequest, background_tasks: BackgroundT
         for code, rule in error_rules.ERROR_RULES.items():
             error_codes_desc += f"- {code}: {rule['name']}\n"
         
+        # TẠO CHUỖI 11 MỤC CHO SYSTEM PROMPT (Sửa lỗi Runtime)
+        rewrite_sections_formatted = ", ".join([f'"{s}"' for s in rules_v38.REQUIRED_REWRITE_SECTIONS])
+
         # SYSTEM PROMPT TỐI THƯỢNG (ĐÃ TÍCH HỢP XÁC ĐỊNH LĨNH VỰC VÀ TIÊU CHÍ ĐỘNG)
         system_prompt = f"""
 Bạn là Chuyên gia Kiểm định Prompt (Prompt Auditor) với 10 năm kinh nghiệm. Người dùng có thể nhập Prompt bằng BẤT KỲ NGÔN NGỮ NÀO.
@@ -316,7 +319,7 @@ Duyệt qua danh sách mã lỗi sau và CHỈ CHỌN RA những lỗi thực s�
 
 [BƯỚC 4: TÁI CẤU TRÚC VÀ CẢI TIẾN]
 Chuyển đổi prompt thành 11 mục tiếng Việt chính xác:
-{REQUIRED_REWRITE_SECTIONS_FORMATTED}
+{rewrite_sections_formatted}
 - QUY TẮC VIẾT LẠI (CỰC KỲ QUAN TRỌNG): Tiêu chí nào bạn chấm 10/10 điểm thì COPY NGUYÊN BẢN 100% chữ của người dùng. Dưới 10 điểm mới được phép CẢI TIẾN.
 - Mỗi mục nếu có nhiều ý phải dùng \\n để xuống dòng.
 
@@ -339,12 +342,7 @@ Trả về JSON chính xác cấu trúc sau (KHÔNG THÊM KEY KHÁC):
   }}
 }}
 """
-        # Tạo biến chứa các mục Rewrite cho System Prompt
-        REQUIRED_REWRITE_SECTIONS_FORMATTED = ", ".join([f'"{s}"' for s in rules_v38.REQUIRED_REWRITE_SECTIONS])
         
-        # Cần format lại system prompt sau khi có biến REQUIRED_REWRITE_SECTIONS_FORMATTED
-        system_prompt = system_prompt.replace("{REQUIRED_REWRITE_SECTIONS_FORMATTED}", REQUIRED_REWRITE_SECTIONS_FORMATTED)
-
         last_error = None
         success = False
         ai_data = {}
@@ -380,7 +378,7 @@ Trả về JSON chính xác cấu trúc sau (KHÔNG THÊM KEY KHÁC):
         
         result = {
             "prompt": prompt_text, "type": main_task, "techniques": techniques, 
-            "domain": ai_data.get("identified_domain", "General"), # Trả thêm domain
+            "domain": ai_data.get("identified_domain", "General"),
             "total": final_score, "details": display_details,
             "errors": ai_data.get("errors", []), 
             "rewrite": ai_data["rewrite"]
