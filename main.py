@@ -117,7 +117,8 @@ def extract_json(text: str) -> str:
                 continue
     return ""
 
-def call_llm(system_prompt: str, user_prompt: str) -> str:
+# CẬP NHẬT: Hàm call_llm nhận thêm tham số model_name
+def call_llm(system_prompt: str, user_prompt: str, model_name: str) -> str:
     messages = [
         {"role": "system", "content": system_prompt},
         {"role": "user", "content": "Dữ liệu prompt cần đánh giá:\n" + json.dumps({"prompt_can_cham": user_prompt}, ensure_ascii=False)},
@@ -125,19 +126,19 @@ def call_llm(system_prompt: str, user_prompt: str) -> str:
     
     try:
         resp = client.chat.completions.create(
-            model="openai/gpt-oss-20b", 
+            model=model_name, 
             messages=messages,
             response_format={"type": "json_object"},
             temperature=0.1, 
-            max_tokens=2500, # Giảm max_tokens để AI không viết lan man
-            timeout=20.0 
+            max_tokens=3000, 
+            timeout=25.0 
         )
         return resp.choices[0].message.content
     except RateLimitError as e:
         logger.warning(f"Groq Rate Limit Reached: {e}")
         raise HTTPException(status_code=429, detail="Hệ thống đang bận. Vui lòng đợi 1 phút rồi thử lại!")
     except Exception as e:
-        logger.error(f"Groq thất bại: {e}")
+        logger.error(f"Groq thất bại ({model_name}): {e}")
         raise HTTPException(status_code=503, detail="Hệ thống AI đang quá tải. Vui lòng thử lại sau.")
 
 def bg_save_history(payload: dict):
@@ -267,7 +268,6 @@ def get_top_prompts():
 def evaluate(request: Request, req: PromptRequest, background_tasks: BackgroundTasks):
     prompt_text = req.prompt.strip()
     
-    # Đã xóa bộ lọc độ dài. Bạn có thể nhập 1 từ, 1 chữ cái tùy thích.
     if not prompt_text:
         return JSONResponse(status_code=400, content={"error": "Vui lòng nhập Prompt."})
         
@@ -292,13 +292,15 @@ def evaluate(request: Request, req: PromptRequest, background_tasks: BackgroundT
             
         rewrite_sections_formatted = ", ".join([f'"{s}"' for s in rules_v38.REQUIRED_REWRITE_SECTIONS])
 
-        # SYSTEM PROMPT ĐÃ ĐƯỢC RÚT GỌN TỐI ĐA ĐỂ TĂNG TỐC
         system_prompt = f"""
 Bạn là Chuyên gia Kiểm định Prompt. Hãy thực hiện 4 bước sau và trả về JSON:
 
 [BƯỚC 1: XÁC ĐỊNH LĨNH VỰC & INPUT RÁC]
 - Lĩnh vực: Code, Cosmetics, Marketing, Writing, Education, General.
-- Nếu prompt quá ngắn/vô nghĩa (dưới 5 từ, VD: "mạ", "tả mẹ đi nào"): Chấm điểm lõi 0-2đ (trừ P14=10đ). Ở Bước 4, hãy tự do sáng tạo ra một prompt 11 mục thật xuất sắc dựa trên phỏng đoán ý định người dùng. Tuyệt đối không copy câu lệnh này.
+- [QUY TẮC ĐẶC BIỆT VỀ INPUT RÁC]: Nếu prompt quá ngắn (dưới 3 từ), vô nghĩa, hoặc chỉ là từ rời rạc (Ví dụ: "mạ", "tả"):
+  1. Chấm 0 điểm cho TẤT CẢ các tiêu chí.
+  2. Mảng "errors" để trống [].
+  3. Kích hoạt chế độ [MỞ RỘNG SÁNG TẠO] ở Bước 4: Tự phỏng đoán ý định (VD: "tả" -> tả mẹ), và viết mới một prompt 11 mục thật hoàn chỉnh, chuyên nghiệp.
 
 [BƯỚC 2: CHẤM ĐIỂM & TIÊU CHÍ ĐỘNG]
 2.1. Chấm điểm lõi (0-10):
@@ -313,7 +315,7 @@ Bạn là Chuyên gia Kiểm định Prompt. Hãy thực hiện 4 bước sau v�
 [BƯỚC 4: REWRITE]
 Viết lại đúng 11 mục tiếng Việt:
 {rewrite_sections_formatted}
-- Quy tắc: 10 điểm copy nguyên bản. Dưới 10 điểm thì cải tiến.
+- Quy tắc: 10 điểm copy nguyên bản. Dưới 10 điểm thì cải tiến. Nếu là input rác, hãy tự sáng tác một prompt 11 mục xuất sắc.
 
 TRẢ VỀ DUY NHẤT JSON SAU:
 {{
@@ -329,17 +331,33 @@ TRẢ VỀ DUY NHẤT JSON SAU:
 }}
 """
         
-        # [TỐI ƯU TỐC ĐỘ] Bỏ vòng lặp Retry (chỉ chạy 1 lần)
-        try:
-            raw_text = call_llm(system_prompt, prompt_text)
-            json_str = extract_json(raw_text)
-            if not json_str:
-                raise ReportValidationError("AI trả về định dạng không hợp lệ.")
-            ai_data = json.loads(json_str)
-            validate_full_report(ai_data, main_criteria, tech_criteria, prompt_text)
-        except (json.JSONDecodeError, ReportValidationError, TypeError, ValueError) as e:
-            logger.error(f"Lỗi Validation: {e}")
-            return JSONResponse(status_code=422, content={"error": "AI chưa xử lý được câu lệnh này. Vui lòng thử lại!"})
+        last_error = None
+        success = False
+        ai_data = {}
+        
+        # [CHIẾN THUẬT CASCADE MODELS] Lần 1 dùng 20B, Lần 2 dùng 120B
+        models_to_try = ["openai/gpt-oss-20b", "openai/gpt-oss-120b"]
+        
+        for attempt, model_name in enumerate(models_to_try):
+            try:
+                logger.info(f"Đang thử đánh giá bằng model: {model_name}")
+                raw_text = call_llm(system_prompt, prompt_text, model_name)
+                json_str = extract_json(raw_text)
+                if not json_str:
+                    raise ReportValidationError("AI trả về định dạng không hợp lệ.")
+                ai_data = json.loads(json_str)
+                validate_full_report(ai_data, main_criteria, tech_criteria, prompt_text)
+                success = True
+                break # Nếu thành công thì dừng vòng lặp, không gọi model 2 nữa
+            except HTTPException:
+                raise
+            except (json.JSONDecodeError, ReportValidationError, TypeError, ValueError) as e:
+                last_error = e
+                logger.warning(f"Lần thử {attempt + 1} với model {model_name} thất bại: {e}")
+        
+        if not success:
+            logger.error(f"Lỗi Validation sau 2 lần thử: {last_error}")
+            return JSONResponse(status_code=422, content={"error": "Hệ thống AI đang xử lý dữ liệu chưa tốt. Vui lòng thử lại!"})
 
         final_score = calculate_final_score(ai_data["scores"], main_criteria, tech_criteria)
         
