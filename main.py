@@ -266,7 +266,13 @@ def get_top_prompts():
 def evaluate(request: Request, req: PromptRequest, background_tasks: BackgroundTasks):
     prompt_text = req.prompt.strip()
     if not prompt_text: return JSONResponse(status_code=400, content={"error": "Prompt trống."})
-    if len(prompt_text) > MAX_PROMPT_LENGTH: return JSONResponse(status_code=400, content={"error": f"Prompt vượt quá {MAX_PROMPT_LENGTH} ký tự."})
+    
+    # THÊM CHẶN PROMPT QUÁ NGẮN (Dưới 10 ký tự)
+    if len(prompt_text) < 10: 
+        return JSONResponse(status_code=400, content={"error": "Prompt quá ngắn. Vui lòng nhập chi tiết hơn (ít nhất 10 ký tự) để AI có thể đánh giá!"})
+
+    if len(prompt_text) > MAX_PROMPT_LENGTH: 
+        return JSONResponse(status_code=400, content={"error": f"Prompt vượt quá {MAX_PROMPT_LENGTH} ký tự."})
 
     try:
         classification = rules_v38.classify_prompt(prompt_text)
@@ -284,10 +290,8 @@ def evaluate(request: Request, req: PromptRequest, background_tasks: BackgroundT
         for code, rule in error_rules.ERROR_RULES.items():
             error_codes_desc += f"- {code}: {rule['name']}\n"
         
-        # TẠO CHUỖI 11 MỤC CHO SYSTEM PROMPT (Sửa lỗi Runtime)
         rewrite_sections_formatted = ", ".join([f'"{s}"' for s in rules_v38.REQUIRED_REWRITE_SECTIONS])
 
-        # SYSTEM PROMPT TỐI THƯỢNG (ĐÃ TÍCH HỢP XÁC ĐỊNH LĨNH VỰC VÀ TIÊU CHÍ ĐỘNG)
         system_prompt = f"""
 Bạn là Chuyên gia Kiểm định Prompt (Prompt Auditor) với 10 năm kinh nghiệm. Người dùng có thể nhập Prompt bằng BẤT KỲ NGÔN NGỮ NÀO.
 
@@ -368,7 +372,6 @@ Trả về JSON chính xác cấu trúc sau (KHÔNG THÊM KEY KHÁC):
 
         final_score = calculate_final_score(ai_data["scores"], main_criteria, tech_criteria)
         
-        # Gộp tên tiêu chí lõi và tiêu chí động vào để hiển thị
         display_details = {}
         for k, v in ai_data["scores"].items():
             if k in all_criteria:
