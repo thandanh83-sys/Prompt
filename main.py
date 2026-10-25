@@ -217,7 +217,6 @@ def delete_all_prompts(token: str = Depends(verify_admin_token)):
     if not supabase:
         return JSONResponse(status_code=500, content={"error": "Supabase chưa cấu hình."})
     try:
-        # Xóa tất cả các dòng trong bảng history (neq id '0' để xóa toàn bộ)
         supabase.table("history").delete().neq("id", "0").execute()
         return {"status": "success", "message": "Đã xóa toàn bộ lịch sử."}
     except Exception as e:
@@ -289,7 +288,7 @@ def evaluate(request: Request, req: PromptRequest, background_tasks: BackgroundT
         for code, rule in error_rules.ERROR_RULES.items():
             error_codes_desc += f"- {code}: {rule['name']}\n"
         
-        # TỐI ƯU HÓA SYSTEM PROMPT: HỖ TRỢ ĐA NGÔN NGỮ
+        # TỐI ƯU HÓA SYSTEM PROMPT: HỖ TRỢ ĐA NGÔN NGỮ VÀ CHỐNG LỖI EVIDENCE RỖNG
         system_prompt = f"""
 Bạn là chuyên gia chấm điểm Prompt. Người dùng có thể nhập Prompt bằng BẤT KỲ NGÔN NGỮ NÀO (Tiếng Việt, Tiếng Anh, Tiếng Trung, v.v. - ví dụ: ROLE, CONTEXT, TASK, CONSTRAINTS, OUTPUT FORMAT...). Hãy đọc hiểu ý nghĩa của nó để đánh giá chính xác.
 
@@ -303,6 +302,7 @@ Nhiệm vụ 3: Viết lại prompt (Rewrite). DÙ prompt đầu vào là ngôn 
 "1. VAI TRÒ", "2. BỐI CẢNH", "3. INPUT", "4. MỤC TIÊU", "5. YÊU CẦU", "6. RÀNG BUỘC", "7. TASK", "8. ĐỊNH DẠNG ĐẦU RA", "9. NEVER DO", "10. THỨ TỰ ƯU TIÊN", "11. XỬ LÝ NỘI BỘ".
 
 QUY TẮC BẰNG CHỨNG: Khi trích dẫn lỗi (evidence), TUYỆT ĐỐI KHÔNG dùng dấu ngoặc kép (") bao quanh, không thêm lời giải thích. Chỉ copy nguyên văn một đoạn ngắn có trong prompt gốc (giữ nguyên ngôn ngữ gốc của đoạn đó).
+LƯU Ý QUAN TRỌNG: Đối với các lỗi thuộc dạng thiếu thông tin (ví dụ: B01 thiếu cấu trúc, C02 thiếu bối cảnh, C04 thiếu ví dụ) mà không có từ khóa nào để trích dẫn, bạn BẮT BUỘC phải ghi vào trường "evidence" đúng câu sau: "Không có thông tin này trong prompt".
 
 Trả về JSON chính xác cấu trúc sau (KHÔNG THÊM KEY NÀO KHÁC):
 {{
