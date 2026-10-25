@@ -145,6 +145,55 @@
         </div>
     </header>
 
+    <!-- BỔ SUNG LẠI MODAL ĐĂNG NHẬP (BỊ THIẾU TRONG BẢN TRƯỚC) -->
+    <div id="loginModal" class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm hidden opacity-0 transition-opacity duration-300">
+        <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-sm p-6 relative border border-slate-200 dark:border-slate-700">
+            <button type="button" id="btnCloseLoginModal" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 bg-transparent hover:bg-slate-100 dark:hover:bg-slate-700 w-8 h-8 rounded-full flex items-center justify-center transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+            <h2 class="text-xl font-bold text-center mb-2 text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-blue-500">Đăng nhập / Đăng ký</h2>
+            <p class="text-xs text-center text-slate-500 mb-6">Nhập email để nhận link đăng nhập tự động</p>
+            <input type="email" id="loginEmail" class="w-full p-4 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 mb-4 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500" placeholder="Email của bạn...">
+            <p id="loginError" class="text-red-500 text-xs font-bold mb-4 hidden bg-red-50 p-2 rounded-lg"></p>
+            <button id="btnSendMagicLink" class="w-full py-3.5 rounded-xl font-bold text-white bg-gradient-to-r from-pink-500 to-blue-500 shadow-md hover:scale-[1.02] transition-transform text-sm">Gửi link đăng nhập</button>
+            
+            <div class="relative flex py-3 items-center my-2">
+                <div class="flex-grow border-t border-slate-300 dark:border-slate-600"></div>
+                <span class="flex-shrink mx-4 text-xs text-slate-400">HOẶC</span>
+                <div class="flex-grow border-t border-slate-300 dark:border-slate-600"></div>
+            </div>
+
+            <div class="flex w-full mb-2">
+                <button onclick="signInWithGoogle()" class="w-full flex items-center justify-center gap-3 py-3 rounded-xl bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 font-bold text-sm hover:bg-slate-50 dark:hover:bg-slate-600 transition shadow-sm">
+                    <svg class="w-5 h-5" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+                    Đăng nhập bằng Google
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- BỔ SUNG LẠI MODAL RATE LIMIT -->
+    <div id="rateLimitModal" class="fixed inset-0 z-[99999] flex flex-col items-center justify-center p-4 bg-black/70 backdrop-blur-md transition-opacity duration-300" style="display: none;">
+        <div class="bg-white dark:bg-[#1e293b] border border-slate-200 dark:border-slate-700/50 rounded-3xl shadow-2xl w-full max-w-[400px] p-6 sm:p-7 relative">
+            <button type="button" onclick="closeRateLimitModal()" title="Đóng" class="absolute top-5 right-5 text-slate-500 hover:text-slate-800 bg-slate-100 hover:bg-slate-200 dark:text-slate-300 dark:hover:text-white dark:bg-slate-700/50 dark:hover:bg-slate-600 w-8 h-8 rounded-full flex items-center justify-center transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                </div>
+                <h3 class="font-extrabold text-xl text-slate-800 dark:text-white mb-2">Đã đạt giới hạn gửi Email</h3>
+                <p class="text-sm text-slate-600 dark:text-slate-400">Hệ thống mặc định chỉ cho phép gửi tối đa <strong>2 email đăng nhập mỗi giờ</strong> để chống Spam.</p>
+            </div>
+            <div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl text-sm text-blue-700 dark:text-blue-300 text-center mb-6 border border-blue-100 dark:border-blue-800/50">
+                💡 Để tiếp tục, vui lòng đóng bảng này và sử dụng tính năng <strong>Đăng nhập bằng Google</strong> (Không giới hạn, nhanh và an toàn hơn).
+            </div>
+            <button type="button" onclick="closeRateLimitModal()" class="w-full py-3.5 rounded-xl font-bold text-white bg-gradient-to-r from-pink-500 to-blue-500 shadow-md transition-all text-[15px]">
+                Đã hiểu
+            </button>
+        </div>
+    </div>
+
     <main class="w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 md:pt-28 pb-32 flex-grow flex flex-col mt-4">
         
         <!-- TIÊU ĐỀ & MÔ TẢ -->
@@ -266,6 +315,7 @@
     <script>
         const API_URL = "https://prompt-tx2e.onrender.com"; 
         const SUPABASE_URL = "https://egncrbearrwfoslryuga.supabase.co";
+        // KEY ĐÃ KIỂM TRA CHÍNH XÁC
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVnbmNyYmVhcnJ3Zm9zbHJ5dWdhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI1MDk2MzgsImV4cCI6MjEwODA4NTYzOH0.jX8rz7Fk5wIqdbDqb6ZwKUiMs-wggVRj-dLk2dqlYFM";
         
         const supabaseClient = window.supabase?.createClient ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
@@ -332,9 +382,10 @@
             });
         }
 
-        $('btnShowLogin').addEventListener('click', () => { $('loginModal').classList.remove('hidden'); setTimeout(() => $('loginModal').classList.remove('opacity-0'), 10); });
-        $('btnCloseLoginModal').addEventListener('click', () => { $('loginModal').classList.add('opacity-0'); setTimeout(() => $('loginModal').classList.add('hidden'), 300); });
-        $('loginModal').addEventListener('click', (e) => { if (e.target === $('loginModal')) $('btnCloseLoginModal').click(); });
+        // ĐÃ THÊM LẠI SỰ KIỆN NÚT ĐĂNG NHẬP
+        if ($('btnShowLogin')) $('btnShowLogin').addEventListener('click', () => { $('loginModal').classList.remove('hidden'); setTimeout(() => $('loginModal').classList.remove('opacity-0'), 10); });
+        if ($('btnCloseLoginModal')) $('btnCloseLoginModal').addEventListener('click', () => { $('loginModal').classList.add('opacity-0'); setTimeout(() => $('loginModal').classList.add('hidden'), 300); });
+        if ($('loginModal')) $('loginModal').addEventListener('click', (e) => { if (e.target === $('loginModal')) $('btnCloseLoginModal').click(); });
 
         window.closeRateLimitModal = function() {
             const modal = $('rateLimitModal');
@@ -346,23 +397,25 @@
             if (modal) modal.style.display = 'flex';
         }
 
-        $('btnSendMagicLink').addEventListener('click', async () => {
-            const email = $('loginEmail').value.trim(); const errorMsg = $('loginError'); const btn = $('btnSendMagicLink');
-            if (!supabaseClient) { errorMsg.textContent = 'Lỗi tải thư viện đăng nhập.'; errorMsg.classList.remove('hidden'); return; }
-            if (!email) { errorMsg.textContent = "Vui lòng nhập email!"; errorMsg.classList.remove('hidden'); return; }
-            btn.textContent = "Đang gửi..."; btn.disabled = true; errorMsg.classList.add('hidden');
-            const { error } = await supabaseClient.auth.signInWithOtp({ email: email, options: { emailRedirectTo: window.location.href } });
-            if (error) { 
-                btn.textContent = "Gửi link đăng nhập"; btn.disabled = false; 
-                if (error.message.includes("rate limit") || error.message.includes("email rate limit exceeded")) {
-                    openRateLimitModal();
-                } else {
-                    errorMsg.textContent = error.message; 
-                    errorMsg.classList.remove('hidden'); 
-                }
-            } 
-            else { alert("Đã gửi link! Vui lòng kiểm tra hộp thư (hoặc mục Spam)."); $('btnCloseLoginModal').click(); btn.textContent = "Gửi link đăng nhập"; btn.disabled = false; }
-        });
+        if ($('btnSendMagicLink')) {
+            $('btnSendMagicLink').addEventListener('click', async () => {
+                const email = $('loginEmail').value.trim(); const errorMsg = $('loginError'); const btn = $('btnSendMagicLink');
+                if (!supabaseClient) { errorMsg.textContent = 'Lỗi tải thư viện đăng nhập.'; errorMsg.classList.remove('hidden'); return; }
+                if (!email) { errorMsg.textContent = "Vui lòng nhập email!"; errorMsg.classList.remove('hidden'); return; }
+                btn.textContent = "Đang gửi..."; btn.disabled = true; errorMsg.classList.add('hidden');
+                const { error } = await supabaseClient.auth.signInWithOtp({ email: email, options: { emailRedirectTo: window.location.href } });
+                if (error) { 
+                    btn.textContent = "Gửi link đăng nhập"; btn.disabled = false; 
+                    if (error.message.includes("rate limit") || error.message.includes("email rate limit exceeded")) {
+                        openRateLimitModal();
+                    } else {
+                        errorMsg.textContent = error.message; 
+                        errorMsg.classList.remove('hidden'); 
+                    }
+                } 
+                else { alert("Đã gửi link! Vui lòng kiểm tra hộp thư (hoặc mục Spam)."); $('btnCloseLoginModal').click(); btn.textContent = "Gửi link đăng nhập"; btn.disabled = false; }
+            });
+        }
 
         async function signInWithGoogle() {
             if (!supabaseClient) return;
@@ -408,7 +461,9 @@
             });
         }
         
-        $('btnLogoutHeader').addEventListener('click', async () => { if(supabaseClient) await supabaseClient.auth.signOut(); window.location.reload(); });
+        if ($('btnLogoutHeader')) {
+            $('btnLogoutHeader').addEventListener('click', async () => { if(supabaseClient) await supabaseClient.auth.signOut(); window.location.reload(); });
+        }
 
         function copyTextToClipboard(text) {
             if (navigator.clipboard && window.isSecureContext) return navigator.clipboard.writeText(text);
@@ -420,18 +475,16 @@
         function showToast(message, type = 'success') {
             const container = document.getElementById('toastContainer'); const toast = document.createElement('div');
             toast.className = `toast-msg toast-${type}`; 
-            
             const iconSvg = type === 'success' 
                 ? `<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`
                 : `<svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>`;
-                
             toast.innerHTML = `${iconSvg} <span>${message}</span>`;
             container.appendChild(toast); setTimeout(() => toast.classList.add('toast-show'), 10);
             setTimeout(() => { toast.classList.remove('toast-show'); setTimeout(() => toast.remove(), 300); }, 3000);
         }
 
         // ==========================================
-        // LOGIC TÌM KIẾM VÀ LỌC (NÂNG CẤP MỚI)
+        // LOGIC TÌM KIẾM VÀ LỌC (NÂNG CẤP MỚI + FIX LỖI TIMEOUT)
         // ==========================================
         let allPrompts = [];
         let currentFilter = 'Tất cả';
@@ -440,36 +493,70 @@
         async function fetchLibrary() {
             const grid = $('libraryGrid'); const skeleton = $('skeletonLoader'); const empty = $('emptyState');
             
-            skeleton.style.display = 'grid'; grid.innerHTML = ''; empty.classList.add('hidden');
+            skeleton.style.display = 'grid'; 
+            skeleton.innerHTML = `
+                <div class="col-span-full text-center py-4">
+                    <p class="text-slate-500 dark:text-slate-400 text-sm animate-pulse">Đang đánh thức Server (Lần đầu có thể mất 30-50s)...</p>
+                </div>
+                <div class="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700 h-48">
+                    <div class="skeleton h-4 w-1/4 rounded mb-4"></div>
+                    <div class="skeleton h-20 w-full rounded mb-4"></div>
+                    <div class="skeleton h-8 w-1/3 rounded ml-auto"></div>
+                </div>
+                <div class="bg-white dark:bg-slate-800 rounded-2xl p-5 border border-slate-200 dark:border-slate-700 h-48">
+                    <div class="skeleton h-4 w-1/4 rounded mb-4"></div>
+                    <div class="skeleton h-20 w-full rounded mb-4"></div>
+                    <div class="skeleton h-8 w-1/3 rounded ml-auto"></div>
+                </div>
+            `;
+            grid.innerHTML = ''; 
+            empty.classList.add('hidden');
+
+            // TẠO BỘ ĐẾM NGƯỢC (TIMEOUT 15 GIÂY)
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 15000); 
 
             try {
-                const res = await fetch(`${API_URL}/top_prompts`);
+                const res = await fetch(`${API_URL}/top_prompts`, { signal: controller.signal });
+                clearTimeout(timeoutId); 
                 
                 if (!res.ok) throw new Error(`Lỗi kết nối: ${res.status}`);
+                
                 const data = await res.json();
                 
                 if (Array.isArray(data)) allPrompts = data;
                 else if (data && Array.isArray(data.prompts)) allPrompts = data.prompts;
                 else if (data && Array.isArray(data.data)) allPrompts = data.data;
+                else allPrompts = []; 
 
-                // Tạo các nút lọc (Tabs) dựa trên dữ liệu thực tế
                 generateFilterTabs();
-                
-                // Hiển thị dữ liệu
                 renderPrompts();
 
             } catch (e) { 
+                clearTimeout(timeoutId);
                 console.error("Fetch Error:", e);
+                
                 skeleton.style.display = 'none';
+                grid.innerHTML = '';
                 empty.classList.remove('hidden');
-                $('emptyTitle').textContent = "Không thể kết nối tới Server";
-                $('emptyDesc').textContent = e.message;
+                
+                if (e.name === 'AbortError') {
+                    $('emptyTitle').textContent = "Server đang khởi động quá lâu";
+                    $('emptyDesc').textContent = "Hệ thống đang bận hoặc chưa thức dậy. Vui lòng bấm 'Thử lại' sau vài giây.";
+                } else {
+                    $('emptyTitle').textContent = "Không thể kết nối tới Server";
+                    $('emptyDesc').textContent = "Có thể API đang gặp sự cố hoặc chưa có dữ liệu.";
+                }
+                
+                const resetBtn = empty.querySelector('button');
+                resetBtn.textContent = "Thử lại";
+                resetBtn.onclick = () => fetchLibrary();
             }
         }
 
         function generateFilterTabs() {
             const tabsContainer = $('filterTabs');
-            const types = ['Tất cả', ...new Set(allPrompts.map(p => p.type || 'PROMPT'))]; // Lấy các loại duy nhất
+            const types = ['Tất cả', ...new Set(allPrompts.map(p => p.type || 'PROMPT'))]; 
             
             tabsContainer.innerHTML = '';
             types.forEach(type => {
@@ -491,7 +578,6 @@
             skeleton.style.display = 'none';
             grid.innerHTML = '';
 
-            // Lọc dữ liệu
             const filtered = allPrompts.filter(item => {
                 const matchType = currentFilter === 'Tất cả' || (item.type || 'PROMPT') === currentFilter;
                 const matchSearch = (item.prompt || '').toLowerCase().includes(currentSearch.toLowerCase());
@@ -507,10 +593,8 @@
 
             empty.classList.add('hidden');
 
-            // Render từng thẻ
             filtered.forEach((item, index) => {
                 const card = document.createElement('div');
-                // Thêm animation delay nhỏ để tạo hiệu ứng so le
                 card.className = 'card-enter bg-white/90 dark:bg-[#1e293b]/90 backdrop-blur-sm border border-slate-200 dark:border-slate-700/60 rounded-2xl p-5 shadow-sm hover:shadow-xl hover:border-pink-300 dark:hover:border-blue-500 transition-all flex flex-col';
                 card.style.animationDelay = `${index * 0.05}s`;
                 
@@ -519,7 +603,6 @@
                 const dateStr = item.created_at ? new Date(item.created_at).toLocaleDateString('vi-VN') : 'Gần đây';
                 const score = item.total_score || item.score || '7.0+';
                 
-                // Màu badge điểm số
                 let scoreColor = "text-green-500 bg-green-50 dark:bg-green-900/20 dark:text-green-400";
                 if (score < 8) scoreColor = "text-blue-500 bg-blue-50 dark:bg-blue-900/20 dark:text-blue-400";
 
@@ -562,13 +645,13 @@
             });
         }
 
-        // Sự kiện tìm kiếm
-        $('searchInput').addEventListener('input', (e) => {
-            currentSearch = e.target.value;
-            renderPrompts();
-        });
+        if ($('searchInput')) {
+            $('searchInput').addEventListener('input', (e) => {
+                currentSearch = e.target.value;
+                renderPrompts();
+            });
+        }
 
-        // Nút xóa bộ lọc
         window.resetSearch = function() {
             $('searchInput').value = '';
             currentSearch = '';
@@ -580,7 +663,6 @@
             renderPrompts();
         }
 
-        // Bắt đầu tải dữ liệu
         fetchLibrary();
     </script>
 </body>
