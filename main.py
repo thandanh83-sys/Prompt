@@ -117,7 +117,8 @@ def extract_json(text: str) -> str:
                 continue
     return ""
 
-def call_llm(system_prompt: str, user_prompt: str, model_name: str) -> str:
+# [TỐI ƯU] Chỉ dùng 1 model duy nhất là 120b, timeout lên 40s để chống Cold Start của Render
+def call_llm(system_prompt: str, user_prompt: str) -> str:
     messages = [
         {"role": "system", "content": system_prompt},
         {"role": "user", "content": "Dữ liệu prompt cần đánh giá:\n" + json.dumps({"prompt_can_cham": user_prompt}, ensure_ascii=False)},
@@ -125,19 +126,19 @@ def call_llm(system_prompt: str, user_prompt: str, model_name: str) -> str:
     
     try:
         resp = client.chat.completions.create(
-            model=model_name, 
+            model="openai/gpt-oss-120b", 
             messages=messages,
             response_format={"type": "json_object"},
             temperature=0.1, 
             max_tokens=3000, 
-            timeout=25.0 
+            timeout=40.0 # Tăng lên 40s
         )
         return resp.choices[0].message.content
     except RateLimitError as e:
         logger.warning(f"Groq Rate Limit Reached: {e}")
         raise HTTPException(status_code=429, detail="Hệ thống đang bận. Vui lòng đợi 1 phút rồi thử lại!")
     except Exception as e:
-        logger.error(f"Groq thất bại ({model_name}): {e}")
+        logger.error(f"Groq thất bại: {e}")
         raise HTTPException(status_code=503, detail="Hệ thống AI đang quá tải. Vui lòng thử lại sau.")
 
 def bg_save_history(payload: dict):
@@ -291,7 +292,6 @@ def evaluate(request: Request, req: PromptRequest, background_tasks: BackgroundT
             
         rewrite_sections_formatted = ", ".join([f'"{s}"' for s in rules_v38.REQUIRED_REWRITE_SECTIONS])
 
-        # [SIÊU CẬP NHẬT] ÉP AI PHẢI GIỮ LẠI Ý CỦA NGƯỜI DÙNG
         system_prompt = f"""
 Bạn là Chuyên gia Kiểm định Prompt. Hãy thực hiện 4 bước sau và trả về JSON:
 
@@ -317,9 +317,9 @@ Viết lại đúng 11 mục tiếng Việt:
 {rewrite_sections_formatted}
 
 [NGUYÊN TẮC VÀNG KHI VIẾT LẠI - BẮT BUỘC TUÂN THỦ]:
-1. TUYỆT ĐỐI KHÔNG ĐƯỢC XÓA HOẶC TÓM TẮT Ý CỦA NGƯỜI DÙNG. Thà bài dài và thừa ý còn hơn thiếu ý của họ.
-2. Với những phần người dùng đã viết tốt (Điểm cao 8-10): BẮT BUỘC phải BÊ NGUYÊN VĂN từ ngữ của họ vào mục tương ứng. Không được tự ý đổi từ đồng nghĩa hay viết lại theo văn phong của bạn.
-3. Với những phần người dùng viết chưa tốt (Điểm thấp <8): Bạn ĐƯỢC PHÉP viết thêm ý mới, bổ sung chi tiết, nhưng PHẢI GIỮ LẠI các từ khóa/ý chính cốt lõi của họ, không được phủ định hay thay thế hoàn toàn.
+1. TUYỆT ĐỐI KHÔNG ĐƯỢC XÓA HOẶC TÓM TẮT Ý CỦA NGƯỜI DÙNG.
+2. Với phần điểm cao (8-10): BẮT BUỘC BÊ NGUYÊN VĂN từ ngữ của họ vào mục tương ứng.
+3. Với phần điểm thấp (<8): ĐƯỢC PHÉP viết thêm ý mới, bổ sung chi tiết, nhưng PHẢI GIỮ LẠI từ khóa/ý chính cốt lõi của họ.
 4. Nếu là INPUT RÁC: Hãy tự sáng tác một prompt 11 mục xuất sắc dựa trên phỏng đoán.
 
 TRẢ VỀ DUY NHẤT JSON SAU:
@@ -340,25 +340,22 @@ TRẢ VỀ DUY NHẤT JSON SAU:
         success = False
         ai_data = {}
         
-        # [CHIẾN THUẬT CASCADE MODELS] Lần 1 dùng 20B, Lần 2 dùng 120B
-        models_to_try = ["openai/gpt-oss-20b", "openai/gpt-oss-120b"]
-        
-        for attempt, model_name in enumerate(models_to_try):
+        # [TỐI ƯU] Chỉ thử lại 1 lần, không dùng 2 model để tránh bị chậm
+        for attempt in range(2):
             try:
-                logger.info(f"Đang thử đánh giá bằng model: {model_name}")
-                raw_text = call_llm(system_prompt, prompt_text, model_name)
+                raw_text = call_llm(system_prompt, prompt_text)
                 json_str = extract_json(raw_text)
                 if not json_str:
                     raise ReportValidationError("AI trả về định dạng không hợp lệ.")
                 ai_data = json.loads(json_str)
                 validate_full_report(ai_data, main_criteria, tech_criteria, prompt_text)
                 success = True
-                break 
+                break
             except HTTPException:
                 raise
             except (json.JSONDecodeError, ReportValidationError, TypeError, ValueError) as e:
                 last_error = e
-                logger.warning(f"Lần thử {attempt + 1} với model {model_name} thất bại: {e}")
+                logger.warning(f"Lần thử {attempt + 1} thất bại: {e}")
         
         if not success:
             logger.error(f"Lỗi Validation sau 2 lần thử: {last_error}")
