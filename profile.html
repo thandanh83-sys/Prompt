@@ -137,6 +137,7 @@
             <p class="text-sm text-slate-500 dark:text-slate-400 mb-6">Để xem trang cá nhân và lịch sử của bạn</p>
             
             <div class="relative w-full mb-4">
+                <!-- Ô input nhập email -->
                 <input type="email" id="loginEmail" class="w-full p-4 pl-5 pr-12 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent text-slate-800 dark:text-slate-100 placeholder-slate-400 text-sm font-medium transition-all" placeholder="Nhập email của bạn...">
             </div>
             
@@ -192,12 +193,37 @@
         <p>© 2026 Trợ lý AI - Nghiên cứu AI & Tư duy.</p>
     </footer>
 
+    <!-- POPUP THÔNG BÁO GIỚI HẠN EMAIL -->
+    <div id="rateLimitModal" class="fixed inset-0 z-[99999] flex flex-col items-center justify-center p-4 bg-black/70 backdrop-blur-md transition-opacity duration-300" style="display: none; opacity: 0;">
+        <div class="bg-white dark:bg-[#1e293b] border border-slate-200 dark:border-slate-700/50 rounded-3xl shadow-2xl w-full max-w-[400px] p-6 sm:p-7 relative">
+            
+            <button type="button" onclick="closeRateLimitModal()" title="Đóng" class="absolute top-5 right-5 text-slate-500 hover:text-slate-800 bg-slate-100 hover:bg-slate-200 dark:text-slate-300 dark:hover:text-white dark:bg-slate-700/50 dark:hover:bg-slate-600 w-8 h-8 rounded-full flex items-center justify-center transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+            
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                </div>
+                <h3 class="font-extrabold text-xl text-slate-800 dark:text-white mb-2">Đã đạt giới hạn gửi Email</h3>
+                <p class="text-sm text-slate-600 dark:text-slate-400">Hệ thống mặc định chỉ cho phép gửi tối đa <strong>2 email đăng nhập mỗi giờ</strong> để chống Spam.</p>
+            </div>
+
+            <div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl text-sm text-blue-700 dark:text-blue-300 text-center mb-6 border border-blue-100 dark:border-blue-800/50">
+                💡 Để tiếp tục, vui lòng đóng bảng này và sử dụng tính năng <strong>Đăng nhập bằng Google</strong> (Không giới hạn, nhanh và an toàn hơn).
+            </div>
+            
+            <button type="button" onclick="closeRateLimitModal()" class="w-full py-3.5 rounded-xl font-bold text-white bg-gradient-to-r from-pink-500 to-blue-500 shadow-md transition-all text-[15px] hover:scale-[1.02]">
+                Đã hiểu
+            </button>
+        </div>
+    </div>
+
     <!-- SCRIPT LOGIC -->
     <script>
         const API_URL = "https://prompt-tx2e.onrender.com";
         const SUPABASE_URL = "https://egncrbearrwfoslryuga.supabase.co";
-        // ĐÃ SỬA CHÍNH XÁC KEY BẠN GỬI
-        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVnbmNyYmVhcnJ3Zm9zbHJ5dWdhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI1MDk2MzgsImV4cCI6MjEwODA4NTYzOH0.jX8rz7Fk5wIqdbDqb6ZwKUiMs-wggVRj-dLk2dqlYFM";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVnbmNyYmVhcnJ3Zm9zbHJ5dWdhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI1MDk2MzgsImV4cCI6MjEwODA4NTYzOH0.jX8rz7Fk5wqdbDqb6ZwKUiMs-wggVRj-dLk2dqlYFM";
         
         const supabaseClient = window.supabase?.createClient ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
         const $ = id => document.getElementById(id);
@@ -258,6 +284,19 @@
             });
         }
 
+        // HÀM ĐÓNG MỞ POPUP GIỚI HẠN EMAIL
+        function openRateLimitModal() {
+            const modal = $('rateLimitModal');
+            modal.style.display = 'flex';
+            setTimeout(() => { modal.style.opacity = '1'; }, 10);
+        }
+
+        function closeRateLimitModal() {
+            const modal = $('rateLimitModal');
+            modal.style.opacity = '0';
+            setTimeout(() => { modal.style.display = 'none'; }, 300);
+        }
+
         // 3. AUTH & HIỂN THỊ
         async function checkUser() {
             if (!supabaseClient) return;
@@ -296,6 +335,14 @@
             });
         }
 
+        // BẮT SỰ KIỆN ENTER TRÊN Ô EMAIL
+        $('loginEmail').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                e.preventDefault(); // Ngăn trình duyệt tự động submit form (nếu có)
+                $('btnSendMagicLink').click(); // Kích hoạt nút Gửi
+            }
+        });
+
         // 4. ĐĂNG NHẬP BẰNG EMAIL (MAGIC LINK)
         $('btnSendMagicLink').addEventListener('click', async () => {
             const email = $('loginEmail').value.trim(); 
@@ -310,8 +357,14 @@
             const { error } = await supabaseClient.auth.signInWithOtp({ email: email, options: { emailRedirectTo: window.location.href } });
             
             if (error) { 
-                errorMsg.textContent = error.message; errorMsg.style.display = 'block'; 
                 btn.textContent = "Gửi link đăng nhập qua Email"; btn.disabled = false; 
+                // KIỂM TRA LỖI RATE LIMIT ĐỂ HIỆN POPUP
+                if (error.message.includes("rate limit") || error.message.includes("email rate limit exceeded")) {
+                    openRateLimitModal();
+                } else {
+                    errorMsg.textContent = error.message; 
+                    errorMsg.style.display = 'block'; 
+                }
             } else { 
                 alert("Đã gửi link! Vui lòng kiểm tra hộp thư (hoặc mục Spam)."); 
                 btn.textContent = "Gửi link đăng nhập qua Email"; btn.disabled = false; 
