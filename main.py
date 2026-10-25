@@ -125,21 +125,20 @@ def call_llm(system_prompt: str, user_prompt: str) -> str:
     
     try:
         resp = client.chat.completions.create(
-            # [TỐI ƯU CỰC ĐẠI] Chuyển sang model 20B cực nhanh, rate limit cao
             model="openai/gpt-oss-20b", 
             messages=messages,
             response_format={"type": "json_object"},
             temperature=0.1, 
-            max_tokens=4000, # Giới hạn độ dài để tránh tràn token
-            timeout=20.0 # Timeout 20s, nếu quá sẽ báo lỗi ngay chứ không treo máy
+            max_tokens=2500, # Giảm max_tokens để AI không viết lan man
+            timeout=20.0 
         )
         return resp.choices[0].message.content
     except RateLimitError as e:
         logger.warning(f"Groq Rate Limit Reached: {e}")
-        raise HTTPException(status_code=429, detail="Hệ thống đang bận (giới hạn AI). Vui lòng đợi 1 phút rồi thử lại!")
+        raise HTTPException(status_code=429, detail="Hệ thống đang bận. Vui lòng đợi 1 phút rồi thử lại!")
     except Exception as e:
         logger.error(f"Groq thất bại: {e}")
-        raise HTTPException(status_code=503, detail="Hệ thống AI đang quá tải. Vui lòng thử lại sau 1 phút.")
+        raise HTTPException(status_code=503, detail="Hệ thống AI đang quá tải. Vui lòng thử lại sau.")
 
 def bg_save_history(payload: dict):
     if not supabase: return
@@ -268,12 +267,9 @@ def get_top_prompts():
 def evaluate(request: Request, req: PromptRequest, background_tasks: BackgroundTasks):
     prompt_text = req.prompt.strip()
     
+    # Đã xóa bộ lọc độ dài. Bạn có thể nhập 1 từ, 1 chữ cái tùy thích.
     if not prompt_text:
         return JSONResponse(status_code=400, content={"error": "Vui lòng nhập Prompt."})
-        
-    # [TỐI ƯU UX] Chặn prompt quá ngắn để tránh lãng phí thời gian chờ đợi của người dùng
-    if len(prompt_text) < 3:
-        return JSONResponse(status_code=400, content={"error": "Prompt quá ngắn. Vui lòng nhập ít nhất 3 ký tự để AI có cơ sở phân tích!"})
         
     if len(prompt_text) > MAX_PROMPT_LENGTH:
         return JSONResponse(status_code=400, content={"error": f"Prompt quá dài, vượt quá {MAX_PROMPT_LENGTH} ký tự."})
@@ -296,43 +292,34 @@ def evaluate(request: Request, req: PromptRequest, background_tasks: BackgroundT
             
         rewrite_sections_formatted = ", ".join([f'"{s}"' for s in rules_v38.REQUIRED_REWRITE_SECTIONS])
 
+        # SYSTEM PROMPT ĐÃ ĐƯỢC RÚT GỌN TỐI ĐA ĐỂ TĂNG TỐC
         system_prompt = f"""
-Bạn là Chuyên gia Kiểm định Prompt (Prompt Auditor) kiêm Trợ lý Viết Prompt (Prompt Generator). Người dùng có thể nhập Prompt bằng BẤT KỲ NGÔN NGỮ NÀO.
+Bạn là Chuyên gia Kiểm định Prompt. Hãy thực hiện 4 bước sau và trả về JSON:
 
-HÃY THỰC HIỆN THEO QUY TRÌNH 4 BƯỚC SAU:
+[BƯỚC 1: XÁC ĐỊNH LĨNH VỰC & INPUT RÁC]
+- Lĩnh vực: Code, Cosmetics, Marketing, Writing, Education, General.
+- Nếu prompt quá ngắn/vô nghĩa (dưới 5 từ, VD: "mạ", "tả mẹ đi nào"): Chấm điểm lõi 0-2đ (trừ P14=10đ). Ở Bước 4, hãy tự do sáng tạo ra một prompt 11 mục thật xuất sắc dựa trên phỏng đoán ý định người dùng. Tuyệt đối không copy câu lệnh này.
 
-[BƯỚC 1: XÁC ĐỊNH LĨNH VỰC VÀ BỘ LỌC INPUT RÁC]
-- Xác định lĩnh vực phù hợp nhất: Code, Cosmetics, Marketing, Writing, Education, hoặc General.
-- [QUY TẮC ĐẶC BIỆT VỀ INPUT RÁC]: Nếu prompt quá ngắn (dưới 5 từ), vô nghĩa, hoặc chỉ là từ xã giao/ký tự rời rạc (Ví dụ: "mạ", "tả", "abc", "hello"):
-    1. Gán "identified_domain" là "General" (hoặc lĩnh vực bạn phỏng đoán được từ từ khóa đó).
-    2. BẮT BUỘC chấm các tiêu chí lõi ở mức từ 0 đến 2 điểm (Trừ P14 Không mâu thuẫn).
-    3. Kích hoạt chế độ [MỞ RỘNG SÁNG TẠO] ở Bước 4: Đóng vai chuyên gia, tự động phỏng đoán ý định ẩn sâu của người dùng để tự tay xây dựng một cấu trúc prompt 11 mục mới hoàn toàn, chỉn chu, chuyên nghiệp và có giá trị sử dụng cao. Tuyệt đối không để trống, không copy câu lệnh hệ thống này, và không lặp lại từ rác một cách vô nghĩa.
-
-[BƯỚC 2: CHẤM ĐIỂM & ĐỊNH HÌNH TIÊU CHÍ]
-2.1. Chấm điểm tiêu chí lõi (0-10) dựa trên mô tả sau:
+[BƯỚC 2: CHẤM ĐIỂM & TIÊU CHÍ ĐỘNG]
+2.1. Chấm điểm lõi (0-10):
 {criteria_desc}
+2.2. Tự sinh 3 tiêu chí chuyên ngành (DYN01, DYN02, DYN03) và chấm điểm.
 
-2.2. TỰ NGHĨ RA từ 3-5 tiêu chí chuyên ngành (Mã: DYN01, DYN02, DYN03...). 
-- Lưu ý: Kể cả khi gặp Input rác, vẫn phải tự tạo ra ít nhất 3 tiêu chí DYN dựa trên lĩnh vực mà bạn đã phỏng đoán ở Bước 1.
-
-[BƯỚC 3: TRÍCH XUẤT LỖI]
-Đối chiếu prompt gốc với các mã lỗi sau để tìm sai sót:
+[BƯỚC 3: LỖI]
+Đối chiếu mã lỗi:
 {error_codes_desc}
-- Quy tắc bằng chứng (Evidence): TUYỆT ĐỐI KHÔNG dùng dấu ngoặc kép bên trong chuỗi văn bản (value) của evidence để tránh làm gãy cấu trúc JSON. Với các lỗi về thiếu thông tin (như B01, C02, C04...), ghi chính xác cụm từ: "Không có thông tin này trong prompt". Bắt buộc thêm trường "hint" để hướng dẫn sửa lỗi.
+- Evidence: KHÔNG dùng ngoặc kép. Lỗi B01, C02, C04 ghi đúng "Không có thông tin này trong prompt". Bắt buộc thêm "hint".
 
-[BƯỚC 4: TÁI CẤU TRÚC VÀ CẢI TIẾN (REWRITE)]
-Cấu trúc lại và xuất ra đúng 11 mục bằng TIẾNG VIỆT theo định dạng của key "rewrite":
+[BƯỚC 4: REWRITE]
+Viết lại đúng 11 mục tiếng Việt:
 {rewrite_sections_formatted}
-- Quy tắc Rewrite:
-    - Nếu prompt gốc đạt 10 điểm tuyệt đối: Copy nguyên bản prompt của người dùng vào các mục tương ứng.
-    - Nếu prompt dưới 10 điểm: Điền thông tin cũ và bổ sung, tối ưu các mục còn thiếu.
-    - Nếu là INPUT RÁC (Theo Bước 1): Hãy bỏ qua toàn bộ prompt gốc rác rưởi, mạnh dạn dùng kỹ năng Prompt Engineer của bạn để tự sáng tác, viết mới một prompt 11 mục cực kỳ xuất sắc và chuyên nghiệp dựa trên ý định bạn đã phỏng đoán.
+- Quy tắc: 10 điểm copy nguyên bản. Dưới 10 điểm thì cải tiến.
 
-HÃY TRẢ VỀ ĐẦU RA LÀ MỘT JSON ĐỒNG NHẤT (KHÔNG THÊM BẤT KỲ CÂU DẪN GIẢI HOẶC KEY NÀO KHÁC NGOÀI CẤU TRÚC SAU):
+TRẢ VỀ DUY NHẤT JSON SAU:
 {{
   "identified_domain": "...",
   "scores": {{ {scores_example}, "DYN01": 5, "DYN02": 5, "DYN03": 5 }},
-  "dynamic_criteria_names": {{ "DYN01": "Tên tiêu chí 1", "DYN02": "Tên tiêu chí 2", "DYN03": "Tên tiêu chí 3" }},
+  "dynamic_criteria_names": {{ "DYN01": "...", "DYN02": "...", "DYN03": "..." }},
   "errors": [ {{ "code": "MÃ_LỖI", "evidence": "Không có thông tin này trong prompt", "hint": "..." }} ],
   "rewrite": {{ 
     "1. VAI TRÒ": "...", "2. BỐI CẢNH": "...", "3. INPUT": "...", "4. MỤC TIÊU": "...", "5. YÊU CẦU": "...",
@@ -342,29 +329,17 @@ HÃY TRẢ VỀ ĐẦU RA LÀ MỘT JSON ĐỒNG NHẤT (KHÔNG THÊM BẤT KỲ
 }}
 """
         
-        last_error = None
-        success = False
-        ai_data = {}
-        
-        for attempt in range(2):
-            try:
-                raw_text = call_llm(system_prompt, prompt_text)
-                json_str = extract_json(raw_text)
-                if not json_str:
-                    raise ReportValidationError("AI trả về định dạng không hợp lệ.")
-                ai_data = json.loads(json_str)
-                validate_full_report(ai_data, main_criteria, tech_criteria, prompt_text)
-                success = True
-                break
-            except HTTPException:
-                raise
-            except (json.JSONDecodeError, ReportValidationError, TypeError, ValueError) as e:
-                last_error = e
-                logger.warning("Lần thử %s thất bại: %s", attempt + 1, e)
-        
-        if not success:
-            logger.error(f"Lỗi Validation: {last_error}")
-            return JSONResponse(status_code=422, content={"error": "Hệ thống AI đang xử lý dữ liệu chưa tốt. Vui lòng thử lại hoặc nhập câu lệnh chi tiết hơn!"})
+        # [TỐI ƯU TỐC ĐỘ] Bỏ vòng lặp Retry (chỉ chạy 1 lần)
+        try:
+            raw_text = call_llm(system_prompt, prompt_text)
+            json_str = extract_json(raw_text)
+            if not json_str:
+                raise ReportValidationError("AI trả về định dạng không hợp lệ.")
+            ai_data = json.loads(json_str)
+            validate_full_report(ai_data, main_criteria, tech_criteria, prompt_text)
+        except (json.JSONDecodeError, ReportValidationError, TypeError, ValueError) as e:
+            logger.error(f"Lỗi Validation: {e}")
+            return JSONResponse(status_code=422, content={"error": "AI chưa xử lý được câu lệnh này. Vui lòng thử lại!"})
 
         final_score = calculate_final_score(ai_data["scores"], main_criteria, tech_criteria)
         
