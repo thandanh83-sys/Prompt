@@ -148,12 +148,12 @@
                         
                         <div class="h-px bg-slate-100 dark:bg-slate-700/50 my-1 mx-2"></div>
                         
-                        <!-- Nút Sáng/Tối: Giữ nguyên màu chữ trung tính -->
+                        <!-- Nút Sáng/Tối sẽ được đổi màu tự động qua JS -->
                         <button id="themeToggleMenu" class="w-full flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-colors text-left" title="Chuyển đổi chế độ Sáng/Tối">
                             <span id="themeIconMenu" class="w-5 h-5 flex items-center justify-center shrink-0">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-5 h-5 text-blue-400"><path fill="currentColor" d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-5 h-5 text-blue-500"><path fill="currentColor" d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
                             </span>
-                            <span id="themeTextMenu" class="text-sm font-semibold text-slate-700 dark:text-slate-300">Chế độ Tối</span>
+                            <span id="themeTextMenu" class="text-sm font-semibold text-blue-500">Chế độ Tối</span>
                         </button>
 
                         <div id="adminMenuDivider" class="h-px bg-slate-100 dark:bg-slate-700/50 my-1 mx-2" style="display:none;"></div>
@@ -457,17 +457,21 @@
         }
 
         // 2. THEME LOGIC
-        const moonSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-5 h-5 text-blue-400"><defs><linearGradient id="moonGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#60a5fa" /><stop offset="100%" stop-color="#3b82f6" /></linearGradient></defs><path fill="url(#moonGrad)" d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`;
+        const moonSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-5 h-5 text-blue-500"><defs><linearGradient id="moonGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#60a5fa" /><stop offset="100%" stop-color="#3b82f6" /></linearGradient></defs><path fill="url(#moonGrad)" d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`;
         const sunSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-5 h-5 text-yellow-500"><defs><linearGradient id="sunGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#fef08a" /><stop offset="100%" stop-color="#f59e0b" /></linearGradient></defs><circle cx="12" cy="12" r="5" fill="url(#sunGrad)"></circle><path stroke="url(#sunGrad)" stroke-width="2" stroke-linecap="round" d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>`;
 
         function applyTheme(dark) {
             document.documentElement.classList.toggle('dark', dark); 
             document.documentElement.classList.toggle('light', !dark);
+            
+            // Đổi Icon và Màu chữ tương ứng
             if($('themeIconMenu')) $('themeIconMenu').innerHTML = dark ? sunSVG : moonSVG; 
             if($('themeTextMenu')) {
                 $('themeTextMenu').textContent = dark ? 'Chế độ Sáng' : 'Chế độ Tối';
-                // Đã giữ nguyên màu trung tính, không đổi màu để tránh lag
+                // Dark mode -> chữ Vàng cam (Sun). Light mode -> chữ Xanh lam (Moon).
+                $('themeTextMenu').className = dark ? 'text-sm font-semibold text-yellow-500' : 'text-sm font-semibold text-blue-500';
             }
+            
             try { window.localStorage.setItem('theme', dark ? 'dark' : 'light'); } catch (error) { }
             const themeColor = document.querySelector('meta[name="theme-color"]'); 
             if (themeColor) themeColor.setAttribute('content', dark ? '#0b1120' : '#f8f7fc');
