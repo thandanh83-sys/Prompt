@@ -9,7 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.security import APIKeyHeader
 from pydantic import BaseModel
-from groq import Groq, RateLimitError # <-- Đã thêm RateLimitError
+from groq import Groq, RateLimitError
 from supabase import create_client, Client
 from slowapi import Limiter
 from slowapi.errors import RateLimitExceeded
@@ -289,18 +289,20 @@ def evaluate(request: Request, req: PromptRequest, background_tasks: BackgroundT
         for code, rule in error_rules.ERROR_RULES.items():
             error_codes_desc += f"- {code}: {rule['name']}\n"
         
+        # TỐI ƯU HÓA SYSTEM PROMPT: HỖ TRỢ ĐA NGÔN NGỮ
         system_prompt = f"""
-Bạn là chuyên gia chấm điểm Prompt. Hãy chấm điểm các tiêu chí sau (0-10):
+Bạn là chuyên gia chấm điểm Prompt. Người dùng có thể nhập Prompt bằng BẤT KỲ NGÔN NGỮ NÀO (Tiếng Việt, Tiếng Anh, Tiếng Trung, v.v. - ví dụ: ROLE, CONTEXT, TASK, CONSTRAINTS, OUTPUT FORMAT...). Hãy đọc hiểu ý nghĩa của nó để đánh giá chính xác.
+
+Nhiệm vụ 1: Chấm điểm các tiêu chí sau (từ 0-10):
 {criteria_desc}
 
-Phát hiện lỗi trong các mã sau:
+Nhiệm vụ 2: Phát hiện lỗi trong các mã sau:
 {error_codes_desc}
 
-Viết lại prompt thành 11 mục. Mỗi mục nếu có nhiều ý phải dùng \\n để xuống dòng.
-11 mục: "1. VAI TRÒ", "2. BỐI CẢNH", "3. INPUT", "4. MỤC TIÊU", "5. YÊU CẦU", "6. RÀNG BUỘC", "7. TASK", "8. ĐỊNH DẠNG ĐẦU RA", "9. NEVER DO", "10. THỨ TỰ ƯU TIÊN", "11. XỬ LÝ NỘI BỘ".
+Nhiệm vụ 3: Viết lại prompt (Rewrite). DÙ prompt đầu vào là ngôn ngữ gì, bạn BẮT BUỘC phải dịch và viết lại thành 11 mục tiếng Việt chính xác như sau (Mỗi mục nếu có nhiều ý phải dùng \\n để xuống dòng):
+"1. VAI TRÒ", "2. BỐI CẢNH", "3. INPUT", "4. MỤC TIÊU", "5. YÊU CẦU", "6. RÀNG BUỘC", "7. TASK", "8. ĐỊNH DẠNG ĐẦU RA", "9. NEVER DO", "10. THỨ TỰ ƯU TIÊN", "11. XỬ LÝ NỘI BỘ".
 
-QUY TẮC BẰNG CHỨNG: Khi trích dẫn lỗi, TUYỆT ĐỐI KHÔNG dùng dấu ngoặc kép (") bao quanh, không thêm lời giải thích. Chỉ copy nguyên văn một đoạn ngắn có trong prompt gốc.
-Ví dụ: Nếu prompt là "tả mẹ", evidence chỉ được là "tả mẹ".
+QUY TẮC BẰNG CHỨNG: Khi trích dẫn lỗi (evidence), TUYỆT ĐỐI KHÔNG dùng dấu ngoặc kép (") bao quanh, không thêm lời giải thích. Chỉ copy nguyên văn một đoạn ngắn có trong prompt gốc (giữ nguyên ngôn ngữ gốc của đoạn đó).
 
 Trả về JSON chính xác cấu trúc sau (KHÔNG THÊM KEY NÀO KHÁC):
 {{
