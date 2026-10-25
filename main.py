@@ -267,9 +267,8 @@ def evaluate(request: Request, req: PromptRequest, background_tasks: BackgroundT
     prompt_text = req.prompt.strip()
     if not prompt_text: return JSONResponse(status_code=400, content={"error": "Prompt trống."})
     
-    # THÊM CHẶN PROMPT QUÁ NGẮN (Dưới 10 ký tự)
-    if len(prompt_text) < 10: 
-        return JSONResponse(status_code=400, content={"error": "Prompt quá ngắn. Vui lòng nhập chi tiết hơn (ít nhất 10 ký tự) để AI có thể đánh giá!"})
+    # ĐÃ XÓA BỎ HOÀN TOÀN BỘ LỌC ĐỘ DÀI NGẮN
+    # if len(prompt_text) < 10: ... 
 
     if len(prompt_text) > MAX_PROMPT_LENGTH: 
         return JSONResponse(status_code=400, content={"error": f"Prompt vượt quá {MAX_PROMPT_LENGTH} ký tự."})
@@ -315,6 +314,7 @@ Hãy đọc kỹ Prompt và xác định chính xác nó thuộc lĩnh vực ch�
 - Đặt mã lần lượt là: "DYN01", "DYN02", "DYN03", "DYN04", "DYN05" (chỉ tạo tối đa 5).
 - Chấm điểm chúng (0-10).
 - Ghi rõ tên tiêu chí vào trường "dynamic_criteria_names".
+(Lưu ý: Kể cả khi prompt quá ngắn hoặc vô nghĩa, bạn VẪN PHẢI sinh ra 3 tiêu chí DYN01, DYN02, DYN03).
 
 [BƯỚC 3: TÌM LỖI (Dựa trên Lĩnh vực đã xác định)]
 Duyệt qua danh sách mã lỗi sau và CHỈ CHỌN RA những lỗi thực sự xuất hiện trong prompt:
