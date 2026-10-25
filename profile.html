@@ -44,7 +44,17 @@
         
         .brand-text { background: linear-gradient(100deg, #ec4899, #a052c8 52%, #3979f5); -webkit-background-clip: text; background-clip: text; color: transparent; line-height: 1.2; }
         
-        .menu-dropdown { transition: opacity 0.2s ease-out, transform 0.2s ease-out; transform-origin: top left; will-change: opacity, transform; width: min(280px, calc(100vw - 32px)); max-height: calc(100dvh - 100px); overflow-y: auto; box-sizing: border-box; z-index: 9999 !important; }
+        /* COPY Y NGUYÊN CSS MENU TỪ INDEX.HTML VÀ LANDING.HTML */
+        .menu-dropdown { 
+            transition: opacity 0.2s ease-out, transform 0.2s ease-out; 
+            transform-origin: top left; 
+            will-change: opacity, transform; 
+            width: min(280px, calc(100vw - 32px)); 
+            max-height: calc(100dvh - 100px); 
+            overflow-y: auto; 
+            box-sizing: border-box; 
+            z-index: 9999 !important; 
+        }
         
         .login-box-glow { box-shadow: 0 10px 40px -10px rgba(236, 72, 153, 0.2); }
         .dark .login-box-glow { box-shadow: 0 10px 40px -10px rgba(59, 130, 246, 0.2); }
@@ -67,6 +77,7 @@
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
                 </button>
                 
+                <!-- COPY Y NGUYÊN HTML MENU TỪ INDEX.HTML -->
                 <div id="dropdownMenu" class="menu-dropdown absolute top-12 md:top-14 left-0 bg-white/95 dark:bg-[#1e293b]/95 backdrop-blur-xl border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl hidden opacity-0 scale-95 z-50 p-2">
                     <div class="flex flex-col gap-1">
                         <a href="./index.html" class="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors" title="Về trang chủ">
@@ -137,7 +148,6 @@
             <p class="text-sm text-slate-500 dark:text-slate-400 mb-6">Để xem trang cá nhân và lịch sử của bạn</p>
             
             <div class="relative w-full mb-4">
-                <!-- Ô input nhập email -->
                 <input type="email" id="loginEmail" class="w-full p-4 pl-5 pr-12 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-300 dark:border-slate-600 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent text-slate-800 dark:text-slate-100 placeholder-slate-400 text-sm font-medium transition-all" placeholder="Nhập email của bạn...">
             </div>
             
@@ -193,8 +203,9 @@
         <p>© 2026 Trợ lý AI - Nghiên cứu AI & Tư duy.</p>
     </footer>
 
-    <!-- POPUP THÔNG BÁO GIỚI HẠN EMAIL -->
-    <div id="rateLimitModal" class="fixed inset-0 z-[99999] flex flex-col items-center justify-center p-4 bg-black/70 backdrop-blur-md transition-opacity duration-300" style="display: none; opacity: 0;">
+    <!-- POPUP THÔNG BÁO GIỚI HẠN EMAIL (FIX LỖI ĐÓNG BĂNG BẰNG CÁCH DÙNG Y HỆT CẤU TRÚC LANDING.HTML) -->
+    <div id="rateLimitModal" class="fixed inset-0 z-[99999] flex flex-col items-center justify-center p-4 bg-black/70 backdrop-blur-md transition-opacity duration-300" style="display: none;">
+        
         <div class="bg-white dark:bg-[#1e293b] border border-slate-200 dark:border-slate-700/50 rounded-3xl shadow-2xl w-full max-w-[400px] p-6 sm:p-7 relative">
             
             <button type="button" onclick="closeRateLimitModal()" title="Đóng" class="absolute top-5 right-5 text-slate-500 hover:text-slate-800 bg-slate-100 hover:bg-slate-200 dark:text-slate-300 dark:hover:text-white dark:bg-slate-700/50 dark:hover:bg-slate-600 w-8 h-8 rounded-full flex items-center justify-center transition-colors">
@@ -213,7 +224,7 @@
                 💡 Để tiếp tục, vui lòng đóng bảng này và sử dụng tính năng <strong>Đăng nhập bằng Google</strong> (Không giới hạn, nhanh và an toàn hơn).
             </div>
             
-            <button type="button" onclick="closeRateLimitModal()" class="w-full py-3.5 rounded-xl font-bold text-white bg-gradient-to-r from-pink-500 to-blue-500 shadow-md transition-all text-[15px] hover:scale-[1.02]">
+            <button type="button" onclick="closeRateLimitModal()" class="w-full py-3.5 rounded-xl font-bold text-white bg-gradient-to-r from-pink-500 to-blue-500 shadow-md transition-all text-[15px]">
                 Đã hiểu
             </button>
         </div>
@@ -221,10 +232,10 @@
 
     <!-- SCRIPT LOGIC -->
     <script>
+        // KHAI BÁO BIẾN CƠ BẢN
         const API_URL = "https://prompt-tx2e.onrender.com";
         const SUPABASE_URL = "https://egncrbearrwfoslryuga.supabase.co";
-        // ĐÃ SỬA CHÍNH XÁC KEY (jX8rz7Fk5wIqdbDqb6ZwKUiMs)
-        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVnbmNyYmVhcnJ3Zm9zbHJ5dWdhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI1MDk2MzgsImV4cCI6MjEwODA4NTYzOH0.jX8rz7Fk5wIqdbDqb6ZwKUiMs-wggVRj-dLk2dqlYFM";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVnbmNyYmVhcnJ3Zm9zbHJ5dWdhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI1MDk2MzgsImV4cCI6MjEwODA4NTYzOH0.jX8rz7Fk5wqdbDqb6ZwKUiMs-wggVRj-dLk2dqlYFM";
         
         const supabaseClient = window.supabase?.createClient ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
         const $ = id => document.getElementById(id);
@@ -233,9 +244,10 @@
         const moonSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-5 h-5 text-blue-400"><defs><linearGradient id="moonGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#60a5fa" /><stop offset="100%" stop-color="#3b82f6" /></linearGradient></defs><path fill="url(#moonGrad)" d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`;
         const sunSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-5 h-5 text-yellow-500"><defs><linearGradient id="sunGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#fef08a" /><stop offset="100%" stop-color="#f59e0b" /></linearGradient></defs><circle cx="12" cy="12" r="5" fill="url(#sunGrad)"></circle><path stroke="url(#sunGrad)" stroke-width="2" stroke-linecap="round" d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>`;
 
-        // 1. MENU LOGIC
+        // 1. MENU LOGIC (CHUẨN TỪ INDEX.HTML)
         const hamburger = $('btnHamburger');
         const dropdown = $('dropdownMenu');
+        
         if (hamburger && dropdown) {
             hamburger.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -285,20 +297,30 @@
             });
         }
 
-        // HÀM ĐÓNG MỞ POPUP GIỚI HẠN EMAIL
+        // 3. CHECK ADMIN (BỔ SUNG ĐÃ BỊ THIẾU)
+        async function syncAdminMenuVisibility() {
+            try {
+                const res = await fetch(`${API_URL}/check_admin_ip`);
+                if (res.ok) { 
+                    if($('adminMenuDivider')) $('adminMenuDivider').style.display = 'block'; 
+                    if($('menuBtnAdmin')) $('menuBtnAdmin').style.display = 'flex'; 
+                } 
+            } catch (e) { console.log("Không thể xác thực IP Admin."); }
+        }
+        syncAdminMenuVisibility();
+
+        // HÀM ĐÓNG MỞ POPUP GIỚI HẠN EMAIL (SỬA LỖI ĐÓNG BĂNG)
+        window.closeRateLimitModal = function() {
+            const modal = $('rateLimitModal');
+            if (modal) modal.style.display = 'none';
+        }
+
         function openRateLimitModal() {
             const modal = $('rateLimitModal');
-            modal.style.display = 'flex';
-            setTimeout(() => { modal.style.opacity = '1'; }, 10);
+            if (modal) modal.style.display = 'flex';
         }
 
-        function closeRateLimitModal() {
-            const modal = $('rateLimitModal');
-            modal.style.opacity = '0';
-            setTimeout(() => { modal.style.display = 'none'; }, 300);
-        }
-
-        // 3. AUTH & HIỂN THỊ
+        // 4. AUTH & HIỂN THỊ
         async function checkUser() {
             if (!supabaseClient) return;
             const { data: { session }, error } = await supabaseClient.auth.getSession();
@@ -344,12 +366,12 @@
             }
         });
 
-        // TỰ ĐỘNG XÓA LỖI KHI NGƯỜI DÙNG GÕ LẠI EMAIL
+        // TỰ ĐỘNG XÓA LỖI KHI GÕ LẠI
         $('loginEmail').addEventListener('input', function() {
             $('loginError').style.display = 'none';
         });
 
-        // 4. ĐĂNG NHẬP BẰNG EMAIL (MAGIC LINK)
+        // 5. ĐĂNG NHẬP BẰNG EMAIL (MAGIC LINK)
         $('btnSendMagicLink').addEventListener('click', async () => {
             const email = $('loginEmail').value.trim(); 
             const errorMsg = $('loginError'); 
@@ -357,14 +379,12 @@
             
             if (!supabaseClient) { errorMsg.textContent = 'Lỗi tải thư viện.'; errorMsg.style.display = 'block'; return; }
             
-            // VALIDATE 1: KIỂM TRA RỖNG
             if (!email) { 
                 errorMsg.textContent = "Vui lòng nhập email!"; 
                 errorMsg.style.display = 'block'; 
                 return; 
             }
 
-            // VALIDATE 2: KIỂM TRA ĐỊNH DẠNG EMAIL BẰNG REGEX
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (!emailRegex.test(email)) {
                 errorMsg.textContent = "Email không đúng định dạng. Vui lòng kiểm tra lại!";
@@ -378,7 +398,6 @@
             
             if (error) { 
                 btn.textContent = "Gửi link đăng nhập qua Email"; btn.disabled = false; 
-                // KIỂM TRA LỖI RATE LIMIT ĐỂ HIỆN POPUP
                 if (error.message.includes("rate limit") || error.message.includes("email rate limit exceeded")) {
                     openRateLimitModal();
                 } else {
@@ -391,7 +410,7 @@
             }
         });
 
-        // 5. ĐĂNG NHẬP BẰNG GOOGLE
+        // 6. ĐĂNG NHẬP BẰNG GOOGLE
         async function signInWithGoogle() {
             if (!supabaseClient) return;
             const { error } = await supabaseClient.auth.signInWithOAuth({
@@ -401,7 +420,7 @@
             if (error) alert("Lỗi đăng nhập Google: " + error.message);
         }
 
-        // 6. ĐĂNG XUẤT
+        // 7. ĐĂNG XUẤT
         async function logout() {
             if (supabaseClient) { await supabaseClient.auth.signOut(); }
             window.location.reload();
@@ -413,7 +432,7 @@
         $('btnAvatar').addEventListener('click', (e) => { e.stopPropagation(); $('avatarDropdown').classList.remove('hidden'); setTimeout(() => $('avatarDropdown').classList.remove('opacity-0', 'scale-95'), 10); });
         document.addEventListener('click', () => { if (!$('avatarDropdown').classList.contains('hidden')) { $('avatarDropdown').classList.add('opacity-0', 'scale-95'); setTimeout(() => $('avatarDropdown').classList.add('hidden'), 200); } });
 
-        // 7. LỊCH SỬ LOCALSTORAGE
+        // 8. LỊCH SỬ LOCALSTORAGE
         function loadHistory() {
             const list = $('historyList');
             let history = [];
@@ -445,7 +464,7 @@
             });
         }
 
-        // 8. XUẤT / XÓA
+        // 9. XUẤT / XÓA
         $('btnExport').addEventListener('click', () => {
             const data = localStorage.getItem('myPromptHistory') || '[]';
             const blob = new Blob([data], { type: "application/json" });
