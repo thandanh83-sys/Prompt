@@ -44,7 +44,7 @@
         
         .brand-text { background: linear-gradient(100deg, #ec4899, #a052c8 52%, #3979f5); -webkit-background-clip: text; background-clip: text; color: transparent; line-height: 1.2; }
         
-        /* CSS MENU 100% TỪ INDEX.HTML */
+        /* CSS MENU CHUẨN TỪ INDEX.HTML */
         .menu-dropdown { 
             transition: opacity 0.2s ease-out, transform 0.2s ease-out; 
             transform-origin: top left; 
@@ -77,7 +77,6 @@
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
                 </button>
                 
-                <!-- MENU 100% TỪ INDEX.HTML -->
                 <div id="dropdownMenu" class="menu-dropdown absolute top-12 md:top-14 left-0 bg-white/95 dark:bg-[#1e293b]/95 backdrop-blur-xl border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl hidden opacity-0 scale-95 z-50 p-2">
                     <div class="flex flex-col gap-1">
                         <a href="./index.html" class="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/50 text-sm font-semibold text-slate-700 dark:text-slate-200 transition-colors" title="Về trang chủ">
@@ -202,7 +201,7 @@
         <p>© 2026 Trợ lý AI - Nghiên cứu AI & Tư duy.</p>
     </footer>
 
-    <!-- POPUP GIỚI HẠN EMAIL (CHUẨN TỪ LANDING.HTML) -->
+    <!-- POPUP GIỚI HẠN EMAIL -->
     <div id="rateLimitModal" class="fixed inset-0 z-[99999] flex flex-col items-center justify-center p-4 bg-black/70 backdrop-blur-md transition-opacity duration-300" style="display: none;">
         
         <div class="bg-white dark:bg-[#1e293b] border border-slate-200 dark:border-slate-700/50 rounded-3xl shadow-2xl w-full max-w-[400px] p-6 sm:p-7 relative">
@@ -234,8 +233,8 @@
         const API_URL = "https://prompt-tx2e.onrender.com";
         const SUPABASE_URL = "https://egncrbearrwfoslryuga.supabase.co";
         
-        // ĐÃ DÒ TỪNG KÝ TỰ VÀ COPY CHÍNH XÁC 100% MÃ ANON BẠN GỬI
-        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVnbmNyYmVhcnJ3Zm9zbHJ5dWdhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI1MDk2MzgsImV4cCI6MjEwODA4NTYzOH0.jX8rz7Fk5wIqdbDqb6ZwKUiMs-wggVRj-dL2dqlYFM";
+        // ĐÃ SỬA CHÍNH XÁC KEY (dLk2 thay vì dL2)
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVnbmNyYmVhcnJ3Zm9zbHJ5dWdhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI1MDk2MzgsImV4cCI6MjEwODA4NTYzOH0.jX8rz7Fk5wIqdbDqb6ZwKUiMs-wggVRj-dLk2dqlYFM";
         
         const supabaseClient = window.supabase?.createClient ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
         const $ = id => document.getElementById(id);
