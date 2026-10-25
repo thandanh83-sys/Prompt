@@ -1,3 +1,14 @@
+Mình hiểu rồi! Trên mobile hiện tại, cụm tiêu đề đang bị sát lên Header quá, và chữ thì hơi nhỏ so với tổng thể. Bạn muốn:
+
+1. Kéo cả cụm xuống dưới một chút để có khoảng thở.
+2. Tăng kích thước chữ (to hơn chút).
+3. Giữ nguyên bố cục 3 dòng, tuyệt đối không để chữ nào bị rớt xuống dòng mới.
+
+Mình đã căn chỉnh lại CSS mobile và thêm class whitespace-nowrap để khóa cứng từng dòng chữ, đảm bảo dù màn hình có nhỏ đến đâu, nó cũng không bị ngắt dòng lung tung.
+
+Bạn copy toàn bộ đoạn code dưới đây dán đè vào file index.html nhé:
+
+```html
 <!DOCTYPE html>
 <html lang="vi" class="light" translate="no">
 <head>
@@ -527,3 +538,10 @@
     </script>
 </body>
 </html>
+```
+
+💡 Những thay đổi mình đã làm:
+
+1. Kéo cụm xuống: Thêm margin-top (mt-6) vào cột chứa text trên mobile. Đồng thời tăng padding-top của thẻ main.
+2. Tăng size chữ: Đặt font-size: 2.4rem cho thẻ h1 trên mobile. Kích thước này to hơn hẳn so với cũ (1.8rem) nhưng vẫn vừa vặn.
+3. Chống rớt dòng: Bọc từng dòng chữ trong thẻ <span class="whitespace-nowrap">. Kể cả khi màn hình siêu nhỏ, chữ cũng sẽ thu nhỏ lại cho vừa chứ nhất quyết không rớt xuống dòng mới.
