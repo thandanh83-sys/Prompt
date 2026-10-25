@@ -165,33 +165,39 @@ def classify_prompt(prompt_text: str) -> dict:
     lower_text = text.lower()
     techniques = []
     
-    if any(kw in lower_text for kw in ["đóng vai", "bạn là", "hãy vào vai", "giả sử bạn là", "act as"]):
+    # 1. CẬP NHẬT NHẬN DIỆN KỸ THUẬT (Thêm từ khóa tiếng Anh / Chuẩn Prompt Engineering)
+    if any(kw in lower_text for kw in ["đóng vai", "bạn là", "hãy vào vai", "giả sử bạn là", "act as", "role:", "persona:", "vai trò:"]):
         techniques.append(TECH_ROLE_PLAY)
-    if any(kw in lower_text for kw in ["ví dụ 1:", "ví dụ mẫu", "input:", "output:", "dưới đây là ví dụ", "ví dụ như sau"]):
+        
+    if any(kw in lower_text for kw in ["ví dụ 1:", "ví dụ mẫu", "input:", "output:", "dưới đây là ví dụ", "ví dụ như sau", "example:", "few-shot"]):
         techniques.append(TECH_FEW_SHOT)
-    if any(kw in lower_text for kw in ["từng bước", "suy luận", "giải thích từng bước", "chain of thought", "các bước sau", "quy trình"]):
+        
+    if any(kw in lower_text for kw in ["từng bước", "suy luận", "giải thích từng bước", "chain of thought", "các bước sau", "quy trình", "step-by-step", "think step by step", "cot"]):
         techniques.append(TECH_COT)
-    if any(kw in lower_text for kw in ["json", "xml", "định dạng bảng", "markdown", "trả về dạng", "cấu trúc dữ liệu"]):
+        
+    if any(kw in lower_text for kw in ["json", "xml", "định dạng bảng", "markdown", "trả về dạng", "cấu trúc dữ liệu", "output format:", "format:", "yaml", "csv"]):
         techniques.append(TECH_FORMAT)
-    if any(kw in lower_text for kw in ["viết truyện", "làm thơ", "sáng tác", "kịch bản", "viết quảng cáo", "brainstorm", "viết content"]):
+        
+    if any(kw in lower_text for kw in ["viết truyện", "làm thơ", "sáng tác", "kịch bản", "viết quảng cáo", "brainstorm", "viết content", "story", "poem", "script", "write a"]):
         techniques.append(TECH_CREATIVE)
 
-    if any(kw in lower_text for kw in ["[điền", "[thay", "[chọn", "___", "{}"]):
+    # 2. NHẬN DIỆN LOẠI CHÍNH
+    if any(kw in lower_text for kw in ["[điền", "[thay", "[chọn", "___", "{}", "[insert"]):
         return {"main_task": TYPE_TEMPLATE, "techniques": techniques}
     if text.count('[') >= 3 and text.count(']') >= 3:
         return {"main_task": TYPE_TEMPLATE, "techniques": techniques}
 
-    stem_keywords = ["giải toán", "phương trình", "đạo hàm", "tích phân", "vật lý", "hóa học", "phản ứng", "tính vận tốc", "gia tốc", "nguyên tử"]
+    stem_keywords = ["giải toán", "phương trình", "đạo hàm", "tích phân", "vật lý", "hóa học", "phản ứng", "tính vận tốc", "gia tốc", "nguyên tử", "math", "physics", "chemistry", "equation"]
     if any(kw in lower_text for kw in stem_keywords): 
         return {"main_task": TYPE_STEM, "techniques": techniques}
     
-    if any(kw in lower_text for kw in ["http", "jpg", "png", "vẽ ảnh", "tạo ảnh", "hình ảnh"]): 
+    if any(kw in lower_text for kw in ["http", "jpg", "png", "vẽ ảnh", "tạo ảnh", "hình ảnh", "image", "draw", "picture"]): 
         return {"main_task": TYPE_IMAGE, "techniques": techniques}
     
-    if any(kw in lower_text for kw in ["tạo bảng", "lập bảng", "dạng bảng", "cột", "hàng"]):
+    if any(kw in lower_text for kw in ["tạo bảng", "lập bảng", "dạng bảng", "cột", "hàng", "table", "column", "row"]):
         return {"main_task": TYPE_PROMPT, "techniques": techniques}
     
-    if any(kw in lower_text for kw in ["đánh giá prompt", "viết prompt", "sửa prompt", "chấm điểm prompt", "tạo prompt"]): 
+    if any(kw in lower_text for kw in ["đánh giá prompt", "viết prompt", "sửa prompt", "chấm điểm prompt", "tạo prompt", "evaluate prompt", "rewrite prompt"]): 
         return {"main_task": TYPE_PROMPT_META, "techniques": techniques}
     
     return {"main_task": TYPE_PROMPT, "techniques": techniques}
