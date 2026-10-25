@@ -160,7 +160,8 @@ def bg_save_history(payload: dict):
         else:
             logger.error(f"LỖI BACKGROUND: Không thể lưu lịch sử: {e}")
 
-@app.get("/")
+# SỬA LỖI HEAD REQUEST: Chấp nhận cả GET và HEAD
+@app.api_route("/", methods=["GET", "HEAD"])
 def read_root(): return {"status": "Backend đang chạy ổn định!"}
 
 @app.get("/health")
