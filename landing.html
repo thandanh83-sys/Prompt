@@ -47,7 +47,7 @@
         
         .menu-dropdown { transition: opacity 0.2s ease-out, transform 0.2s ease-out; transform-origin: top left; will-change: opacity, transform; width: min(280px, calc(100vw - 32px)); max-height: calc(100dvh - 100px); overflow-y: auto; box-sizing: border-box; z-index: 9999 !important; }
         
-        /* THÊM CSS CHO OVERLAY ĐỂ MENU KHÔNG XUYÊN THẤU */
+        /* CSS CHO OVERLAY ĐỂ MENU KHÔNG XUYÊN THẤU */
         .menu-overlay { 
             position: fixed; inset: 0; background: rgba(0,0,0,.5); backdrop-filter: blur(4px); 
             z-index: 40; opacity: 0; pointer-events: none; transition: all .2s ease; 
@@ -87,8 +87,6 @@
 
 <body class="antialiased font-sans min-h-screen relative text-slate-800 dark:text-slate-200 flex flex-col">
     <div class="page-bg"></div>
-    
-    <!-- THÊM THẺ OVERLAY VÀO ĐÂY -->
     <div id="menuOverlay" class="menu-overlay"></div>
 
     <header class="app-header fixed top-0 left-0 w-full z-50 border-b pt-[env(safe-area-inset-top,0px)]">
@@ -256,7 +254,7 @@
         <p>© 2026 Trợ lý AI - Nghiên cứu AI & Tư duy.</p>
     </footer>
 
-    <!-- MODAL ĐĂNG NHẬP (ĐÃ THÊM NÚT GOOGLE) -->
+    <!-- MODAL ĐĂNG NHẬP -->
     <div id="loginModal" class="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm hidden opacity-0 transition-opacity duration-300">
         <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-sm p-6 relative border border-slate-200 dark:border-slate-700">
             <button type="button" id="btnCloseLoginModal" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 bg-transparent hover:bg-slate-100 dark:hover:bg-slate-700 w-8 h-8 rounded-full flex items-center justify-center transition-colors">
@@ -355,10 +353,11 @@
 
     <div id="toastContainer" class="fixed bottom-5 left-1/2 transform -translate-x-1/2 z-[99999] flex flex-col gap-2 pointer-events-none"></div>
 
+    <!-- SCRIPT MENU CHÍNH -->
     <script>
         const hamburger = document.getElementById('btnHamburger');
         const dropdown = document.getElementById('dropdownMenu');
-        const overlay = document.getElementById('menuOverlay'); // LẤY THẺ OVERLAY MỚI
+        const overlay = document.getElementById('menuOverlay');
 
         if (hamburger && dropdown) {
             hamburger.addEventListener('click', (e) => {
@@ -367,7 +366,7 @@
                 
                 if (isHidden) {
                     dropdown.classList.remove('hidden');
-                    if (overlay) overlay.classList.add('active'); // BẬT OVERLAY
+                    if (overlay) overlay.classList.add('active');
                     requestAnimationFrame(() => {
                         dropdown.classList.remove('opacity-0', 'scale-95');
                         dropdown.classList.add('opacity-100', 'scale-100');
@@ -375,7 +374,7 @@
                 } else {
                     dropdown.classList.remove('opacity-100', 'scale-100');
                     dropdown.classList.add('opacity-0', 'scale-95');
-                    if (overlay) overlay.classList.remove('active'); // TẮT OVERLAY
+                    if (overlay) overlay.classList.remove('active');
                     setTimeout(() => {
                         if (dropdown.classList.contains('opacity-0')) {
                             dropdown.classList.add('hidden');
@@ -421,6 +420,7 @@
         }
     </script>
 
+    <!-- SCRIPT THEME VÀ GUIDE MODAL -->
     <script>
         const moonSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-5 h-5 text-blue-400"><defs><linearGradient id="moonGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#60a5fa" /><stop offset="100%" stop-color="#3b82f6" /></linearGradient></defs><path fill="url(#moonGrad)" d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`;
         const sunSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" class="w-5 h-5 text-yellow-500"><defs><linearGradient id="sunGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#fef08a" /><stop offset="100%" stop-color="#f59e0b" /></linearGradient></defs><circle cx="12" cy="12" r="5" fill="url(#sunGrad)"></circle><path stroke="url(#sunGrad)" stroke-width="2" stroke-linecap="round" d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path></svg>`;
@@ -482,11 +482,10 @@
         });
     </script>
 
+    <!-- SCRIPT LOGIC CHÍNH -->
     <script>
         const API_URL = "https://prompt-tx2e.onrender.com"; 
         const SUPABASE_URL = "https://egncrbearrwfoslryuga.supabase.co";
-        
-        // ĐÃ SỬA LỖI CHÍNH TẢ MÃ ANON (jX8rz7Fk5wIqdb...)
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVnbmNyYmVhcnJ3Zm9zbHJ5dWdhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI1MDk2MzgsImV4cCI6MjEwODA4NTYzOH0.jX8rz7Fk5wIqdbDqb6ZwKUiMs-wggVRj-dLk2dqlYFM"; 
         
         const supabaseClient = window.supabase?.createClient ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
@@ -495,7 +494,6 @@
         const $ = id => document.getElementById(id);
         let lastResult = null;
 
-        // TỪ ĐIỂN RÚT GỌN TÊN TIÊU CHÍ
         const SHORT_NAMES = {
             "Độ rõ nhiệm vụ": "Độ rõ",
             "Đối tượng tác động": "Đối tượng",
@@ -577,7 +575,6 @@
         }
         checkAuthState();
 
-        // LẮNG NGHE THAY ĐỔI ĐĂNG NHẬP
         if (supabaseClient) {
             supabaseClient.auth.onAuthStateChange((event, session) => {
                 if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
@@ -592,7 +589,6 @@
         $('btnCloseLoginModal').addEventListener('click', () => { $('loginModal').classList.add('opacity-0'); setTimeout(() => $('loginModal').classList.add('hidden'), 300); });
         $('loginModal').addEventListener('click', (e) => { if (e.target === $('loginModal')) $('btnCloseLoginModal').click(); });
 
-        // HÀM ĐÓNG MỞ POPUP GIỚI HẠN EMAIL
         window.closeRateLimitModal = function() {
             const modal = $('rateLimitModal');
             if (modal) modal.style.display = 'none';
@@ -603,7 +599,6 @@
             if (modal) modal.style.display = 'flex';
         }
 
-        // BẮT SỰ KIỆN ENTER TRÊN Ô EMAIL ĐĂNG NHẬP
         $('loginEmail').addEventListener('keypress', function (e) {
             if (e.key === 'Enter') {
                 e.preventDefault(); 
@@ -628,7 +623,6 @@
             
             if (error) { 
                 btn.textContent = "Gửi link đăng nhập"; btn.disabled = false; 
-                // KIỂM TRA LỖI RATE LIMIT ĐỂ HIỆN POPUP
                 if (error.message.includes("rate limit") || error.message.includes("email rate limit exceeded")) {
                     openRateLimitModal();
                 } else {
@@ -642,7 +636,6 @@
             }
         });
 
-        // HÀM ĐĂNG NHẬP GOOGLE
         async function signInWithGoogle() {
             if (!supabaseClient) return;
             const { error } = await supabaseClient.auth.signInWithOAuth({
@@ -652,8 +645,44 @@
             if (error) alert("Lỗi đăng nhập Google: " + error.message);
         }
 
-        $('btnAvatar').addEventListener('click', (e) => { e.stopPropagation(); $('avatarDropdown').classList.remove('hidden'); setTimeout(() => $('avatarDropdown').classList.remove('opacity-0', 'scale-95'), 10); });
-        document.addEventListener('click', () => { if (!$('avatarDropdown').classList.contains('hidden')) { $('avatarDropdown').classList.add('opacity-0', 'scale-95'); setTimeout(() => $('avatarDropdown').classList.add('hidden'), 200); } });
+        // ĐÃ SỬA: LOGIC ĐÓNG/MỞ AVATAR DROPDOWN
+        const btnAvatar = $('btnAvatar');
+        const avatarDropdown = $('avatarDropdown');
+
+        if (btnAvatar && avatarDropdown) {
+            btnAvatar.addEventListener('click', (e) => { 
+                e.stopPropagation(); 
+                const isHidden = avatarDropdown.classList.contains('hidden');
+                
+                if (isHidden) {
+                    // Nếu đang ẩn -> Mở ra
+                    avatarDropdown.classList.remove('hidden');
+                    requestAnimationFrame(() => {
+                        avatarDropdown.classList.remove('opacity-0', 'scale-95');
+                    });
+                } else {
+                    // Nếu đang mở -> Đóng lại
+                    avatarDropdown.classList.add('opacity-0', 'scale-95');
+                    setTimeout(() => {
+                        if (avatarDropdown.classList.contains('opacity-0')) {
+                            avatarDropdown.classList.add('hidden');
+                        }
+                    }, 200);
+                }
+            });
+
+            // Click ra ngoài để đóng
+            document.addEventListener('click', (e) => { 
+                if (!avatarDropdown.classList.contains('hidden') && !btnAvatar.contains(e.target)) { 
+                    avatarDropdown.classList.add('opacity-0', 'scale-95'); 
+                    setTimeout(() => {
+                        if (avatarDropdown.classList.contains('opacity-0')) {
+                            avatarDropdown.classList.add('hidden'); 
+                        }
+                    }, 200); 
+                } 
+            });
+        }
         
         $('btnLogoutHeader').addEventListener('click', async () => { 
             if(supabaseClient) await supabaseClient.auth.signOut();
@@ -691,11 +720,10 @@
             longPromptWarning.style.display = 'none'; $('resultArea').style.display = 'none'; promptInput.focus();
         });
 
-        // LẮNG NGHE SỰ KIỆN ENTER ĐỂ ĐÁNH GIÁ
         promptInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault(); // Ngăn việc xuống dòng mặc định
-                $('btnEvaluate').click(); // Kích hoạt nút đánh giá
+                e.preventDefault(); 
+                $('btnEvaluate').click(); 
             }
         });
 
