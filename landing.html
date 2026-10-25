@@ -47,11 +47,7 @@
         
         .menu-dropdown { transition: opacity 0.2s ease-out, transform 0.2s ease-out; transform-origin: top left; will-change: opacity, transform; width: min(280px, calc(100vw - 32px)); max-height: calc(100dvh - 100px); overflow-y: auto; box-sizing: border-box; z-index: 9999 !important; }
         
-        /* CSS CHO OVERLAY ĐỂ MENU KHÔNG XUYÊN THẤU */
-        .menu-overlay { 
-            position: fixed; inset: 0; background: rgba(0,0,0,.5); backdrop-filter: blur(4px); 
-            z-index: 40; opacity: 0; pointer-events: none; transition: all .2s ease; 
-        }
+        .menu-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.5); backdrop-filter: blur(4px); z-index: 40; opacity: 0; pointer-events: none; transition: all .2s ease; }
         .menu-overlay.active { opacity: 1; pointer-events: auto; }
         
         #promptInput { white-space: pre-wrap; overflow-wrap: anywhere; outline: none !important; box-shadow: none; }
@@ -62,22 +58,13 @@
         .toast-error { border-left: 4px solid #ef4444; }
         .toast-show { opacity: 1; transform: translateY(0); }
 
-        input[type="checkbox"] {
-            appearance: none; -webkit-appearance: none; background-color: transparent; margin: 0; font: inherit; color: currentColor;
-            width: 1.15em; height: 1.15em; border: 2px solid #64748b; border-radius: 0.25em; display: grid; place-content: center;
-            cursor: pointer; transition: all 0.2s ease-in-out;
-        }
-        input[type="checkbox"]::before {
-            content: ""; width: 0.65em; height: 0.65em; transform: scale(0); transition: 120ms transform ease-in-out;
-            box-shadow: inset 1em 1em #ec4899; background-color: #ec4899; transform-origin: center;
-            clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
-        }
+        input[type="checkbox"] { appearance: none; -webkit-appearance: none; background-color: transparent; margin: 0; font: inherit; color: currentColor; width: 1.15em; height: 1.15em; border: 2px solid #64748b; border-radius: 0.25em; display: grid; place-content: center; cursor: pointer; transition: all 0.2s ease-in-out; }
+        input[type="checkbox"]::before { content: ""; width: 0.65em; height: 0.65em; transform: scale(0); transition: 120ms transform ease-in-out; box-shadow: inset 1em 1em #ec4899; background-color: #ec4899; transform-origin: center; clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%); }
         input[type="checkbox"]:checked { border-color: #ec4899; }
         input[type="checkbox"]:checked::before { transform: scale(1); }
         .dark input[type="checkbox"] { border-color: #475569; }
         .dark input[type="checkbox"]:checked { border-color: #ec4899; }
 
-        /* Đã xóa CSS cũ ghi đè kích thước để dùng class Tailwind trực tiếp cho đẹp hơn */
         @media (max-width: 640px) {
             .result-card { padding: 1rem !important; border-radius: 1.25rem !important; }
         }
@@ -188,32 +175,34 @@
 
         <div id="resultArea" class="w-full mx-auto mt-8 space-y-6 scroll-mt-24 md:scroll-mt-32" style="display: none;">
             
-            <!-- KHU VỰC ĐIỂM TỔNG ĐÃ ĐƯỢC SỬA LẠI GIAO DIỆN MOBILE -->
-            <div class="result-card score-box bg-white/80 dark:bg-[#1e293b]/80 backdrop-blur-md border border-slate-200 dark:border-slate-700/60 shadow-xl rounded-3xl p-5 md:p-6">
-                <!-- Đổi thành flex-row cố định để nằm ngang, thêm items-center -->
-                <div class="flex flex-row justify-between items-center gap-4 md:gap-6">
+            <!-- KHU VỰC ĐIỂM TỔNG: ĐÃ TỐI ƯU LẠI HOÀN TOÀN -->
+            <div class="result-card score-box bg-white/80 dark:bg-[#1e293b]/80 backdrop-blur-md border border-slate-200 dark:border-slate-700/60 shadow-xl rounded-3xl p-4 sm:p-5 md:p-6">
+                <!-- Sử dụng flex-row, items-start để đỉnh 2 bên thẳng hàng -->
+                <div class="flex flex-row justify-between items-start gap-2 sm:gap-4 md:gap-6 w-full">
                     
-                    <!-- Bên trái: Điểm tổng -->
+                    <!-- Cột Trái: Điểm tổng -->
                     <div class="flex flex-col flex-1 min-w-0">
                         <p class="text-[10px] sm:text-[11px] text-slate-500 font-bold mb-1 tracking-widest uppercase">ĐIỂM TỔNG</p>
                         <div class="flex items-baseline gap-1 sm:gap-2 mb-2">
-                            <!-- Giảm size chữ trên mobile để không bị tràn -->
                             <span id="totalScore" class="text-4xl sm:text-5xl md:text-6xl leading-none font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-blue-500">0.0</span>
                             <span class="text-slate-500 text-sm sm:text-xl font-medium">/ 10</span>
                         </div>
-                        <!-- Thanh điểm: Thêm max-w để rút ngắn lại trên mobile -->
+                        <!-- Thanh điểm nhỏ lại trên mobile -->
                         <div class="w-full max-w-[120px] sm:max-w-[200px] md:max-w-full bg-slate-200 dark:bg-[#0f172a] h-2 sm:h-2.5 rounded-full">
                             <div id="scoreBar" class="bg-gradient-to-r from-pink-500 to-blue-500 h-2 sm:h-2.5 rounded-full w-0 transition-all duration-1000"></div>
                         </div>
                     </div>
 
-                    <!-- Bên phải: Phân loại -->
-                    <div class="flex flex-col items-end shrink-0">
-                        <p class="text-[10px] sm:text-[11px] text-slate-500 font-bold mb-1 sm:mb-3 tracking-widest uppercase text-right">PHÂN LOẠI</p>
-                        <div class="flex flex-col items-end gap-2">
-                            <span id="promptType" class="px-4 py-1.5 sm:px-5 sm:py-2 bg-blue-500 text-white text-[12px] sm:text-[14px] font-bold rounded-full shadow-sm">PROMPT</span>
-                            <div id="techniqueBadges" class="flex flex-wrap justify-end gap-1.5"></div>
-                        </div>
+                    <!-- Cột Phải: Phân loại & Kỹ thuật -->
+                    <!-- Giới hạn max-w-[50%] để các nút tự động rớt dòng bên trong nó, không đẩy cột trái -->
+                    <div class="flex flex-col items-end shrink-0 max-w-[50%] md:max-w-[55%]">
+                        <p class="text-[10px] sm:text-[11px] text-slate-500 font-bold mb-1 sm:mb-2 tracking-widest uppercase text-right">PHÂN LOẠI</p>
+                        
+                        <!-- Nút PROMPT luôn nằm trên -->
+                        <span id="promptType" class="px-3 py-1 sm:px-5 sm:py-2 bg-blue-500 text-white text-[11px] sm:text-[14px] font-bold rounded-full shadow-sm mb-1.5 sm:mb-2">PROMPT</span>
+                        
+                        <!-- Các nút kỹ thuật tự động wrap và nằm bên dưới -->
+                        <div id="techniqueBadges" class="flex flex-wrap justify-end gap-1.5 w-full"></div>
                     </div>
 
                 </div>
@@ -652,7 +641,7 @@
             if (error) alert("Lỗi đăng nhập Google: " + error.message);
         }
 
-        // ĐÃ SỬA: LOGIC ĐÓNG/MỞ AVATAR DROPDOWN
+        // LOGIC ĐÓNG/MỞ AVATAR DROPDOWN
         const btnAvatar = $('btnAvatar');
         const avatarDropdown = $('avatarDropdown');
 
@@ -662,13 +651,11 @@
                 const isHidden = avatarDropdown.classList.contains('hidden');
                 
                 if (isHidden) {
-                    // Nếu đang ẩn -> Mở ra
                     avatarDropdown.classList.remove('hidden');
                     requestAnimationFrame(() => {
                         avatarDropdown.classList.remove('opacity-0', 'scale-95');
                     });
                 } else {
-                    // Nếu đang mở -> Đóng lại
                     avatarDropdown.classList.add('opacity-0', 'scale-95');
                     setTimeout(() => {
                         if (avatarDropdown.classList.contains('opacity-0')) {
@@ -678,7 +665,6 @@
                 }
             });
 
-            // Click ra ngoài để đóng
             document.addEventListener('click', (e) => { 
                 if (!avatarDropdown.classList.contains('hidden') && !btnAvatar.contains(e.target)) { 
                     avatarDropdown.classList.add('opacity-0', 'scale-95'); 
@@ -801,13 +787,14 @@
                 const techNames = { "ROLE_PLAY": "Đóng vai", "FEW_SHOT": "Ví dụ mẫu", "CHAIN_OF_THOUGHT": "Suy luận từng bước", "FORMATTED_OUTPUT": "Định dạng đầu ra", "CREATIVE_GEN": "Sáng tạo" };
                 r.techniques.forEach(t => {
                     const span = document.createElement('span');
-                    span.className = 'px-3 py-1.5 bg-slate-100 dark:bg-[#1e293b] text-slate-600 dark:text-slate-300 text-[12px] font-semibold rounded-lg border border-slate-200 dark:border-slate-700';
+                    // Đã tối ưu cho mobile: size chữ nhỏ hơn, padding nhỏ hơn, whitespace-nowrap để không bị vỡ chữ
+                    span.className = 'px-2 py-1 sm:px-3 sm:py-1.5 bg-slate-100 dark:bg-[#1e293b] text-slate-600 dark:text-slate-300 text-[10px] sm:text-[12px] font-semibold rounded-lg border border-slate-200 dark:border-slate-700 whitespace-nowrap';
                     span.textContent = techNames[t] || t;
                     badgesDiv.appendChild(span);
                 });
             } else {
                 const span = document.createElement('span');
-                span.className = 'px-3 py-1.5 bg-slate-100 dark:bg-[#1e293b] text-slate-400 dark:text-slate-500 text-[12px] font-medium rounded-lg border border-slate-200 dark:border-slate-700 italic';
+                span.className = 'px-2 py-1 sm:px-3 sm:py-1.5 bg-slate-100 dark:bg-[#1e293b] text-slate-400 dark:text-slate-500 text-[10px] sm:text-[12px] font-medium rounded-lg border border-slate-200 dark:border-slate-700 italic whitespace-nowrap';
                 span.textContent = 'Không có kỹ thuật đặc biệt';
                 badgesDiv.appendChild(span);
             }
