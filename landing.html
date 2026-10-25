@@ -77,10 +77,9 @@
         .dark input[type="checkbox"] { border-color: #475569; }
         .dark input[type="checkbox"]:checked { border-color: #ec4899; }
 
+        /* Đã xóa CSS cũ ghi đè kích thước để dùng class Tailwind trực tiếp cho đẹp hơn */
         @media (max-width: 640px) {
             .result-card { padding: 1rem !important; border-radius: 1.25rem !important; }
-            .score-box .text-6xl { font-size: 3.5rem !important; }
-            .score-box .h-2\.5 { height: 6px !important; }
         }
     </style>
 </head>
@@ -189,26 +188,34 @@
 
         <div id="resultArea" class="w-full mx-auto mt-8 space-y-6 scroll-mt-24 md:scroll-mt-32" style="display: none;">
             
-            <div class="result-card score-box bg-white/80 dark:bg-[#1e293b]/80 backdrop-blur-md border border-slate-200 dark:border-slate-700/60 shadow-xl rounded-3xl p-6">
-                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-                    <div class="flex flex-col w-full md:w-1/2">
-                        <p class="text-[11px] text-slate-500 font-bold mb-1 tracking-widest uppercase">ĐIỂM TỔNG</p>
-                        <div class="flex items-baseline gap-2 mb-3">
-                            <span id="totalScore" class="text-6xl leading-none font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-blue-500">0.0</span>
-                            <span class="text-slate-500 text-xl font-medium">/ 10</span>
+            <!-- KHU VỰC ĐIỂM TỔNG ĐÃ ĐƯỢC SỬA LẠI GIAO DIỆN MOBILE -->
+            <div class="result-card score-box bg-white/80 dark:bg-[#1e293b]/80 backdrop-blur-md border border-slate-200 dark:border-slate-700/60 shadow-xl rounded-3xl p-5 md:p-6">
+                <!-- Đổi thành flex-row cố định để nằm ngang, thêm items-center -->
+                <div class="flex flex-row justify-between items-center gap-4 md:gap-6">
+                    
+                    <!-- Bên trái: Điểm tổng -->
+                    <div class="flex flex-col flex-1 min-w-0">
+                        <p class="text-[10px] sm:text-[11px] text-slate-500 font-bold mb-1 tracking-widest uppercase">ĐIỂM TỔNG</p>
+                        <div class="flex items-baseline gap-1 sm:gap-2 mb-2">
+                            <!-- Giảm size chữ trên mobile để không bị tràn -->
+                            <span id="totalScore" class="text-4xl sm:text-5xl md:text-6xl leading-none font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-blue-500">0.0</span>
+                            <span class="text-slate-500 text-sm sm:text-xl font-medium">/ 10</span>
                         </div>
-                        <div class="w-full bg-slate-200 dark:bg-[#0f172a] h-2.5 rounded-full">
-                            <div id="scoreBar" class="bg-gradient-to-r from-pink-500 to-blue-500 h-2.5 rounded-full w-0 transition-all duration-1000"></div>
+                        <!-- Thanh điểm: Thêm max-w để rút ngắn lại trên mobile -->
+                        <div class="w-full max-w-[120px] sm:max-w-[200px] md:max-w-full bg-slate-200 dark:bg-[#0f172a] h-2 sm:h-2.5 rounded-full">
+                            <div id="scoreBar" class="bg-gradient-to-r from-pink-500 to-blue-500 h-2 sm:h-2.5 rounded-full w-0 transition-all duration-1000"></div>
                         </div>
                     </div>
 
-                    <div class="flex flex-col w-full md:w-1/2 md:items-end">
-                        <p class="text-[11px] text-slate-500 font-bold mb-3 tracking-widest uppercase">PHÂN LOẠI</p>
-                        <div class="flex flex-col items-start md:items-end gap-3">
-                            <span id="promptType" class="px-5 py-2 bg-blue-500 text-white text-[14px] font-bold rounded-full shadow-sm">PROMPT</span>
-                            <div id="techniqueBadges" class="flex flex-wrap md:justify-end gap-2"></div>
+                    <!-- Bên phải: Phân loại -->
+                    <div class="flex flex-col items-end shrink-0">
+                        <p class="text-[10px] sm:text-[11px] text-slate-500 font-bold mb-1 sm:mb-3 tracking-widest uppercase text-right">PHÂN LOẠI</p>
+                        <div class="flex flex-col items-end gap-2">
+                            <span id="promptType" class="px-4 py-1.5 sm:px-5 sm:py-2 bg-blue-500 text-white text-[12px] sm:text-[14px] font-bold rounded-full shadow-sm">PROMPT</span>
+                            <div id="techniqueBadges" class="flex flex-wrap justify-end gap-1.5"></div>
                         </div>
                     </div>
+
                 </div>
             </div>
 
