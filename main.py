@@ -117,7 +117,6 @@ def extract_json(text: str) -> str:
                 continue
     return ""
 
-# CẬP NHẬT: Hàm call_llm nhận thêm tham số model_name
 def call_llm(system_prompt: str, user_prompt: str, model_name: str) -> str:
     messages = [
         {"role": "system", "content": system_prompt},
@@ -292,6 +291,7 @@ def evaluate(request: Request, req: PromptRequest, background_tasks: BackgroundT
             
         rewrite_sections_formatted = ", ".join([f'"{s}"' for s in rules_v38.REQUIRED_REWRITE_SECTIONS])
 
+        # [SIÊU CẬP NHẬT] ÉP AI PHẢI GIỮ LẠI Ý CỦA NGƯỜI DÙNG
         system_prompt = f"""
 Bạn là Chuyên gia Kiểm định Prompt. Hãy thực hiện 4 bước sau và trả về JSON:
 
@@ -312,10 +312,15 @@ Bạn là Chuyên gia Kiểm định Prompt. Hãy thực hiện 4 bước sau v�
 {error_codes_desc}
 - Evidence: KHÔNG dùng ngoặc kép. Lỗi B01, C02, C04 ghi đúng "Không có thông tin này trong prompt". Bắt buộc thêm "hint".
 
-[BƯỚC 4: REWRITE]
+[BƯỚC 4: TÁI CẤU TRÚC VÀ CẢI TIẾN (REWRITE)]
 Viết lại đúng 11 mục tiếng Việt:
 {rewrite_sections_formatted}
-- Quy tắc: 10 điểm copy nguyên bản. Dưới 10 điểm thì cải tiến. Nếu là input rác, hãy tự sáng tác một prompt 11 mục xuất sắc.
+
+[NGUYÊN TẮC VÀNG KHI VIẾT LẠI - BẮT BUỘC TUÂN THỦ]:
+1. TUYỆT ĐỐI KHÔNG ĐƯỢC XÓA HOẶC TÓM TẮT Ý CỦA NGƯỜI DÙNG. Thà bài dài và thừa ý còn hơn thiếu ý của họ.
+2. Với những phần người dùng đã viết tốt (Điểm cao 8-10): BẮT BUỘC phải BÊ NGUYÊN VĂN từ ngữ của họ vào mục tương ứng. Không được tự ý đổi từ đồng nghĩa hay viết lại theo văn phong của bạn.
+3. Với những phần người dùng viết chưa tốt (Điểm thấp <8): Bạn ĐƯỢC PHÉP viết thêm ý mới, bổ sung chi tiết, nhưng PHẢI GIỮ LẠI các từ khóa/ý chính cốt lõi của họ, không được phủ định hay thay thế hoàn toàn.
+4. Nếu là INPUT RÁC: Hãy tự sáng tác một prompt 11 mục xuất sắc dựa trên phỏng đoán.
 
 TRẢ VỀ DUY NHẤT JSON SAU:
 {{
@@ -348,7 +353,7 @@ TRẢ VỀ DUY NHẤT JSON SAU:
                 ai_data = json.loads(json_str)
                 validate_full_report(ai_data, main_criteria, tech_criteria, prompt_text)
                 success = True
-                break # Nếu thành công thì dừng vòng lặp, không gọi model 2 nữa
+                break 
             except HTTPException:
                 raise
             except (json.JSONDecodeError, ReportValidationError, TypeError, ValueError) as e:
