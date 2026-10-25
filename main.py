@@ -134,7 +134,7 @@ def call_llm(system_prompt: str, user_prompt: str) -> str:
         return resp.choices[0].message.content
     except RateLimitError as e:
         logger.warning(f"Groq Rate Limit Reached: {e}")
-        raise HTTPException(status_code=429, detail="Đã chạm giới hạn Token/phút của AI. Vui lòng đợi 1 phút rồi thử lại!")
+        raise HTTPException(status_code=429, detail="Hệ thống đang bận (giới hạn AI). Vui lòng đợi 1 phút rồi thử lại!")
     except Exception as e:
         logger.error(f"Groq thất bại: {e}")
         raise HTTPException(status_code=503, detail="Hệ thống AI đang quá tải. Vui lòng thử lại sau 1 phút.")
@@ -265,13 +265,11 @@ def get_top_prompts():
 @limiter.limit(RATE_LIMIT)
 def evaluate(request: Request, req: PromptRequest, background_tasks: BackgroundTasks):
     prompt_text = req.prompt.strip()
-    if not prompt_text: return JSONResponse(status_code=400, content={"error": "Prompt trống."})
-    
-    # ĐÃ XÓA BỎ HOÀN TOÀN BỘ LỌC ĐỘ DÀI NGẮN
-    # if len(prompt_text) < 10: ... 
+    if not prompt_text: 
+        return JSONResponse(status_code=400, content={"error": "Vui lòng nhập Prompt."})
 
     if len(prompt_text) > MAX_PROMPT_LENGTH: 
-        return JSONResponse(status_code=400, content={"error": f"Prompt vượt quá {MAX_PROMPT_LENGTH} ký tự."})
+        return JSONResponse(status_code=400, content={"error": f"Prompt quá dài, vượt quá {MAX_PROMPT_LENGTH} ký tự."})
 
     try:
         classification = rules_v38.classify_prompt(prompt_text)
@@ -292,58 +290,37 @@ def evaluate(request: Request, req: PromptRequest, background_tasks: BackgroundT
         rewrite_sections_formatted = ", ".join([f'"{s}"' for s in rules_v38.REQUIRED_REWRITE_SECTIONS])
 
         system_prompt = f"""
-Bạn là Chuyên gia Kiểm định Prompt (Prompt Auditor) với 10 năm kinh nghiệm. Người dùng có thể nhập Prompt bằng BẤT KỲ NGÔN NGỮ NÀO.
+Bạn là Chuyên gia Kiểm định Prompt (Prompt Auditor). Người dùng có thể nhập Prompt bằng BẤT KỲ NGÔN NGỮ NÀO.
 
-HÃY THỰC HIỆN THEO QUY TRÌNH 4 BƯỚC SAU (Suy luận nội bộ trước khi xuất JSON):
+HÃY THỰC HIỆN THEO QUY TRÌNH 4 BƯỚC SAU:
 
-[BƯỚC 1: XÁC ĐỊNH LĨNH VỰC (DOMAIN IDENTIFICATION)]
-Hãy đọc kỹ Prompt và xác định chính xác nó thuộc lĩnh vực chính nào dưới đây:
-- "Code" (Lập trình, thuật toán)
-- "Cosmetics" (Mỹ phẩm, làm đẹp, da liễu)
-- "Marketing" (Bán hàng, quảng cáo, content, SEO)
-- "Writing" (Viết văn, kể chuyện, kịch bản)
-- "Education" (Giáo dục, giải toán, học thuật)
-- "General" (Các lĩnh vực khác)
-=> Ghi nhớ lĩnh vực này để CHỈ đối chiếu với các mã lỗi phù hợp ở Bước 3.
+[BƯỚC 1: XÁC ĐỊNH LĨNH VỰC]
+Xác định lĩnh vực: Code, Cosmetics, Marketing, Writing, Education, hoặc General.
 
-[BƯỚC 2: CHẤM ĐIỂM TIÊU CHÍ LÕI & TỰ SINH TIÊU CHÍ CHUYÊN NGÀNH]
-2.1. Chấm điểm các tiêu chí lõi sau (từ 0-10):
+[BƯỚC 2: CHẤM ĐIỂM]
+2.1. Chấm điểm tiêu chí lõi (0-10):
 {criteria_desc}
+2.2. TỰ NGHĨ RA từ 3-5 tiêu chí chuyên ngành (DYN01, DYN02...). BẮT BUỘC phải tạo ra ít nhất 3 tiêu chí DYN, kể cả khi prompt rất ngắn.
 
-2.2. Dựa vào lĩnh vực đã xác định ở Bước 1, hãy TỰ NGHĨ RA từ 3 đến 5 tiêu chí chuyên sâu nhất cho lĩnh vực đó.
-- Đặt mã lần lượt là: "DYN01", "DYN02", "DYN03", "DYN04", "DYN05" (chỉ tạo tối đa 5).
-- Chấm điểm chúng (0-10).
-- Ghi rõ tên tiêu chí vào trường "dynamic_criteria_names".
-(Lưu ý: Kể cả khi prompt quá ngắn hoặc vô nghĩa, bạn VẪN PHẢI sinh ra 3 tiêu chí DYN01, DYN02, DYN03).
-
-[BƯỚC 3: TÌM LỖI (Dựa trên Lĩnh vực đã xác định)]
-Duyệt qua danh sách mã lỗi sau và CHỈ CHỌN RA những lỗi thực sự xuất hiện trong prompt:
+[BƯỚC 3: TÌM LỖI]
+Đối chiếu các mã lỗi sau:
 {error_codes_desc}
-(Lưu ý: Nếu prompt thuộc lĩnh vực "Writing", đừng bới lỗi H01. Nếu lĩnh vực là "Marketing", hãy chú ý lỗi G03).
 
-[BƯỚC 4: TÁI CẤU TRÚC VÀ CẢI TIẾN]
-Chuyển đổi prompt thành 11 mục tiếng Việt chính xác:
+[BƯỚC 4: TÁI CẤU TRÚC]
+Viết lại thành 11 mục tiếng Việt:
 {rewrite_sections_formatted}
-- QUY TẮC VIẾT LẠI (CỰC KỲ QUAN TRỌNG): Tiêu chí nào bạn chấm 10/10 điểm thì COPY NGUYÊN BẢN 100% chữ của người dùng. Dưới 10 điểm mới được phép CẢI TIẾN.
-- Mỗi mục nếu có nhiều ý phải dùng \\n để xuống dòng.
+- Quy tắc: 10 điểm copy nguyên bản, dưới 10 điểm mới cải tiến.
 
-QUY TẮC BẰNG CHỨNG: Khi trích dẫn lỗi, TUYỆT ĐỐI KHÔNG dùng ngoặc kép. Chỉ copy nguyên văn.
-Lỗi thiếu thông tin (B01, C02, C04): ghi vào "evidence" là "Không có thông tin này trong prompt".
-Thêm trường "hint" cho mỗi lỗi để gợi ý cách sửa CỤ THỂ theo ngữ cảnh.
+QUY TẮC BẰNG CHỨNG: KHÔNG dùng ngoặc kép cho evidence. Lỗi B01, C02, C04 ghi evidence là "Không có thông tin này trong prompt".
+Thêm trường "hint" cho mỗi lỗi.
 
-Trả về JSON chính xác cấu trúc sau (KHÔNG THÊM KEY KHÁC):
+Trả về JSON (KHÔNG THÊM KEY KHÁC):
 {{
-  "identified_domain": "Tên lĩnh vực bạn xác định ở Bước 1",
+  "identified_domain": "...",
   "scores": {{ {scores_example}, "DYN01": 5, "DYN02": 5, "DYN03": 5 }},
-  "dynamic_criteria_names": {{
-      "DYN01": "Tên tiêu chí chuyên ngành 1", "DYN02": "Tên tiêu chí 2", "DYN03": "Tên tiêu chí 3"
-  }},
-  "errors": [ {{"code": "MÃ_LỖI", "evidence": "Trích dẫn", "hint": "Cách sửa"}} ],
-  "rewrite": {{ 
-    "1. VAI TRÒ": "...", "2. BỐI CẢNH": "...", "3. INPUT": "...", "4. MỤC TIÊU": "...", "5. YÊU CẦU": "...",
-    "6. RÀNG BUỘC": "...", "7. TASK": "...", "8. ĐỊNH DẠNG ĐẦU RA": "...", "9. NEVER DO": "...", 
-    "10. THỨ TỰ ƯU TIÊN": "...", "11. XỬ LÝ NỘI BỘ": "..."
-  }}
+  "dynamic_criteria_names": {{ "DYN01": "...", "DYN02": "...", "DYN03": "..." }},
+  "errors": [ {{"code": "MÃ_LỖI", "evidence": "...", "hint": "..."}} ],
+  "rewrite": {{ "1. VAI TRÒ": "...", "2. BỐI CẢNH": "...", "3. INPUT": "...", "4. MỤC TIÊU": "...", "5. YÊU CẦU": "...", "6. RÀNG BUỘC": "...", "7. TASK": "...", "8. ĐỊNH DẠNG ĐẦU RA": "...", "9. NEVER DO": "...", "10. THỨ TỰ ƯU TIÊN": "...", "11. XỬ LÝ NỘI BỘ": "..." }}
 }}
 """
         
@@ -356,7 +333,7 @@ Trả về JSON chính xác cấu trúc sau (KHÔNG THÊM KEY KHÁC):
                 raw_text = call_llm(system_prompt, prompt_text)
                 json_str = extract_json(raw_text)
                 if not json_str:
-                    raise ReportValidationError("AI không trả về JSON hợp lệ.")
+                    raise ReportValidationError("AI trả về định dạng không hợp lệ.")
                 ai_data = json.loads(json_str)
                 validate_full_report(ai_data, main_criteria, tech_criteria, prompt_text)
                 success = True
@@ -368,7 +345,9 @@ Trả về JSON chính xác cấu trúc sau (KHÔNG THÊM KEY KHÁC):
                 logger.warning("Lần thử %s thất bại: %s", attempt + 1, e)
         
         if not success:
-            raise ReportValidationError(f"AI trả về dữ liệu không hợp lệ sau 2 lần thử: {last_error}")
+            logger.error(f"Lỗi Validation: {last_error}")
+            # LỖI THÂN THIỆN: Không hiện mã lỗi cho user
+            return JSONResponse(status_code=422, content={"error": "Hệ thống AI đang xử lý dữ liệu chưa tốt. Vui lòng thử lại hoặc nhập câu lệnh chi tiết hơn!"})
 
         final_score = calculate_final_score(ai_data["scores"], main_criteria, tech_criteria)
         
@@ -394,13 +373,12 @@ Trả về JSON chính xác cấu trúc sau (KHÔNG THÊM KEY KHÁC):
         background_tasks.add_task(bg_save_history, db_payload)
         return result
 
-    except ReportValidationError as re_err:
-        return JSONResponse(status_code=422, content={"error": str(re_err)})
     except HTTPException as http_err:
         raise http_err
     except Exception as e:
-        logger.exception("Lỗi nghiêm trọng trong /evaluate")
-        return JSONResponse(status_code=500, content={"error": "Lỗi máy chủ nội bộ."})
+        logger.exception(f"Lỗi nghiêm trọng: {e}")
+        # LỖI THÂN THIỆN: Không hiện lỗi máy chủ (500) thô cho user
+        return JSONResponse(status_code=500, content={"error": "Đã xảy ra lỗi kết nối máy chủ. Vui lòng thử lại sau giây lát!"})
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=int(os.environ.get("PORT", 8000)))
