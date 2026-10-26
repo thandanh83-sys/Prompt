@@ -19,13 +19,10 @@ def validate_scores_only(ai_scores: dict, required_criteria: dict) -> bool:
     required_ids = set(required_criteria.keys())
     received_ids = set(ai_scores.keys())
     
-    # Chặn tuyệt đối việc thêm ID lạ (DYN01...)
     if received_ids != required_ids:
         missing = required_ids - received_ids
         extra = received_ids - required_ids
-        raise ReportValidationError(
-            f"Sai tập tiêu chí. Thiếu: {sorted(missing)}; Thừa: {sorted(extra)}"
-        )
+        raise ReportValidationError(f"Sai tập tiêu chí. Thiếu: {sorted(missing)}; Thừa: {sorted(extra)}")
         
     for crit_id, score in ai_scores.items():
         if type(score) is not int:
@@ -38,7 +35,8 @@ def validate_full_report(ai_json: dict, main_criteria: dict, tech_criteria: dict
     if not isinstance(ai_json, dict): 
         raise ReportValidationError("Dữ liệu AI không phải JSON Object.")
         
-    required_keys = {"scores", "errors", "rewrite"}
+    # [FIX] Chấp nhận thêm identified_domain
+    required_keys = {"scores", "errors", "rewrite", "identified_domain"}
     if not required_keys.issubset(set(ai_json.keys())):
         raise ReportValidationError(f"JSON phải có ít nhất các key: {required_keys}")
 
@@ -56,6 +54,7 @@ def validate_full_report(ai_json: dict, main_criteria: dict, tech_criteria: dict
     for err in errors:
         if not isinstance(err, dict):
             raise ReportValidationError("Mỗi lỗi phải là object.")
+        # [FIX] Chấp nhận thêm key 'hint'
         if set(err.keys()) - {"code", "evidence", "hint"}:
             raise ReportValidationError("Lỗi chứa trường không được hỗ trợ.")
         if not {"code", "evidence"}.issubset(err.keys()):
@@ -71,11 +70,10 @@ def validate_full_report(ai_json: dict, main_criteria: dict, tech_criteria: dict
             raise ReportValidationError(f"Lỗi {code} thiếu bằng chứng hợp lệ.")
             
         if code in missing_info_codes:
-            # Với lỗi thiếu thông tin, bằng chứng phải nêu cụ thể thông tin nào chưa được cung cấp.
-            if len(evidence.strip()) < 8:
+            # [FIX] Nới lỏng độ dài tối thiểu cho lỗi thiếu thông tin (VD: "Thiếu ảnh")
+            if len(evidence.strip()) < 3:
                 raise ReportValidationError(f"Bằng chứng của {code} quá chung chung.")
         else:
-            # Bắt buộc bằng chứng phải nằm trong prompt gốc (không được bịa)
             evidence_norm = normalize_text(evidence)
             if evidence_norm not in prompt_norm:
                 raise ReportValidationError(f"Bằng chứng của {code} không khớp prompt gốc.")
@@ -87,7 +85,6 @@ def validate_full_report(ai_json: dict, main_criteria: dict, tech_criteria: dict
     if not isinstance(rewrite, dict): 
         raise ReportValidationError("Trường 'rewrite' phải là dict.")
         
-    # Bắt buộc phải đủ 11 mục và đúng thứ tự
     required_sections = rules_v38.REQUIRED_REWRITE_SECTIONS
     if list(rewrite.keys()) != required_sections:
         raise ReportValidationError("Rewrite phải có đúng 11 mục theo đúng thứ tự backend.")
@@ -103,7 +100,6 @@ def _calc_tier_score(ai_scores: dict, criteria: dict) -> Decimal:
     total_weight = Decimal("0")
     weighted_score = Decimal("0")
     for crit_id, info in criteria.items():
-        # Không tự cho 5 điểm nếu AI quên tiêu chí
         if crit_id not in ai_scores:
             raise ReportValidationError(f"Thiếu điểm cho tiêu chí {crit_id}.")
         score = ai_scores[crit_id]
@@ -114,6 +110,5 @@ def _calc_tier_score(ai_scores: dict, criteria: dict) -> Decimal:
 
 def calculate_final_score(ai_scores: dict, main_criteria: dict, tech_criteria: dict) -> float:
     all_criteria = {**main_criteria, **tech_criteria}
-    # Đã xóa logic thêm DYN vào all_criteria
     weighted_score = _calc_tier_score(ai_scores, all_criteria)
     return float(weighted_score.quantize(Decimal("0.1"), rounding=ROUND_HALF_UP))
