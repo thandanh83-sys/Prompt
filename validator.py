@@ -14,18 +14,19 @@ def normalize_text(text: str) -> str:
 
 def validate_scores_only(ai_scores: dict, required_criteria: dict) -> bool:
     if not isinstance(ai_scores, dict): 
-        raise ReportValidationError("Trường 'scores' phải là dict.")
+        raise ReportValidationError("Trường 'scores' phải là object.")
         
     required_ids = set(required_criteria.keys())
     received_ids = set(ai_scores.keys())
     
-    # Kiểm tra khớp CHÍNH XÁC tập ID, không thừa không thiếu (Chặn DYN)
+    # Khóa 1: Kiểm tra ID phải khớp CHÍNH XÁC (không thừa, không thiếu)
     if received_ids != required_ids:
         missing = required_ids - received_ids
         extra = received_ids - required_ids
         raise ReportValidationError(f"Sai tập tiêu chí. Thiếu: {sorted(missing)}; Thừa: {sorted(extra)}")
         
     for crit_id, score in ai_scores.items():
+        # Khóa 2: Điểm phải là số nguyên từ 0-10
         if type(score) is not int:
             raise ReportValidationError(f"Điểm của '{crit_id}' phải là số nguyên.")
         if not (0 <= score <= 10):
@@ -36,12 +37,12 @@ def validate_full_report(ai_json: dict, main_criteria: dict, tech_criteria: dict
     if not isinstance(ai_json, dict): 
         raise ReportValidationError("Dữ liệu AI không phải JSON Object.")
         
-    # Bắt buộc phải có CHÍNH XÁC 4 key, không thừa không thiếu
+    # Khóa 3: Phải có CHÍNH XÁC 4 key, không thừa không thiếu
     required_keys = {"scores", "errors", "rewrite", "identified_domain"}
     if set(ai_json.keys()) != required_keys:
         raise ReportValidationError(f"JSON phải có chính xác các key: {required_keys}. Nhận được: {set(ai_json.keys())}")
 
-    # Kiểm tra identified_domain
+    # Khóa 4: identified_domain phải là chuỗi không rỗng
     domain = ai_json["identified_domain"]
     if not isinstance(domain, str) or not domain.strip():
         raise ReportValidationError("'identified_domain' phải là chuỗi không rỗng.")
@@ -61,14 +62,14 @@ def validate_full_report(ai_json: dict, main_criteria: dict, tech_criteria: dict
         if not isinstance(err, dict):
             raise ReportValidationError("Mỗi lỗi phải là object.")
         
-        # Bắt buộc phải có chính xác 3 key: code, evidence, hint
+        # Khóa 5: Mỗi lỗi phải có chính xác 3 key
         if set(err.keys()) != {"code", "evidence", "hint"}:
             raise ReportValidationError("Mỗi lỗi phải có chính xác 'code', 'evidence', và 'hint'.")
             
         code = err["code"]
         evidence = err["evidence"]
         
-        # Từ chối nếu mã lỗi không tồn tại trong rules (Không tự động sửa)
+        # Khóa 6: Mã lỗi phải tồn tại trong cấu hình (không tự đổi)
         if not isinstance(code, str) or code not in valid_error_codes:
             raise ReportValidationError(f"Mã lỗi không hợp lệ hoặc không tồn tại: {code!r}")
             
@@ -76,12 +77,11 @@ def validate_full_report(ai_json: dict, main_criteria: dict, tech_criteria: dict
             raise ReportValidationError(f"Lỗi {code} thiếu bằng chứng hợp lệ.")
             
         if code in missing_info_codes:
-            # Đối với lỗi thiếu thông tin, bằng chứng phải mô tả rõ thông tin gì bị thiếu
             if len(evidence.strip()) < 5:
                 raise ReportValidationError(f"Bằng chứng của {code} quá chung chung, cần nêu rõ thông tin bị thiếu.")
         else:
             evidence_norm = normalize_text(evidence)
-            # Từ chối nếu bằng chứng bịa đặt (không khớp prompt gốc)
+            # Khóa 7: Bằng chứng phải có thật trong prompt (nếu là lỗi hiện diện)
             if evidence_norm not in prompt_norm:
                 raise ReportValidationError(f"Bằng chứng của {code} không khớp với prompt gốc. Evidence: '{evidence}'")
                 
@@ -90,14 +90,16 @@ def validate_full_report(ai_json: dict, main_criteria: dict, tech_criteria: dict
 
     rewrite = ai_json["rewrite"]
     if not isinstance(rewrite, dict): 
-        raise ReportValidationError("Trường 'rewrite' phải là dict.")
+        raise ReportValidationError("Trường 'rewrite' phải là object.")
         
+    # Khóa 8: Rewrite phải có đúng 11 mục theo đúng thứ tự
     required_sections = rules_v38.REQUIRED_REWRITE_SECTIONS
     if list(rewrite.keys()) != required_sections:
         raise ReportValidationError("Rewrite phải có đúng 11 mục theo đúng thứ tự backend quy định.")
         
     for section in required_sections:
         value = rewrite[section]
+        # Khóa 9: Mọi mục phải là chuỗi không rỗng
         if not isinstance(value, str) or not value.strip():
             raise ReportValidationError(f"Mục rewrite '{section}' bị thiếu hoặc rỗng.")
             
@@ -112,8 +114,6 @@ def calculate_final_score(ai_scores: dict, main_criteria: dict, tech_criteria: d
         raise ValueError("Dữ liệu điểm không hợp lệ.")
         
     all_criteria_dict = {**main_criteria, **tech_criteria}
-    
-    # Chuyển đổi sang định dạng List[Dict] để kiểm tra
     criteria = [{"id": k, "weight": v["weight"]} for k, v in all_criteria_dict.items()]
     
     if not criteria:
