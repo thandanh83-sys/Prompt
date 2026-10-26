@@ -62,23 +62,37 @@ def verify_admin_token(token: str = Depends(api_key_header)):
     return token
 
 # ==========================================
-# HÀM LỌC ĐẦU VÀO RÁC (CHẶN TỪ GỐC)
+# HÀM LỌC ĐẦU VÀO RÁC (NÂNG CẤP - 1 CHỮ CÓ NGHĨA VẪN ĐƯỢC DUYỆT)
 # ==========================================
 def is_insufficient_prompt(text: str) -> bool:
-    """Chặn chuỗi vô nghĩa dạng 'shshuwornbd' nhưng không chặn nhầm prompt ngắn."""
-    if not isinstance(text, str):
-        return True
+    if not isinstance(text, str): return True
     text = unicodedata.normalize("NFC", text).strip()
-    if not text:
-        return True
-    # Không có chữ hoặc số có ý nghĩa.
-    if not re.search(r"[^\W_]", text, flags=re.UNICODE):
-        return True
+    if not text: return True
     
-    compact = re.sub(r"\s+", " ", text).strip()
-    # Chặn các token chữ cái dài >= 10 ký tự, không dấu cách, không dấu câu (VD: shshuwornbd)
-    if re.fullmatch(r"[A-Za-z]{10,}", compact):
-        return True
+    # 1. Chỉ có ký tự đặc biệt, số, không có chữ cái
+    if not re.search(r"[^\W\d_]", text, flags=re.UNICODE): return True
+
+    words = text.split()
+    
+    # 2. Nếu người dùng chỉ nhập ĐÚNG 1 TỪ
+    if len(words) == 1:
+        word = words[0].lower()
+        # Nếu là các lệnh hành động phổ biến -> Cho phép (VD: "Vẽ", "Dịch", "Tả")
+        valid_single_words = {
+            "vẽ", "dịch", "tả", "code", "toán", "văn", "thơ", "giải", "viết", 
+            "dịch thuật", "summary", "translate", "draw", "math", "fix"
+        }
+        if word in valid_single_words:
+            return False
+            
+        # Nếu là 1 từ dài từ 7 ký tự trở lên, không nằm trong danh sách trên -> Rác (VD: ầketktwi)
+        if len(word) >= 7:
+            return True
+            
+    # 3. Nếu là chuỗi dài ngoằng không có dấu cách (VD: shshuwornbd, asdasdasd) -> Rác
+    if len(words) == 1 and len(words[0]) >= 10:
+         return True
+         
     return False
 
 # ==========================================
@@ -242,7 +256,6 @@ def get_ip_logs(token: str = Depends(verify_admin_token)):
 def get_top_prompts():
     if not supabase: return JSONResponse(status_code=500, content={"error": "Supabase chưa được cấu hình."})
     try:
-        # Sửa cú pháp select() thành 1 chuỗi string để tương thích mọi phiên bản
         response = supabase.table("history") \
             .select("prompt,type,domain,total_score,created_at") \
             .gte("total_score", 7.0) \
@@ -272,7 +285,7 @@ def evaluate(request: Request, req: PromptRequest, background_tasks: BackgroundT
             status_code=422,
             content={
                 "status": "insufficient_input",
-                "error": "Chưa đủ thông tin để đánh giá Prompt. Hãy nhập mục tiêu hoặc yêu cầu cụ thể. Hệ thống không tự đoán ý định và không tạo bản viết lại từ chuỗi ký tự vô nghĩa."
+                "error": "Chưa đủ thông tin để đánh giá Prompt. Hãy nhập mục tiêu hoặc yêu cầu cụ thể (VD: 'Vẽ tranh', 'Viết code')."
             }
         )
         
@@ -317,8 +330,9 @@ DANH SÁCH TIÊU CHÍ BẮT BUỘC PHẢI CHẤM:
 Đối chiếu mã lỗi:
 {error_codes_desc}
 - Mỗi lỗi phải dùng mã có thật trong danh sách trên.
-- Evidence phải là trích đoạn nguyên văn có thật trong prompt gốc.
-- Nếu lỗi là thông tin bị thiếu (mã B01, C02, C04), nêu rõ thông tin nào chưa được cung cấp.
+- Evidence phải là trích đoạn nguyên văn CÓ THẬT trong prompt gốc. 
+- [CỰC KỲ QUAN TRỌNG] TUYỆT ĐỐI KHÔNG BỊA RA BẰNG CHỨNG. Nếu không tìm thấy đoạn văn bản nào trong prompt gốc để làm bằng chứng, hãy BỎ QUA lỗi đó.
+- Nếu lỗi là thông tin bị thiếu (mã B01, C02, C04), nêu rõ thông tin nào chưa được cung cấp (VD: "Thiếu bối cảnh", "Chưa có ví dụ").
 
 [NGUYÊN TẮC REWRITE - BẮT BUỘC]
 - Luôn trả đúng 11 mục theo danh sách sau:
@@ -363,10 +377,11 @@ TRẢ VỀ DUY NHẤT JSON SAU:
                 logger.warning(f"Lần thử {attempt + 1} thất bại: {e}")
         
         if not success:
+            # [BẢO MẬT] Chỉ ghi log lỗi chi tiết vào server, KHÔNG trả ra cho người dùng
             logger.error(f"Lỗi Validation sau 2 lần thử: {last_error}")
             return JSONResponse(
                 status_code=422, 
-                content={"error": f"Hệ thống AI đang gặp lỗi cấu trúc. Chi tiết: {str(last_error)}"}
+                content={"error": "Hệ thống AI đang xử lý dữ liệu chưa tốt. Vui lòng kiểm tra lại nội dung và thử lại!"}
             )
 
         final_score = calculate_final_score(ai_data["scores"], main_criteria, tech_criteria)
