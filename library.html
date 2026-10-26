@@ -567,7 +567,6 @@
                 clearTimeout(timeoutId); 
                 
                 if (!res.ok) {
-                    // Bắt lỗi từ Backend (ví dụ: 500 Supabase lỗi, hoặc 429 Rate Limit)
                     const errorData = await res.json().catch(() => ({}));
                     throw new Error(errorData.error || `Lỗi API: ${res.status}`);
                 }
@@ -623,6 +622,10 @@
                     filterMenu.classList.add('hidden'); 
                     filterIcon.style.transform = 'rotate(0deg)';
                     displayedCount = 10; 
+                    
+                    // FIX LỖI MÀU XANH: Vẽ lại menu để cập nhật trạng thái active
+                    generateFilterOptions(); 
+                    
                     renderPrompts();
                 };
                 filterMenu.appendChild(btn);
@@ -663,7 +666,6 @@
                 const type = item.type || 'PROMPT';
                 const dateStr = item.created_at ? new Date(item.created_at).toLocaleDateString('vi-VN') : 'Gần đây';
                 
-                // Xử lý điểm số: Chuyển về Number và format 1 chữ số thập phân nếu là số
                 let rawScore = item.total_score || item.score || 7.0;
                 let score = typeof rawScore === 'number' ? rawScore.toFixed(1) : rawScore;
                 
@@ -746,6 +748,9 @@
             currentFilter = 'Tất cả';
             $('currentFilterText').textContent = 'Tất cả';
             displayedCount = 10;
+            
+            // FIX LỖI MÀU XANH: Reset lại menu
+            generateFilterOptions(); 
             
             const resetBtn = $('btnResetSearch');
             resetBtn.textContent = "Xóa bộ lọc";
