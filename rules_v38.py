@@ -1,5 +1,8 @@
 import math
 
+# ==========================================
+# KHAI BÁO CÁC HẰNG SỐ LOẠI PROMPT & KỸ THUẬT
+# ==========================================
 TYPE_PROMPT = "PROMPT"
 TYPE_TEMPLATE = "TEMPLATE"
 TYPE_PROMPT_META = "PROMPT META"
@@ -18,7 +21,7 @@ class ConfigurationError(Exception):
     pass
 
 # ==========================================
-# BỘ TIÊU CHÍ LÕI (CORE CRITERIA) - ĐÃ KHÔI PHỤC P10-P13
+# BỘ TIÊU CHÍ LÕI (CORE CRITERIA) - 14 TIÊU CHÍ
 # ==========================================
 CRITERIA_CORE = {
     "P01": {"name": "Độ rõ nhiệm vụ", "weight": 1.2, "rubric": "0-2: Không có động từ hành động. 3-4: Động từ mơ hồ. 5-6: Rõ hành động. 7-10: Rõ hành động, rõ kết quả."},
@@ -30,8 +33,7 @@ CRITERIA_CORE = {
     "P07": {"name": "Không chung chung", "weight": 0.2, "rubric": "0-2: Rất chung chung. 3-4: Còn chung chung. 5-6: Khá cụ thể. 7-10: Rất cụ thể."},
     "P08": {"name": "Có cấu trúc", "weight": 0.2, "rubric": "0-2: Không cấu trúc. 3-4: Cấu trúc lộn xộn. 5-6: Có cấu trúc cơ bản. 7-10: Cấu trúc chặt chẽ."},
     "P09": {"name": "Phù hợp nhiệm vụ", "weight": 0.5, "rubric": "0-2: Sai lệch nhiệm vụ. 3-4: Chưa phù hợp. 5-6: Khá phù hợp. 7-10: Rất phù hợp."},
-    # Bổ sung P10 - P13 dựa trên các tiêu chí chuẩn
-    "P10": {"name": "Chuyên môn có căn cứ", "weight": 1.0, "rubric": "0-2: Vô căn cứ. 3-4: Sơ sài. 5-6: Có kiến thức cơ bản. 7-10: Chuyên sâu, chính xác."},
+    "P10": {"name": "Chuyên môn có căn cứ", "weight": 1.0, "rubric": "0-2: Vô căn cứ. 3-4: Sơ sài. 5-6: Có kiến thức cơ bản. 7-10: Chuyên sâu, chính xác và có căn cứ."},
     "P11": {"name": "Nhất quán lĩnh vực", "weight": 0.8, "rubric": "0-2: Lạc đề. 3-4: Chưa nhất quán. 5-6: Tương đối nhất quán. 7-10: Nhất quán hoàn toàn."},
     "P12": {"name": "Yêu cầu khả thi", "weight": 0.5, "rubric": "0-2: Bất khả thi. 3-4: Khó thực hiện. 5-6: Có thể thực hiện. 7-10: Rất thực tế và dễ hiểu."},
     "P13": {"name": "Vai trò phù hợp", "weight": 1.0, "rubric": "0-2: Không có vai trò. 3-4: Vai trò mờ nhạt. 5-6: Vai trò rõ ràng. 7-10: Vai trò xuất sắc, tối ưu cho task."},
@@ -113,6 +115,7 @@ def classify_prompt(prompt_text: str) -> dict:
     lower_text = text.lower()
     techniques = []
     
+    # 1. NHẬN DIỆN KỸ THUẬT (TECHNIQUES)
     if any(kw in lower_text for kw in ["đóng vai", "bạn là", "hãy vào vai", "giả sử bạn là", "act as", "role:", "persona:", "vai trò:"]):
         techniques.append(TECH_ROLE_PLAY)
     if any(kw in lower_text for kw in ["ví dụ 1:", "ví dụ mẫu", "input:", "output:", "dưới đây là ví dụ", "ví dụ như sau", "example:", "few-shot"]):
@@ -124,16 +127,27 @@ def classify_prompt(prompt_text: str) -> dict:
     if any(kw in lower_text for kw in ["viết truyện", "làm thơ", "sáng tác", "kịch bản", "viết quảng cáo", "brainstorm", "viết content", "story", "poem", "script", "write a"]):
         techniques.append(TECH_CREATIVE)
 
+    # 2. NHẬN DIỆN LOẠI PROMPT (MAIN TASK)
+    # Thứ tự ưu tiên: Meta > Image > Table > STEM > Template > Prompt (Mặc định)
     main_task = TYPE_PROMPT
     
+    # Prompt Meta (Hướng dẫn viết prompt)
     if any(kw in lower_text for kw in ["viết prompt", "tạo prompt", "câu lệnh cho ai", "meta prompt", "prompt engineering", "hướng dẫn viết prompt", "cải thiện prompt", "tối ưu prompt"]):
         main_task = TYPE_PROMPT_META
+        
+    # Image Prompt (Tạo ảnh)
     elif any(kw in lower_text for kw in ["vẽ ảnh", "tạo ảnh", "midjourney", "stable diffusion", "dall-e", "dalle", "image prompt", "draw", "illustration", "concept art", "3d render", "phác thảo", "bức tranh"]):
         main_task = TYPE_IMAGE
+        
+    # Table (Bảng biểu)
     elif any(kw in lower_text for kw in ["dạng bảng", "tạo bảng", "lập bảng", "xuất ra bảng", "excel", "csv", "markdown table", "table format", "biểu đồ", "thống kê"]):
         main_task = TYPE_TABLE
+        
+    # STEM (Toán, Lý, Hóa, Code)
     elif any(kw in lower_text for kw in ["toán", "vật lý", "hóa học", "sinh học", "phương trình", "tích phân", "đạo hàm", "thuật toán", "lập trình", "code", "python", "javascript", "c++", "java", "debug", "vật lí", "math", "physics", "chemistry", "algorithm"]):
         main_task = TYPE_STEM
+        
+    # Template (Mẫu có sẵn)
     elif any(kw in lower_text for kw in ["mẫu sau", "theo mẫu", "template", "form", "điền vào chỗ trống", "khung sau", "cấu trúc sau"]):
         main_task = TYPE_TEMPLATE
 
