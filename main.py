@@ -413,6 +413,7 @@ Bạn là một chuyên gia tối ưu hóa Prompt. Khi viết lại, bạn PHẢ
 - Viết dưới dạng MỆNH LỆNH trực tiếp. Tuyệt đối không tường thuật ("Người dùng muốn...").
 - Phân biệt rõ MỤC TIÊU (đích đến) và TASK (các bước thực hiện).
 - Bản viết lại phải đủ 11 mục theo thứ tự: {rewrite_sections_formatted}.
+- [CẢNH BÁO] KHÔNG ĐƯỢC XÓA BẤT KỲ KEY NÀO. Mọi giá trị đều phải là chuỗi không rỗng.
 
 [IDENTIFIED_DOMAIN]
 Nêu lĩnh vực (VD: "Giáo dục", "Marketing").
@@ -444,10 +445,12 @@ rewrite: {rewrite_schema_str}
                 logger.warning("Lần validation %s thất bại: %s", attempt + 1, e)
 
         if not success:
+            # [MỞ LỖI CHI TIẾT ĐỂ DEBUG]
             logger.error("Validation thất bại sau 2 lần: %s", last_error)
+            error_msg = str(last_error) if last_error else "Không có chi tiết."
             return JSONResponse(
                 status_code=422,
-                content={"error": "Hệ thống AI đang xử lý dữ liệu chưa tốt. Vui lòng kiểm tra lại nội dung và thử lại!"},
+                content={"error": f"AI chưa trả đúng cấu trúc. Chi tiết: {error_msg}"},
             )
 
         final_score = calculate_final_score(ai_data["scores"], main_criteria, tech_criteria)
