@@ -65,7 +65,6 @@ def is_insufficient_prompt(text: str) -> bool:
     if not re.search(r"[^\W\d_]", text, flags=re.UNICODE): return True
     return False
 
-# [BẢO MẬT] Thêm rate limit cho login
 limiter = Limiter(key_func=get_client_ip)
 app = FastAPI()
 app.state.limiter = limiter
@@ -89,6 +88,7 @@ class AdminLoginRequest(BaseModel):
     password: str
 
 client = Groq(api_key=GROQ_API_KEY)
+
 supabase_url = os.environ.get("SUPABASE_URL", "")
 supabase_key = os.environ.get("SUPABASE_KEY", "")
 supabase: Client = create_client(supabase_url, supabase_key) if supabase_url and supabase_key else None
@@ -133,7 +133,9 @@ def call_llm(system_prompt: str, user_prompt: str) -> str:
                 model="openai/gpt-oss-120b",
                 messages=messages,
                 response_format={"type": "json_object"},
-                temperature=0.1, max_tokens=3000, timeout=30.0,
+                temperature=0.1, 
+                max_tokens=3000,
+                timeout=30.0,
             )
             content = resp.choices[0].message.content
             if not content: raise ValueError("Groq trả về nội dung rỗng.")
@@ -144,6 +146,7 @@ def call_llm(system_prompt: str, user_prompt: str) -> str:
             if attempt == max_retries - 1:
                 raise HTTPException(status_code=429, detail="Hệ thống AI đang quá tải. Vui lòng đợi 1 phút rồi thử lại!")
             time.sleep(5)
+
         except Exception as e:
             logger.warning(f"Groq API Error (lần {attempt+1}): {e}")
             if attempt == max_retries - 1:
@@ -171,7 +174,7 @@ def check_admin_ip(client_ip: str = Depends(verify_admin_ip)):
     return {"is_admin": True}
 
 @app.post("/login")
-@limiter.limit("5/minute") # [BẢO MẬT] Chặn brute-force
+@limiter.limit("5/minute")
 def login(req: AdminLoginRequest, request: Request, client_ip: str = Depends(verify_admin_ip)):
     if req.password != ADMIN_PASSWORD: raise HTTPException(status_code=401, detail="Sai mật khẩu")
     if supabase:
@@ -200,7 +203,6 @@ def delete_prompt(prompt_id: str, token: str = Depends(verify_admin_token), clie
 def delete_all_prompts(token: str = Depends(verify_admin_token), client_ip: str = Depends(verify_admin_ip)):
     if not supabase: return JSONResponse(status_code=500, content={"error": "Supabase chưa cấu hình."})
     try:
-        # [FIX] Sử dụng gte("id", 0) hoặc cách xóa toàn bộ an toàn hơn tùy DB
         supabase.table("history").delete().gte("id", 0).execute()
         return {"status": "success", "message": "Đã xóa toàn bộ lịch sử."}
     except Exception as e: return JSONResponse(status_code=500, content={"error": "Không thể xóa toàn bộ dữ liệu."})
@@ -237,7 +239,7 @@ def evaluate(request: Request, req: PromptRequest, background_tasks: BackgroundT
         main_criteria = criteria_pack["main"]
         tech_criteria = criteria_pack["tech"]
         
-        # [FIX LỖI 5] Kiểm tra trùng ID giữa main và tech
+        # [FIX LỖI 5] Kiểm tra trùng ID
         collision_ids = set(main_criteria.keys()).intersection(set(tech_criteria.keys()))
         if collision_ids:
             logger.error(f"LỖI CẤU HÌNH: ID tiêu chí bị trùng: {collision_ids}")
@@ -251,7 +253,7 @@ def evaluate(request: Request, req: PromptRequest, background_tasks: BackgroundT
         criteria_desc = "\n".join(f"- ID: {cid} | Tên: {c.get('name', '')} | Trọng số: {c.get('weight', '')} | Rubric: {c.get('rubric', '')}" for cid, c in all_criteria.items())
         scores_example = ", ".join(f'"{cid}": 5' for cid in all_criteria)
         
-        # [FIX LỖI 1] Truyền đầy đủ thông tin conditions và exclusions cho AI
+        # [FIX LỖI 1] Truyền đầy đủ conditions, exclusions, require_quote
         error_codes_desc = ""
         for code, rule in error_rules.ERROR_RULES.items():
             error_codes_desc += f"- Mã: {code} | Tên: {rule.get('name', '')}\n"
@@ -322,7 +324,6 @@ scores: {{{scores_example}}}
                 if not json_str: raise ReportValidationError("AI không trả về JSON hợp lệ.")
                 ai_data = json.loads(json_str)
                 
-                # Gọi Validator để kiểm tra
                 validate_full_report(ai_data, main_criteria, tech_criteria, prompt_text)
                 success = True
                 break
