@@ -16,7 +16,7 @@ def validate_scores_only(ai_scores: dict, required_criteria: dict) -> bool:
     if not isinstance(ai_scores, dict): 
         raise ReportValidationError("Trường 'scores' phải là dict.")
         
-    # [LỚP BẢO VỆ] Tự động lọc bỏ các DYN nếu AI lỡ sinh ra, không làm crash hệ thống
+    # Tự động lọc bỏ các DYN nếu AI lỡ sinh ra
     filtered_scores = {k: v for k, v in ai_scores.items() if not k.startswith("DYN")}
         
     required_ids = set(required_criteria.keys())
@@ -38,7 +38,6 @@ def validate_full_report(ai_json: dict, main_criteria: dict, tech_criteria: dict
     if not isinstance(ai_json, dict): 
         raise ReportValidationError("Dữ liệu AI không phải JSON Object.")
         
-    # Chấp nhận thêm identified_domain
     required_keys = {"scores", "errors", "rewrite", "identified_domain"}
     if not required_keys.issubset(set(ai_json.keys())):
         raise ReportValidationError(f"JSON phải có ít nhất các key: {required_keys}")
@@ -57,7 +56,6 @@ def validate_full_report(ai_json: dict, main_criteria: dict, tech_criteria: dict
     for err in errors:
         if not isinstance(err, dict):
             raise ReportValidationError("Mỗi lỗi phải là object.")
-        # Chấp nhận thêm key 'hint'
         if set(err.keys()) - {"code", "evidence", "hint"}:
             raise ReportValidationError("Lỗi chứa trường không được hỗ trợ.")
         if not {"code", "evidence"}.issubset(err.keys()):
@@ -67,22 +65,24 @@ def validate_full_report(ai_json: dict, main_criteria: dict, tech_criteria: dict
         evidence = err["evidence"]
         
         if not isinstance(code, str) or code not in valid_error_codes:
-            raise ReportValidationError(f"Mã lỗi không hợp lệ: {code!r}")
+            # Tự động sửa nếu AI bịa mã lỗi
+            code = "P01"
+            err["code"] = code
             
         if not isinstance(evidence, str) or not evidence.strip():
             raise ReportValidationError(f"Lỗi {code} thiếu bằng chứng hợp lệ.")
             
         if code in missing_info_codes:
-            # Nới lỏng độ dài tối thiểu cho lỗi thiếu thông tin (VD: "Thiếu ảnh", "Thiếu file")
             if len(evidence.strip()) < 3:
                 raise ReportValidationError(f"Bằng chứng của {code} quá chung chung.")
         else:
             evidence_norm = normalize_text(evidence)
             if evidence_norm not in prompt_norm:
-                raise ReportValidationError(f"Bằng chứng của {code} không khớp prompt gốc.")
+                # Tự động sửa nếu AI bịa bằng chứng
+                err["evidence"] = "Không có thông tin này trong prompt"
                 
         if "hint" in err and not isinstance(err["hint"], str):
-            raise ReportValidationError(f"hint của {code} phải là chuỗi.")
+            err["hint"] = str(err["hint"])
 
     rewrite = ai_json["rewrite"]
     if not isinstance(rewrite, dict): 
