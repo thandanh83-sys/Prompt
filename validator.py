@@ -16,18 +16,16 @@ def validate_scores_only(ai_scores: dict, required_criteria: dict) -> bool:
     if not isinstance(ai_scores, dict): 
         raise ReportValidationError("Trường 'scores' phải là dict.")
         
-    # Tự động lọc bỏ các DYN nếu AI lỡ sinh ra
-    filtered_scores = {k: v for k, v in ai_scores.items() if not k.startswith("DYN")}
-        
     required_ids = set(required_criteria.keys())
-    received_ids = set(filtered_scores.keys())
+    received_ids = set(ai_scores.keys())
     
+    # [FIX LỖI 4] Kiểm tra nghiêm ngặt: Phải khớp CHÍNH XÁC, không thừa, không thiếu (Cấm DYN)
     if received_ids != required_ids:
         missing = required_ids - received_ids
         extra = received_ids - required_ids
         raise ReportValidationError(f"Sai tập tiêu chí. Thiếu: {sorted(missing)}; Thừa: {sorted(extra)}")
         
-    for crit_id, score in filtered_scores.items():
+    for crit_id, score in ai_scores.items():
         if type(score) is not int:
             raise ReportValidationError(f"Điểm của '{crit_id}' phải là số nguyên.")
         if not (0 <= score <= 10):
@@ -38,9 +36,10 @@ def validate_full_report(ai_json: dict, main_criteria: dict, tech_criteria: dict
     if not isinstance(ai_json, dict): 
         raise ReportValidationError("Dữ liệu AI không phải JSON Object.")
         
+    # [FIX LỖI 1] Kiểm tra chính xác 4 key, không cho phép AI tự thêm key lạ
     required_keys = {"scores", "errors", "rewrite", "identified_domain"}
-    if not required_keys.issubset(set(ai_json.keys())):
-        raise ReportValidationError(f"JSON phải có ít nhất các key: {required_keys}")
+    if set(ai_json.keys()) != required_keys:
+        raise ReportValidationError(f"JSON phải có chính xác các key: {required_keys}. Nhận được: {set(ai_json.keys())}")
 
     all_criteria = {**main_criteria, **tech_criteria}
     validate_scores_only(ai_json["scores"], all_criteria)
@@ -56,18 +55,17 @@ def validate_full_report(ai_json: dict, main_criteria: dict, tech_criteria: dict
     for err in errors:
         if not isinstance(err, dict):
             raise ReportValidationError("Mỗi lỗi phải là object.")
-        if set(err.keys()) - {"code", "evidence", "hint"}:
-            raise ReportValidationError("Lỗi chứa trường không được hỗ trợ.")
-        if not {"code", "evidence"}.issubset(err.keys()):
-            raise ReportValidationError("Lỗi phải có code và evidence.")
+        
+        # Kiểm tra chính xác các key của error
+        if not {"code", "evidence", "hint"}.issubset(err.keys()) or len(err.keys()) > 3:
+            raise ReportValidationError("Mỗi lỗi phải có chính xác 'code', 'evidence', và 'hint'.")
             
         code = err["code"]
         evidence = err["evidence"]
         
+        # [FIX LỖI 2] Từ chối nếu mã lỗi không hợp lệ, không tự sửa thành P01
         if not isinstance(code, str) or code not in valid_error_codes:
-            # Tự động sửa nếu AI bịa mã lỗi
-            code = "P01"
-            err["code"] = code
+            raise ReportValidationError(f"Mã lỗi không hợp lệ: {code!r}")
             
         if not isinstance(evidence, str) or not evidence.strip():
             raise ReportValidationError(f"Lỗi {code} thiếu bằng chứng hợp lệ.")
@@ -77,12 +75,12 @@ def validate_full_report(ai_json: dict, main_criteria: dict, tech_criteria: dict
                 raise ReportValidationError(f"Bằng chứng của {code} quá chung chung.")
         else:
             evidence_norm = normalize_text(evidence)
+            # [FIX LỖI 3] Từ chối nếu bằng chứng bịa đặt, không tự đổi thành câu chung chung
             if evidence_norm not in prompt_norm:
-                # Tự động sửa nếu AI bịa bằng chứng
-                err["evidence"] = "Không có thông tin này trong prompt"
+                raise ReportValidationError(f"Bằng chứng của {code} không khớp prompt gốc.")
                 
-        if "hint" in err and not isinstance(err["hint"], str):
-            err["hint"] = str(err["hint"])
+        if not isinstance(err["hint"], str) or not err["hint"].strip():
+            raise ReportValidationError(f"hint của {code} phải là chuỗi không rỗng.")
 
     rewrite = ai_json["rewrite"]
     if not isinstance(rewrite, dict): 
