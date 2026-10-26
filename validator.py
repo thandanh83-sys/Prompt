@@ -99,6 +99,8 @@ def _calc_tier_score(ai_scores: dict, criteria: dict) -> Decimal:
 
 def calculate_final_score(ai_scores: dict, main_criteria: dict, tech_criteria: dict) -> float:
     all_criteria = {**main_criteria, **tech_criteria}
+    
+    # Bổ sung trọng số mặc định cho các tiêu chí động do AI tự sinh (DYN)
     for key in ai_scores.keys():
         if key.startswith("DYN") and key not in all_criteria:
             all_criteria[key] = {"name": "Tiêu chí chuyên ngành", "weight": 1.0}
