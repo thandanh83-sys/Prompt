@@ -254,9 +254,9 @@ def get_top_prompts():
         return JSONResponse(status_code=500, content={"error": "Supabase chưa được cấu hình."})
     
     try:
-        # ĐÃ CẬP NHẬT: Ưu tiên lấy các prompt mới nhất để dễ test các loại mới (IMAGE, STEM)
+        # Đã cập nhật thêm "domain" vào select
         response = supabase.table("history") \
-            .select("prompt", "type", "total_score", "created_at") \
+            .select("prompt", "type", "domain", "total_score", "created_at") \
             .gte("total_score", 7.0) \
             .order("created_at", desc=True) \
             .limit(100) \
@@ -264,8 +264,7 @@ def get_top_prompts():
         
         prompts = response.data
         
-        # TẠM THỜI COMMENT TÍNH NĂNG RANDOM LẠI ĐỂ BẠN DỄ NHÌN THẤY CÁC PROMPT MỚI
-        # (Khi nào chạy thực tế ổn định, bạn có thể mở comment ra lại)
+        # Tạm ẩn random để dễ test
         # if len(prompts) > 30:
         #     prompts = random.sample(prompts, 30)
             
@@ -306,7 +305,6 @@ def evaluate(request: Request, req: PromptRequest, background_tasks: BackgroundT
             
         rewrite_sections_formatted = ", ".join([f'"{s}"' for s in rules_v38.REQUIRED_REWRITE_SECTIONS])
 
-        # ĐÃ CẬP NHẬT: Truyền {main_task} vào prompt để AI nhận biết (Ảnh, STEM, Văn bản...)
         system_prompt = f"""
 Bạn là Chuyên gia Kiểm định Prompt. Hãy thực hiện 4 bước sau và trả về JSON:
 
@@ -333,8 +331,8 @@ Viết lại đúng 11 mục tiếng Việt:
 
 [NGUYÊN TẮC VÀNG KHI VIẾT LẠI - BẮT BUỘC TUÂN THỦ]:
 1. TUYỆT ĐỐI KHÔNG ĐƯỢC XÓA HOẶC TÓM TẮT Ý CỦA NGƯỜI DÙNG. Thà bài dài và thừa ý còn hơn thiếu ý của họ.
-2. Với những phần người dùng đã viết tốt (Điểm cao 8-10): BẮT BUỘC phải BÊ NGUYÊN VĂN từ ngữ của họ vào mục tương ứng. Không được tự ý đổi từ đồng nghĩa hay viết lại theo văn phong của bạn.
-3. Với những phần người dùng viết chưa tốt (Điểm thấp <8): Bạn ĐƯỢC PHÉP viết thêm ý mới, bổ sung chi tiết, nhưng PHẢI GIỮ LẠI các từ khóa/ý chính cốt lõi của họ, không được phủ định hay thay thế hoàn toàn.
+2. Với những phần người dùng đã viết tốt (Điểm cao 8-10): BẮT BUỘC phải BÊ NGUYÊN VĂN từ ngữ của họ vào mục tương ứng.
+3. Với những phần người dùng viết chưa tốt (Điểm thấp <8): Bạn ĐƯỢC PHÉP viết thêm ý mới, bổ sung chi tiết, nhưng PHẢI GIỮ LẠI các từ khóa/ý chính cốt lõi của họ.
 4. Nếu là INPUT RÁC: Hãy tự sáng tác một prompt 11 mục xuất sắc dựa trên phỏng đoán.
 
 TRẢ VỀ DUY NHẤT JSON SAU:
@@ -392,9 +390,11 @@ TRẢ VỀ DUY NHẤT JSON SAU:
             "rewrite": ai_data["rewrite"]
         }
 
+        # Đã thêm "domain" vào payload lưu xuống Database
         db_payload = {
-            "prompt": prompt_text, "type": main_task, "total_score": final_score,
-            "details": result["details"], "errors": result["errors"], "rewrite": result["rewrite"],
+            "prompt": prompt_text, "type": main_task, "domain": result["domain"],
+            "total_score": final_score, "details": result["details"], 
+            "errors": result["errors"], "rewrite": result["rewrite"],
         }
         background_tasks.add_task(bg_save_history, db_payload)
         return result
