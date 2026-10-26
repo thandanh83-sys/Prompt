@@ -108,6 +108,7 @@ def classify_prompt(prompt_text: str) -> dict:
     lower_text = text.lower()
     techniques = []
     
+    # 1. NHẬN DIỆN KỸ THUẬT (TECHNIQUES)
     if any(kw in lower_text for kw in ["đóng vai", "bạn là", "hãy vào vai", "giả sử bạn là", "act as", "role:", "persona:", "vai trò:"]):
         techniques.append(TECH_ROLE_PLAY)
     if any(kw in lower_text for kw in ["ví dụ 1:", "ví dụ mẫu", "input:", "output:", "dưới đây là ví dụ", "ví dụ như sau", "example:", "few-shot"]):
@@ -119,4 +120,28 @@ def classify_prompt(prompt_text: str) -> dict:
     if any(kw in lower_text for kw in ["viết truyện", "làm thơ", "sáng tác", "kịch bản", "viết quảng cáo", "brainstorm", "viết content", "story", "poem", "script", "write a"]):
         techniques.append(TECH_CREATIVE)
 
-    return {"main_task": TYPE_PROMPT, "techniques": techniques}
+    # 2. NHẬN DIỆN LOẠI PROMPT (MAIN TASK)
+    # Thứ tự ưu tiên: Meta > Image > Table > STEM > Template > Prompt (Mặc định)
+    main_task = TYPE_PROMPT
+    
+    # Prompt Meta (Hướng dẫn viết prompt)
+    if any(kw in lower_text for kw in ["viết prompt", "tạo prompt", "câu lệnh cho ai", "meta prompt", "prompt engineering", "hướng dẫn viết prompt", "cải thiện prompt", "tối ưu prompt"]):
+        main_task = TYPE_PROMPT_META
+        
+    # Image Prompt (Tạo ảnh)
+    elif any(kw in lower_text for kw in ["vẽ ảnh", "tạo ảnh", "midjourney", "stable diffusion", "dall-e", "dalle", "image prompt", "draw", "illustration", "concept art", "3d render", "phác thảo", "bức tranh"]):
+        main_task = TYPE_IMAGE
+        
+    # Table (Bảng biểu)
+    elif any(kw in lower_text for kw in ["dạng bảng", "tạo bảng", "lập bảng", "xuất ra bảng", "excel", "csv", "markdown table", "table format", "biểu đồ", "thống kê"]):
+        main_task = TYPE_TABLE
+        
+    # STEM (Toán, Lý, Hóa, Code)
+    elif any(kw in lower_text for kw in ["toán", "vật lý", "hóa học", "sinh học", "phương trình", "tích phân", "đạo hàm", "thuật toán", "lập trình", "code", "python", "javascript", "c++", "java", "debug", "vật lí", "math", "physics", "chemistry", "algorithm"]):
+        main_task = TYPE_STEM
+        
+    # Template (Mẫu có sẵn)
+    elif any(kw in lower_text for kw in ["mẫu sau", "theo mẫu", "template", "form", "điền vào chỗ trống", "khung sau", "cấu trúc sau"]):
+        main_task = TYPE_TEMPLATE
+
+    return {"main_task": main_task, "techniques": techniques}
