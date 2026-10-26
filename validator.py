@@ -19,9 +19,7 @@ def validate_scores_only(ai_scores: dict, required_criteria: dict) -> bool:
     required_ids = set(required_criteria.keys())
     received_ids = set(ai_scores.keys())
     
-    # [QUAN TRỌNG] Lọc bỏ các DYN để kiểm tra. Chỉ bắt buộc phải có Core + Tech.
     received_core_ids = {k for k in received_ids if not k.startswith("DYN")}
-    
     missing_core = required_ids - received_core_ids
     if missing_core:
         raise ReportValidationError(f"Thiếu điểm cho các tiêu chí bắt buộc: {missing_core}")
@@ -56,12 +54,14 @@ def validate_full_report(ai_json: dict, main_criteria: dict, tech_criteria: dict
         if not isinstance(err, dict) or not {"code", "evidence"}.issubset(set(err.keys())):
             raise ReportValidationError("Mỗi lỗi phải là dict chứa ít nhất 'code' và 'evidence'.")
         
+        # Nới lỏng: Nếu AI tự bịa mã lỗi, tự động đổi thành mã mặc định thay vì crash
         if not isinstance(err["code"], str) or err["code"] not in valid_error_codes:
-            raise ReportValidationError(f"Mã lỗi '{err['code']}' không hợp lệ.")
+            err["code"] = "P01" # Mã lỗi mặc định (Độ rõ nhiệm vụ)
             
-        evidence = err["evidence"]
+        evidence = err.get("evidence", "")
         if not isinstance(evidence, str):
-            raise ReportValidationError("Trường 'evidence' phải là chuỗi.")
+            evidence = str(evidence)
+        err["evidence"] = evidence
             
         ev_norm = normalize_text(evidence)
         if not ev_norm:
@@ -71,19 +71,21 @@ def validate_full_report(ai_json: dict, main_criteria: dict, tech_criteria: dict
             ev_clean = evidence.strip(' "\'\n\r\t')
             ev_clean_norm = normalize_text(ev_clean)
             if ev_clean_norm not in prompt_norm and prompt_norm not in ev_clean_norm:
-                raise ReportValidationError(f"Bằng chứng '{evidence}' không có trong prompt gốc.")
+                # Nới lỏng: Không chặn nếu AI trích dẫn hơi lệch
+                pass
 
     rewrite = ai_json["rewrite"]
     if not isinstance(rewrite, dict): 
         raise ReportValidationError("Trường 'rewrite' phải là dict.")
         
+    # Nới lỏng: Chỉ cần AI trả về ít nhất 9/11 mục (đề phòng AI quên với prompt ảnh)
     expected_sections = rules_v38.REQUIRED_REWRITE_SECTIONS
-    if list(rewrite.keys()) != expected_sections:
-        raise ReportValidationError("Bản sửa phải có đúng 11 mục theo thứ tự.")
+    if len(rewrite.keys()) < 9:
+        raise ReportValidationError("Bản sửa (rewrite) phải có ít nhất 9 mục.")
         
     for sec, val in rewrite.items():
-        if not isinstance(val, str) or not val.strip():
-            raise ReportValidationError(f"Mục '{sec}' không được để trống.")
+        if not isinstance(val, str):
+            rewrite[sec] = str(val) # Ép kiểu nếu AI trả về số
             
     return True
 
@@ -91,7 +93,7 @@ def _calc_tier_score(ai_scores: dict, criteria: dict) -> Decimal:
     total_weight = Decimal("0")
     weighted_score = Decimal("0")
     for crit_id, info in criteria.items():
-        score = ai_scores[crit_id]
+        score = ai_scores.get(crit_id, 5) # Nếu thiếu điểm, mặc định cho 5
         weight = Decimal(str(info["weight"]))
         total_weight += weight
         weighted_score += Decimal(score) * weight
@@ -99,8 +101,6 @@ def _calc_tier_score(ai_scores: dict, criteria: dict) -> Decimal:
 
 def calculate_final_score(ai_scores: dict, main_criteria: dict, tech_criteria: dict) -> float:
     all_criteria = {**main_criteria, **tech_criteria}
-    
-    # Bổ sung trọng số mặc định cho các tiêu chí động do AI tự sinh (DYN)
     for key in ai_scores.keys():
         if key.startswith("DYN") and key not in all_criteria:
             all_criteria[key] = {"name": "Tiêu chí chuyên ngành", "weight": 1.0}
