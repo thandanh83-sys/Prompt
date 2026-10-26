@@ -254,17 +254,20 @@ def get_top_prompts():
         return JSONResponse(status_code=500, content={"error": "Supabase chưa được cấu hình."})
     
     try:
+        # ĐÃ CẬP NHẬT: Ưu tiên lấy các prompt mới nhất để dễ test các loại mới (IMAGE, STEM)
         response = supabase.table("history") \
             .select("prompt", "type", "total_score", "created_at") \
             .gte("total_score", 7.0) \
+            .order("created_at", desc=True) \
             .limit(100) \
             .execute()
         
         prompts = response.data
         
-        # Trả về ngẫu nhiên 30 prompt để trang web nhẹ và đa dạng
-        if len(prompts) > 30:
-            prompts = random.sample(prompts, 30)
+        # TẠM THỜI COMMENT TÍNH NĂNG RANDOM LẠI ĐỂ BẠN DỄ NHÌN THẤY CÁC PROMPT MỚI
+        # (Khi nào chạy thực tế ổn định, bạn có thể mở comment ra lại)
+        # if len(prompts) > 30:
+        #     prompts = random.sample(prompts, 30)
             
         return {"prompts": prompts}
     except Exception as e:
@@ -303,11 +306,12 @@ def evaluate(request: Request, req: PromptRequest, background_tasks: BackgroundT
             
         rewrite_sections_formatted = ", ".join([f'"{s}"' for s in rules_v38.REQUIRED_REWRITE_SECTIONS])
 
+        # ĐÃ CẬP NHẬT: Truyền {main_task} vào prompt để AI nhận biết (Ảnh, STEM, Văn bản...)
         system_prompt = f"""
 Bạn là Chuyên gia Kiểm định Prompt. Hãy thực hiện 4 bước sau và trả về JSON:
 
 [BƯỚC 1: XÁC ĐỊNH LĨNH VỰC & INPUT RÁC]
-- Lĩnh vực: Code, Cosmetics, Marketing, Writing, Education, General.
+- Lĩnh vực: Code, Cosmetics, Marketing, Writing, Education, General. (Lưu ý: Loại prompt được hệ thống xác định là: {main_task})
 - [QUY TẮC ĐẶC BIỆT VỀ INPUT RÁC]: Nếu prompt quá ngắn (dưới 3 từ), vô nghĩa, hoặc chỉ là từ rời rạc (Ví dụ: "mạ", "tả"):
   1. Chấm 0 điểm cho TẤT CẢ các tiêu chí.
   2. Mảng "errors" để trống [].
