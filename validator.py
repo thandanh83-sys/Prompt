@@ -19,12 +19,13 @@ def validate_scores_only(ai_scores: dict, required_criteria: dict) -> bool:
     required_ids = set(required_criteria.keys())
     received_ids = set(ai_scores.keys())
     
-    # Lọc bỏ các DYN để kiểm tra. Chỉ bắt buộc phải có Core + Tech.
-    received_core_ids = {k for k in received_ids if not k.startswith("DYN")}
-    
-    missing_core = required_ids - received_core_ids
-    if missing_core:
-        raise ReportValidationError(f"Thiếu điểm cho các tiêu chí bắt buộc: {missing_core}")
+    # Chặn tuyệt đối việc thêm ID lạ (DYN01...)
+    if received_ids != required_ids:
+        missing = required_ids - received_ids
+        extra = received_ids - required_ids
+        raise ReportValidationError(
+            f"Sai tập tiêu chí. Thiếu: {sorted(missing)}; Thừa: {sorted(extra)}"
+        )
         
     for crit_id, score in ai_scores.items():
         if type(score) is not int:
@@ -49,44 +50,52 @@ def validate_full_report(ai_json: dict, main_criteria: dict, tech_criteria: dict
         raise ReportValidationError("Trường 'errors' phải là list.")
         
     prompt_norm = normalize_text(original_prompt)
-    MISSING_INFO_ERRORS = {"B01", "C02", "C04"}
+    missing_info_codes = {"B01", "C02", "C04"}
     valid_error_codes = set(error_rules.ERROR_RULES.keys())
 
     for err in errors:
-        if not isinstance(err, dict) or not {"code", "evidence"}.issubset(set(err.keys())):
-            raise ReportValidationError("Mỗi lỗi phải là dict chứa ít nhất 'code' và 'evidence'.")
+        if not isinstance(err, dict):
+            raise ReportValidationError("Mỗi lỗi phải là object.")
+        if set(err.keys()) - {"code", "evidence", "hint"}:
+            raise ReportValidationError("Lỗi chứa trường không được hỗ trợ.")
+        if not {"code", "evidence"}.issubset(err.keys()):
+            raise ReportValidationError("Lỗi phải có code và evidence.")
+            
+        code = err["code"]
+        evidence = err["evidence"]
         
-        # [NỚI LỎNG] Nếu AI tự bịa mã lỗi không có trong rules, tự động đổi thành mã mặc định thay vì crash
-        if not isinstance(err["code"], str) or err["code"] not in valid_error_codes:
-            err["code"] = "P01" 
+        if not isinstance(code, str) or code not in valid_error_codes:
+            raise ReportValidationError(f"Mã lỗi không hợp lệ: {code!r}")
             
-        evidence = err.get("evidence", "")
-        if not isinstance(evidence, str):
-            evidence = str(evidence)
-        err["evidence"] = evidence
+        if not isinstance(evidence, str) or not evidence.strip():
+            raise ReportValidationError(f"Lỗi {code} thiếu bằng chứng hợp lệ.")
             
-        ev_norm = normalize_text(evidence)
-        if not ev_norm:
-            raise ReportValidationError(f"Lỗi '{err['code']}' phải có bằng chứng.")
-            
-        if err["code"] not in MISSING_INFO_ERRORS:
-            ev_clean = evidence.strip(' "\'\n\r\t')
-            ev_clean_norm = normalize_text(ev_clean)
-            if ev_clean_norm not in prompt_norm and prompt_norm not in ev_clean_norm:
-                # [NỚI LỎNG] Không chặn nếu AI trích dẫn bằng chứng hơi lệch một chút so với prompt gốc
-                pass
+        if code in missing_info_codes:
+            # Với lỗi thiếu thông tin, bằng chứng phải nêu cụ thể thông tin nào chưa được cung cấp.
+            if len(evidence.strip()) < 8:
+                raise ReportValidationError(f"Bằng chứng của {code} quá chung chung.")
+        else:
+            # Bắt buộc bằng chứng phải nằm trong prompt gốc (không được bịa)
+            evidence_norm = normalize_text(evidence)
+            if evidence_norm not in prompt_norm:
+                raise ReportValidationError(f"Bằng chứng của {code} không khớp prompt gốc.")
+                
+        if "hint" in err and not isinstance(err["hint"], str):
+            raise ReportValidationError(f"hint của {code} phải là chuỗi.")
 
     rewrite = ai_json["rewrite"]
     if not isinstance(rewrite, dict): 
         raise ReportValidationError("Trường 'rewrite' phải là dict.")
         
-    # [NỚI LỎNG] Chỉ cần AI trả về ít nhất 9/11 mục (đề phòng AI quên hoặc gộp mục đối với prompt Vẽ ảnh)
-    if len(rewrite.keys()) < 9:
-        raise ReportValidationError("Bản sửa (rewrite) phải có ít nhất 9 mục.")
+    # Bắt buộc phải đủ 11 mục và đúng thứ tự
+    required_sections = rules_v38.REQUIRED_REWRITE_SECTIONS
+    if list(rewrite.keys()) != required_sections:
+        raise ReportValidationError("Rewrite phải có đúng 11 mục theo đúng thứ tự backend.")
         
-    for sec, val in rewrite.items():
-        if not isinstance(val, str):
-            rewrite[sec] = str(val) # Ép kiểu nếu AI trả về số thay vì chuỗi
+    for section in required_sections:
+        value = rewrite[section]
+        if not isinstance(value, str) or not value.strip():
+            raise ReportValidationError(f"Mục rewrite '{section}' bị thiếu hoặc rỗng.")
             
     return True
 
@@ -94,7 +103,10 @@ def _calc_tier_score(ai_scores: dict, criteria: dict) -> Decimal:
     total_weight = Decimal("0")
     weighted_score = Decimal("0")
     for crit_id, info in criteria.items():
-        score = ai_scores.get(crit_id, 5) # Nếu AI quên chấm điểm tiêu chí nào, mặc định cho 5 điểm để không lỗi
+        # Không tự cho 5 điểm nếu AI quên tiêu chí
+        if crit_id not in ai_scores:
+            raise ReportValidationError(f"Thiếu điểm cho tiêu chí {crit_id}.")
+        score = ai_scores[crit_id]
         weight = Decimal(str(info["weight"]))
         total_weight += weight
         weighted_score += Decimal(score) * weight
@@ -102,9 +114,6 @@ def _calc_tier_score(ai_scores: dict, criteria: dict) -> Decimal:
 
 def calculate_final_score(ai_scores: dict, main_criteria: dict, tech_criteria: dict) -> float:
     all_criteria = {**main_criteria, **tech_criteria}
-    for key in ai_scores.keys():
-        if key.startswith("DYN") and key not in all_criteria:
-            all_criteria[key] = {"name": "Tiêu chí chuyên ngành", "weight": 1.0}
-            
+    # Đã xóa logic thêm DYN vào all_criteria
     weighted_score = _calc_tier_score(ai_scores, all_criteria)
     return float(weighted_score.quantize(Decimal("0.1"), rounding=ROUND_HALF_UP))
